@@ -1,0 +1,13 @@
+---
+title: "Allgemeine_Aufgaben_Gruppe_08"
+author: "Brayan Orjuela Pico, Chen Xue,  Tobias Königer, Xin Zhou,  Yue Zhang  "
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Allgemeine_Aufgaben_Gruppe_08
+
+
