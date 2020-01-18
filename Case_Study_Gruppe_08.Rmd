@@ -9,6 +9,122 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Case_Study_Gruppe_08
+## Aufgabenstellung
+
+Wir sind Mitarbeiter eines fiktiven großen Automobilkonzerns, der unter zwei Automobilmarken, “OEM1” und “OEM2”, mehrere Fahrzeugtypen herstellt. Die Zulieferkette setzt sich aus zwei Instanzen zusammen: den Teilelieferanten und den Komponentenlieferanten. Das Produktionswerk verbaut die Komponenten in die jeweiligen Fahrzeuge. Momentan versuchen die Automobilhersteller, trotz negativer Berichterstattung über Dieselfahrzeuge, Kunden für Autos mit Dieselmotoren zu gewinnen. Ein oft verwendetes Argument ist **die Langlebigkeit von Dieselmotoren, die deutlich größer als die Lebensdauer der Benzinmotoren sein soll.**  Das Management beauftragt Sie, diese Behauptung zu überprüfen um mit der Aussage künftig werben zu können. Überprüfen Sie die Aussage über die Langlebigkeit von Dieselmotoren durch einen Vergleich mit Benzinmotoren. Überprüfen Sie die Aussage über die Langlebigkeit von Dieselmotoren durch einen Vergleich mit Benzinmotoren. Ermitteln Sie den Zeitraum zwischen Zulassungsdatum und Fehlerdatum aller Fahrzeuge, getrennt nach Motorisierungsart und Fahrzeugart. Visualisieren Sie Ihre Ergebnisse entsprechend Ihrer Zielgruppe. Ermöglichen Sie einen Vergleich zwischen den Fahrzeugtypen.
 
 
+
+```{r librarys,include=FALSE}
+
+if(!require(data.table)) {
+  install.packages("data.table")
+  require(data.table)
+}
+
+if(!require(tidyverse)) {
+  install.packages("tidyverse")
+  require(tidyverse)
+}
+```
+
+
+## Importieren der Daten
+
+Aus die Aufgabenstellung gibt solche Annahme:
+$$
+Lebensdauer=  Fehlerdatum -Zulassungsdatum
+$$
+### 1.1 relevante Daten
+zuerst wurde es analysiert, welche daten relevant sind.
+
+es gibt drei Teilaufgaben:
+
+1. Überprüfen Sie die Aussage über die Langlebigkeit von Dieselmotoren durch einen Vergleich mit Benzinmotoren.
+2. Ermitteln Sie den Zeitraum zwischen Zulassungsdatum und Fehlerdatum aller Fahrzeuge, getrennt nach Motorisierungsart und Fahrzeugart.
+3.  Visualisieren Sie Ihre Ergebnisse entsprechend Ihrer Zielgruppe. Ermöglichen Sie einen Vergleich zwischen den Fahrzeugtypen.
+
+
+Für Analyse nötwendige Parameter sind wie folgend aufgelistet :
+
+
+- Fehlerdatum  aller Fahrzeuge
+- Zulassungsdatum aller Fahrzeuge
+- Motorisierungsart (mit Diesel oder Benzin angetrieben)
+- Fahrzeugart(Typ11,Typ12, Typ21 oder Typ22)
+
+
+| Nr.  | Faktoren                  | directory name       | file name                               | Spezifikation |
+| ---- | ------------------------- | -------------------- | --------------------------------------- | ------------- |
+| 1    | Zulassungsdatum           | "./Data/Zulassungen" | "Zulassungen_alle_Fahrzeuge.csv"        |               |
+| 2    | Fehlerdatum der Fahrzeuge | "./Data/Fahrzeug"    | "Fahrzeuge_OEM1_Typ11.csv"              | Typ11         |
+| 3    |                           |                      | "Fahrzeuge_OEM1_Typ12.csv"              | Typ12         |
+| 4    |                           |                      | "Fahrzeuge_OEM2_Typ21.csv"              | Typ21         |
+| 5    |                           |                      | "Fahrzeuge_OEM2_Typ22.csv"              | Typ22         |
+| 6    | Motorisierungsart         | "./Data/Fahrzeug"    | "Bestandteile_Fahrzeuge_OEM1_Typ11.csv" | Typ11         |
+| 7    |                           |                      | "Bestandteile_Fahrzeuge_OEM1_Typ12.csv" | Typ12         |
+| 8    |                           |                      | "Bestandteile_Fahrzeuge_OEM2_Typ21.csv" | Typ21         |
+| 9    |                           |                      | "Bestandteile_Fahrzeuge_OEM2_Typ22.csv" | Typ22         |
+| 10   | Fehlerdatum der Motor     | "./Data/Komponente"  | "Komponente_K1BE1.csv"                  |               |
+| 11   |                           |                      | "Komponente_K1BE2.csv"                  |               |
+| 12   |                           |                      | "Komponente_K1DI1.csv"                  |               |
+| 13   |                           |                      | "Komponente_K1DI2.txt"                  |               |
+
+
+
+### 1.2 Pfad 
+
+
+
+```{r path_config,}
+
+# figure out  File-index in each folder
+
+dir_Fahrzeug<-"./Data/Fahrzeug" 
+
+dir_Komponente<-"./Data/Komponente"
+
+dir_Zulassungen<-"./Data/Zulassungen" 
+
+
+files_Fahrzeug<-list.files(path = dir_Fahrzeug)
+files_Fahrzeug
+files_Komponente<-list.files(path = dir_Komponente)
+files_Komponente
+files_Zulassungen<-list.files(path = dir_Zulassungen)
+files_Zulassungen
+
+
+
+```
+
+### 1.2 einlesen
+
+```{r}
+Komponente_K1BE1 <- fread(file.path(dir_Komponente,files_Komponente[17]))
+Komponente_K1BE2 <- fread(file.path(dir_Komponente,files_Komponente[18]))
+Komponente_K1DI1 <- fread(file.path(dir_Komponente,files_Komponente[19]))
+Komponente_K1DI2 <- fread(file.path(dir_Komponente,files_Komponente[20]))
+glimpse(Komponente_K1BE1)
+glimpse(Komponente_K1BE2)
+glimpse(Komponente_K1DI1)
+#glimpse(Komponente_K1DI2)#  fehlerhaft original Text-Datei nur eine Zeile
+
+
+```
+
+```{r}
+#do not run !!!
+#Komponente_K1DI2_V2<-read.table(file.path(dir_Komponente,files_Komponente[20]),sep = "\\")
+
+
+```
+
+
+## Aufbereiten der Daten
+```{r}
+
+
+
+
+```
