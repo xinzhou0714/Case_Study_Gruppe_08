@@ -501,8 +501,8 @@ Lebensdauer=  Fehlerdatum -Zulassungsdatum
 </tr>
 </tbody>
 </table>
-<div id="pfad" class="section level3">
-<h3>1.2 Pfad</h3>
+<div id="pfad-configuration" class="section level3">
+<h3>1.2 Pfad configuration</h3>
 <pre class="r"><code># figure out  File-index in each folder
 
 dir_Fahrzeug&lt;-&quot;./Data/Fahrzeug&quot; 
@@ -511,6 +511,7 @@ dir_Komponente&lt;-&quot;./Data/Komponente&quot;
 
 dir_Zulassungen&lt;-&quot;./Data/Zulassungen&quot; 
 
+dir_Additional&lt;-&quot;./Additional&quot;
 
 files_Fahrzeug&lt;-list.files(path = dir_Fahrzeug)
 files_Fahrzeug</code></pre>
@@ -543,18 +544,172 @@ files_Komponente</code></pre>
 <pre class="r"><code>files_Zulassungen&lt;-list.files(path = dir_Zulassungen)
 files_Zulassungen</code></pre>
 <pre><code>## [1] &quot;Zulassungen_alle_Fahrzeuge.csv&quot;</code></pre>
+<pre class="r"><code>temp_csv&lt;-&quot;temp.csv&quot;</code></pre>
 </div>
 <div id="einlesen" class="section level3">
-<h3>1.2 einlesen</h3>
-<pre class="r"><code>Komponente_K1BE1 &lt;- fread(file.path(dir_Komponente,files_Komponente[17]))
+<h3>1.3 Einlesen</h3>
+<pre class="r"><code># Einlesen von datei &quot;Zulassungen_alle_Fahrzeuge.csv&quot;
+Zulassungen_alle_Fahrzeuge &lt;- fread(file.path(dir_Zulassungen,files_Zulassungen[1]))
+
+
+# Einlesen von datei &quot;Fahrzeuge_OEM1_Typ11.csv&quot;
+Fahrzeuge_OEM1_Typ11 &lt;- fread(file.path(dir_Fahrzeug,files_Fahrzeug[5]))
+
+
+# Einlesen von datei &quot;Fahrzeuge_OEM1_Typ12.csv&quot;
+Fahrzeuge_OEM1_Typ12 &lt;- fread(file.path(dir_Fahrzeug,files_Fahrzeug[6]))
+
+# Einlesen von datei &quot;Fahrzeuge_OEM2_Typ21.csv&quot;
+Fahrzeuge_OEM2_Typ21 &lt;- fread(file.path(dir_Fahrzeug,files_Fahrzeug[7]))
+
+# Einlesen von datei &quot;Fahrzeuge_OEM2_Typ22.csv&quot;
+Fahrzeuge_OEM2_Typ22 &lt;- fread(file.path(dir_Fahrzeug,files_Fahrzeug[8]))
+
+# Einlesen von datei &quot;Bestandteile_Fahrzeuge_OEM1_Typ11.csv&quot;
+Bestandteile_Fahrzeuge_OEM1_Typ11 &lt;- fread(file.path(dir_Fahrzeug,files_Fahrzeug[1]))
+
+# Einlesen von datei &quot;Bestandteile_Fahrzeuge_OEM1_Typ12.csv&quot;
+Bestandteile_Fahrzeuge_OEM1_Typ12 &lt;- fread(file.path(dir_Fahrzeug,files_Fahrzeug[2]))
+
+# Einlesen von datei &quot;Bestandteile_Fahrzeuge_OEM2_Typ21.csv&quot;
+Bestandteile_Fahrzeuge_OEM2_Typ21 &lt;- fread(file.path(dir_Fahrzeug,files_Fahrzeug[3]))
+
+# Einlesen von datei &quot;Bestandteile_Fahrzeuge_OEM2_Typ22.csv&quot;
+Bestandteile_Fahrzeuge_OEM2_Typ22 &lt;- fread(file.path(dir_Fahrzeug,files_Fahrzeug[4]))
+
+
+
+# Einlesen von datei &quot;Komponente_K1BE1.csv&quot;
+Komponente_K1BE1 &lt;- fread(file.path(dir_Komponente,files_Komponente[17]))
+# Einlesen von datei &quot;Komponente_K1BE2.csv&quot;
 Komponente_K1BE2 &lt;- fread(file.path(dir_Komponente,files_Komponente[18]))
+# Einlesen von datei &quot;Komponente_K1DI1.csv&quot;
 Komponente_K1DI1 &lt;- fread(file.path(dir_Komponente,files_Komponente[19]))
-Komponente_K1DI2 &lt;- fread(file.path(dir_Komponente,files_Komponente[20]))</code></pre>
-<pre><code>## Warning in fread(file.path(dir_Komponente, files_Komponente[20])): Found and
-## resolved improper quoting in first 100 rows. If the fields are not quoted (e.g.
-## field separator does not appear within any field), try quote=&quot;&quot; to avoid this
-## warning.</code></pre>
-<pre class="r"><code>glimpse(Komponente_K1BE1)</code></pre>
+# Einlesen von datei &quot;Komponente_K1DI2.txt&quot;
+#Komponente_K1DI2 &lt;- fread(file.path(dir_Komponente,files_Komponente[20]))   #keine richtige Format von Rückgabewerte 
+#unstructures txt muss separate behandelt werden
+plain_text_Komponente_K1DI2&lt;-read_file(file.path(dir_Komponente,files_Komponente[20]))
+with_tab&lt;-str_replace_all(plain_text_Komponente_K1DI2,&quot;\\s&quot;,&quot;\n&quot;)
+with_semicolon&lt;-str_replace_all(with_tab,&quot;\\\\&quot;,&quot;;&quot;)
+write_file(with_semicolon,file.path(dir_Additional,temp_csv))
+Komponente_K1DI2 &lt;- fread(file.path(dir_Additional,temp_csv))</code></pre>
+<pre><code>## Warning in fread(file.path(dir_Additional, temp_csv)): Detected 9 column names
+## but the data has 10 columns (i.e. invalid file). Added 1 extra default column
+## name for the first column which is guessed to be row names or an index. Use
+## setnames() afterwards if this guess is not correct, or fix the file write
+## command that created the file to create a valid file.</code></pre>
+<pre class="r"><code>file.remove(file.path(dir_Additional,temp_csv))</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+</div>
+</div>
+<div id="aufbereiten-der-daten" class="section level2">
+<h2>Aufbereiten der Daten</h2>
+<div id="structure-analyse" class="section level3">
+<h3>2.1structure analyse</h3>
+<pre class="r"><code># Strukture von datei &quot;Zulassungen_alle_Fahrzeuge.csv&quot;
+glimpse(Zulassungen_alle_Fahrzeuge)</code></pre>
+<pre><code>## Observations: 3,204,105
+## Variables: 4
+## $ V1 &lt;int&gt; NA, 408097, 408098, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 408099, 40810...
+## $ V2 &lt;chr&gt; &quot;IDNummer&quot;, &quot;11-1-11-1&quot;, &quot;11-1-11-2&quot;, &quot;12-1-12-1&quot;, &quot;12-1-12-2&quot;, ...
+## $ V3 &lt;chr&gt; &quot;Gemeinden&quot;, &quot;DRESDEN&quot;, &quot;DRESDEN&quot;, &quot;LEIPZIG&quot;, &quot;LEIPZIG&quot;, &quot;DORTMU...
+## $ V4 &lt;chr&gt; &quot;Zulassung&quot;, &quot;2009-01-01&quot;, &quot;2009-01-01&quot;, &quot;2009-01-01&quot;, &quot;2009-01-...</code></pre>
+<pre class="r"><code># Strukture von datei &quot;Fahrzeuge_OEM1_Typ11.csv&quot;
+glimpse(Fahrzeuge_OEM1_Typ11)</code></pre>
+<pre><code>## Observations: 1,977,164
+## Variables: 9
+## $ V1                      &lt;int&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, ...
+## $ X1                      &lt;int&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, ...
+## $ ID_Fahrzeug             &lt;chr&gt; &quot;11-1-11-1&quot;, &quot;11-1-11-2&quot;, &quot;11-1-11-3&quot;, &quot;11-...
+## $ Produktionsdatum        &lt;chr&gt; &quot;2008-11-18&quot;, &quot;2008-11-18&quot;, &quot;2008-11-19&quot;, &quot;...
+## $ Herstellernummer        &lt;int&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1...
+## $ Werksnummer             &lt;int&gt; 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11,...
+## $ Fehlerhaft              &lt;int&gt; 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1...
+## $ Fehlerhaft_Datum        &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, &quot;2010-03-16...
+## $ Fehlerhaft_Fahrleistung &lt;int&gt; 0, 0, 0, 0, 0, 0, 0, 0, 44951, 0, 44848, 0,...</code></pre>
+<pre class="r"><code># Strukture von datei &quot;Fahrzeuge_OEM1_Typ12.csv&quot;
+glimpse(Fahrzeuge_OEM1_Typ12)</code></pre>
+<pre><code>## Observations: 408,096
+## Variables: 9
+## $ V1                      &lt;int&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, ...
+## $ X1                      &lt;int&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, ...
+## $ ID_Fahrzeug             &lt;chr&gt; &quot;12-1-12-1&quot;, &quot;12-1-12-2&quot;, &quot;12-1-12-3&quot;, &quot;12-...
+## $ Produktionsdatum        &lt;chr&gt; &quot;2008-11-19&quot;, &quot;2008-11-19&quot;, &quot;2008-11-19&quot;, &quot;...
+## $ Herstellernummer        &lt;int&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1...
+## $ Werksnummer             &lt;int&gt; 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12,...
+## $ Fehlerhaft              &lt;int&gt; 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1...
+## $ Fehlerhaft_Datum        &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,...
+## $ Fehlerhaft_Fahrleistung &lt;int&gt; 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4...</code></pre>
+<pre class="r"><code># Strukture von datei &quot;Fahrzeuge_OEM2_Typ21.csv&quot;
+glimpse(Fahrzeuge_OEM2_Typ21)</code></pre>
+<pre><code>## Observations: 512,354
+## Variables: 10
+## $ V1                               &lt;int&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,...
+## $ X1                               &lt;int&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,...
+## $ ID_Fahrzeug                      &lt;chr&gt; &quot;21-2-21-1&quot;, &quot;21-2-21-2&quot;, &quot;21-2-21...
+## $ Herstellernummer                 &lt;int&gt; 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2...
+## $ Werksnummer                      &lt;int&gt; 21, 21, 21, 21, 21, 21, 21, 21, 21...
+## $ Fehlerhaft                       &lt;int&gt; 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0...
+## $ Fehlerhaft_Datum                 &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA...
+## $ Fehlerhaft_Fahrleistung          &lt;int&gt; 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0...
+## $ Produktionsdatum_Origin_01011970 &lt;int&gt; 14202, 14202, 15353, 14203, 14203,...
+## $ origin                           &lt;chr&gt; &quot;01-01-1970&quot;, &quot;01-01-1970&quot;, &quot;01-01...</code></pre>
+<pre class="r"><code># Strukture von datei &quot;Fahrzeuge_OEM2_Typ22.csv&quot;
+glimpse(Fahrzeuge_OEM2_Typ22)</code></pre>
+<pre><code>## Observations: 306,490
+## Variables: 10
+## $ V1                               &lt;int&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,...
+## $ X1                               &lt;int&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,...
+## $ ID_Fahrzeug                      &lt;chr&gt; &quot;22-2-21-1&quot;, &quot;22-2-21-2&quot;, &quot;22-2-21...
+## $ Herstellernummer                 &lt;int&gt; 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2...
+## $ Werksnummer                      &lt;int&gt; 21, 21, 21, 21, 21, 21, 21, 21, 21...
+## $ Fehlerhaft                       &lt;int&gt; 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0...
+## $ Fehlerhaft_Datum                 &lt;chr&gt; &quot;2010-03-18&quot;, &quot;2010-03-18&quot;, NA, NA...
+## $ Fehlerhaft_Fahrleistung          &lt;int&gt; 18841, 18841, 0, 0, 0, 0, 0, 0, 0,...
+## $ Produktionsdatum_Origin_01011970 &lt;int&gt; 14202, 14202, 14202, 14203, 14203,...
+## $ origin                           &lt;chr&gt; &quot;01-01-1970&quot;, &quot;01-01-1970&quot;, &quot;01-01...</code></pre>
+<pre class="r"><code># Strukture von datei &quot;Bestandteile_Fahrzeuge_OEM1_Typ11.csv&quot;
+glimpse(Bestandteile_Fahrzeuge_OEM1_Typ11)</code></pre>
+<pre><code>## Observations: 1,977,165
+## Variables: 6
+## $ V1 &lt;int&gt; NA, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 1...
+## $ V2 &lt;chr&gt; &quot;ID_Karosserie&quot;, &quot;K4-112-1121-3&quot;, &quot;K4-112-1121-4&quot;, &quot;K4-112-1121-...
+## $ V3 &lt;chr&gt; &quot;ID_Schaltung&quot;, &quot;K3SG1-105-1051-32&quot;, &quot;K3SG1-105-1051-141&quot;, &quot;K3SG...
+## $ V4 &lt;chr&gt; &quot;ID_Sitze&quot;, &quot;K2LE1-109-1091-2&quot;, &quot;K2ST1-109-1092-5&quot;, &quot;K2ST1-109-1...
+## $ V5 &lt;chr&gt; &quot;ID_Motor&quot;, &quot;K1BE1-101-1011-7&quot;, &quot;K1BE1-101-1011-12&quot;, &quot;K1BE1-101-...
+## $ V6 &lt;chr&gt; &quot;ID_Fahrzeug&quot;, &quot;11-1-11-1&quot;, &quot;11-1-11-2&quot;, &quot;11-1-11-3&quot;, &quot;11-1-11-4...</code></pre>
+<pre class="r"><code># Strukture von datei &quot;Bestandteile_Fahrzeuge_OEM1_Typ12.csv&quot;
+glimpse(Bestandteile_Fahrzeuge_OEM1_Typ12)</code></pre>
+<pre><code>## Observations: 408,097
+## Variables: 6
+## $ V1 &lt;int&gt; NA, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 1...
+## $ V2 &lt;chr&gt; &quot;ID_Karosserie&quot;, &quot;K5-112-1122-1&quot;, &quot;K5-112-1122-11&quot;, &quot;K5-112-1122...
+## $ V3 &lt;chr&gt; &quot;ID_Schaltung&quot;, &quot;K3SG1-105-1051-4&quot;, &quot;K3AG1-105-1051-9&quot;, &quot;K3AG1-1...
+## $ V4 &lt;chr&gt; &quot;ID_Sitze&quot;, &quot;K2ST1-109-1092-1&quot;, &quot;K2ST1-109-1092-16&quot;, &quot;K2ST1-109-...
+## $ V5 &lt;chr&gt; &quot;ID_Motor&quot;, &quot;K1BE1-101-1011-90&quot;, &quot;K1BE1-101-1011-2&quot;, &quot;K1BE1-101-...
+## $ V6 &lt;chr&gt; &quot;ID_Fahrzeug&quot;, &quot;12-1-12-1&quot;, &quot;12-1-12-2&quot;, &quot;12-1-12-3&quot;, &quot;12-1-12-4...</code></pre>
+<pre class="r"><code># Strukture von datei &quot;Bestandteile_Fahrzeuge_OEM2_Typ21.csv&quot;
+glimpse(Bestandteile_Fahrzeuge_OEM2_Typ21)</code></pre>
+<pre><code>## Observations: 512,355
+## Variables: 6
+## $ V1 &lt;int&gt; NA, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 1...
+## $ V2 &lt;chr&gt; &quot;ID_Karosserie&quot;, &quot;K6-113-1132-1&quot;, &quot;K6-113-1132-2&quot;, &quot;K6-113-1132-...
+## $ V3 &lt;chr&gt; &quot;ID_Schaltung&quot;, &quot;K3AG2-108-1082-10&quot;, &quot;K3AG2-108-1082-6&quot;, &quot;K3AG2-...
+## $ V4 &lt;chr&gt; &quot;ID_Sitze&quot;, &quot;K2ST2-109-1092-44&quot;, &quot;K2ST2-109-1092-42&quot;, &quot;K2ST2-109...
+## $ V5 &lt;chr&gt; &quot;ID_Motor&quot;, &quot;K1BE2-101-1011-1&quot;, &quot;K1DI2-103-1031-1&quot;, &quot;K1BE2-101-1...
+## $ V6 &lt;chr&gt; &quot;ID_Fahrzeug&quot;, &quot;21-2-21-1&quot;, &quot;21-2-21-2&quot;, &quot;21-2-21-4&quot;, &quot;21-2-21-5...</code></pre>
+<pre class="r"><code># Strukture von datei &quot;Bestandteile_Fahrzeuge_OEM2_Typ22.csv&quot;
+glimpse(Bestandteile_Fahrzeuge_OEM2_Typ22)</code></pre>
+<pre><code>## Observations: 306,490
+## Variables: 6
+## $ X1            &lt;int&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16...
+## $ ID_Karosserie &lt;chr&gt; &quot;K7-114-1142-1&quot;, &quot;K7-114-1142-2&quot;, &quot;K7-114-1142-5&quot;, &quot;K...
+## $ ID_Schaltung  &lt;chr&gt; &quot;K3AG2-108-1082-9&quot;, &quot;K3AG2-108-1082-11&quot;, &quot;K3AG2-108-1...
+## $ ID_Sitze      &lt;chr&gt; &quot;K2ST2-109-1092-2&quot;, &quot;K2ST2-109-1092-59&quot;, &quot;K2ST2-109-1...
+## $ ID_Motor      &lt;chr&gt; &quot;K1DI2-103-1031-2&quot;, &quot;K1BE2-101-1011-2&quot;, &quot;K1BE2-101-10...
+## $ ID_Fahrzeug   &lt;chr&gt; &quot;22-2-21-1&quot;, &quot;22-2-21-2&quot;, &quot;22-2-21-3&quot;, &quot;22-2-21-4&quot;, &quot;...</code></pre>
+<pre class="r"><code># Strukture von datei &quot;Komponente_K1BE1.csv&quot;
+glimpse(Komponente_K1BE1)</code></pre>
 <pre><code>## Observations: 1,192,630
 ## Variables: 10
 ## $ V1                               &lt;int&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,...
@@ -567,7 +722,8 @@ Komponente_K1DI2 &lt;- fread(file.path(dir_Komponente,files_Komponente[20]))</co
 ## $ Fehlerhaft_Fahrleistung          &lt;int&gt; 0, 0, 0, 0, 0, 0, 0, 31767, 0, 0, ...
 ## $ Produktionsdatum_Origin_01011970 &lt;int&gt; 14195, 14196, 14196, 14195, 14196,...
 ## $ origin                           &lt;chr&gt; &quot;01-01-1970&quot;, &quot;01-01-1970&quot;, &quot;01-01...</code></pre>
-<pre class="r"><code>glimpse(Komponente_K1BE2)</code></pre>
+<pre class="r"><code># Strukture von datei &quot;Komponente_K1BE2.csv&quot;
+glimpse(Komponente_K1BE2)</code></pre>
 <pre><code>## Observations: 409,422
 ## Variables: 10
 ## $ V1                               &lt;int&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,...
@@ -580,7 +736,8 @@ Komponente_K1DI2 &lt;- fread(file.path(dir_Komponente,files_Komponente[20]))</co
 ## $ Fehlerhaft_Fahrleistung          &lt;int&gt; 0, 0, 0, 0, 9272, 0, 0, 0, 0, 0, 9...
 ## $ Produktionsdatum_Origin_01011970 &lt;int&gt; 14196, 14196, 14196, 14196, 14196,...
 ## $ origin                           &lt;chr&gt; &quot;01-01-1970&quot;, &quot;01-01-1970&quot;, &quot;01-01...</code></pre>
-<pre class="r"><code>glimpse(Komponente_K1DI1)</code></pre>
+<pre class="r"><code># Strukture von datei &quot;Komponente_K1DI1.csv&quot;
+glimpse(Komponente_K1DI1)</code></pre>
 <pre><code>## Observations: 1,192,630
 ## Variables: 23
 ## $ V1                        &lt;int&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13...
@@ -606,13 +763,27 @@ Komponente_K1DI2 &lt;- fread(file.path(dir_Komponente,files_Komponente[20]))</co
 ## $ Fehlerhaft                &lt;int&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, N...
 ## $ Fehlerhaft_Datum          &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, N...
 ## $ Fehlerhaft_Fahrleistung   &lt;int&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, N...</code></pre>
-<pre class="r"><code>#glimpse(Komponente_K1DI2)#  fehlerhaft original Text-Datei nur eine Zeile</code></pre>
-<pre class="r"><code>#do not run !!!
-#Komponente_K1DI2_V2&lt;-read.table(file.path(dir_Komponente,files_Komponente[20]),sep = &quot;\\&quot;)</code></pre>
+<pre class="r"><code># Strukture von datei &quot;Komponente_K1DI2.txt&quot;
+glimpse(Komponente_K1DI2)</code></pre>
+<pre><code>## Observations: 409,422
+## Variables: 10
+## $ V1                               &lt;int&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,...
+## $ X1                               &lt;int&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,...
+## $ ID_Motor                         &lt;chr&gt; &quot;K1DI2-103-1031-2&quot;, &quot;K1DI2-103-103...
+## $ Herstellernummer                 &lt;int&gt; 103, 103, 103, 103, 103, 103, 103,...
+## $ Werksnummer                      &lt;int&gt; 1031, 1031, 1031, 1031, 1031, 1031...
+## $ Fehlerhaft                       &lt;int&gt; 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0...
+## $ Fehlerhaft_Datum                 &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, &quot;2...
+## $ Fehlerhaft_Fahrleistung          &lt;int&gt; 0, 0, 0, 0, 0, 0, 0, 0, 27498, 274...
+## $ Produktionsdatum_Origin_01011970 &lt;int&gt; 14195, 14196, 14196, 14196, 14196,...
+## $ origin                           &lt;chr&gt; &quot;01-01-1970&quot;, &quot;01-01-1970&quot;, &quot;01-01...</code></pre>
 </div>
+<div id="structure-analyse-1" class="section level3">
+<h3>2.2structure analyse</h3>
 </div>
-<div id="aufbereiten-der-daten" class="section level2">
-<h2>Aufbereiten der Daten</h2>
+<div id="structure-analyse-2" class="section level3">
+<h3>2.2structure analyse</h3>
+</div>
 </div>
 
 

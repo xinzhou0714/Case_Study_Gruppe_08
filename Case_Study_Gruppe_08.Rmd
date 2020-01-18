@@ -20,7 +20,7 @@ Wir sind Mitarbeiter eines fiktiven großen Automobilkonzerns, der unter zwei Au
 if(!require(data.table)) {
   install.packages("data.table")
   require(data.table)
-}
+}# für Verwendung von fread()
 
 if(!require(tidyverse)) {
   install.packages("tidyverse")
@@ -72,7 +72,7 @@ Für Analyse nötwendige Parameter sind wie folgend aufgelistet :
 
 
 
-### 1.2 Pfad 
+### 1.2 Pfad configuration
 
 
 
@@ -86,6 +86,7 @@ dir_Komponente<-"./Data/Komponente"
 
 dir_Zulassungen<-"./Data/Zulassungen" 
 
+dir_Additional<-"./Additional"
 
 files_Fahrzeug<-list.files(path = dir_Fahrzeug)
 files_Fahrzeug
@@ -94,34 +95,151 @@ files_Komponente
 files_Zulassungen<-list.files(path = dir_Zulassungen)
 files_Zulassungen
 
+temp_csv<-"temp.csv"
+
 
 
 ```
 
-### 1.2 einlesen
+### 1.3 Einlesen
 
 ```{r}
+# Einlesen von datei "Zulassungen_alle_Fahrzeuge.csv"
+Zulassungen_alle_Fahrzeuge <- fread(file.path(dir_Zulassungen,files_Zulassungen[1]))
+
+
+# Einlesen von datei "Fahrzeuge_OEM1_Typ11.csv"
+Fahrzeuge_OEM1_Typ11 <- fread(file.path(dir_Fahrzeug,files_Fahrzeug[5]))
+
+
+# Einlesen von datei "Fahrzeuge_OEM1_Typ12.csv"
+Fahrzeuge_OEM1_Typ12 <- fread(file.path(dir_Fahrzeug,files_Fahrzeug[6]))
+
+# Einlesen von datei "Fahrzeuge_OEM2_Typ21.csv"
+Fahrzeuge_OEM2_Typ21 <- fread(file.path(dir_Fahrzeug,files_Fahrzeug[7]))
+
+# Einlesen von datei "Fahrzeuge_OEM2_Typ22.csv"
+Fahrzeuge_OEM2_Typ22 <- fread(file.path(dir_Fahrzeug,files_Fahrzeug[8]))
+
+# Einlesen von datei "Bestandteile_Fahrzeuge_OEM1_Typ11.csv"
+Bestandteile_Fahrzeuge_OEM1_Typ11 <- fread(file.path(dir_Fahrzeug,files_Fahrzeug[1]))
+
+# Einlesen von datei "Bestandteile_Fahrzeuge_OEM1_Typ12.csv"
+Bestandteile_Fahrzeuge_OEM1_Typ12 <- fread(file.path(dir_Fahrzeug,files_Fahrzeug[2]))
+
+# Einlesen von datei "Bestandteile_Fahrzeuge_OEM2_Typ21.csv"
+Bestandteile_Fahrzeuge_OEM2_Typ21 <- fread(file.path(dir_Fahrzeug,files_Fahrzeug[3]))
+
+# Einlesen von datei "Bestandteile_Fahrzeuge_OEM2_Typ22.csv"
+Bestandteile_Fahrzeuge_OEM2_Typ22 <- fread(file.path(dir_Fahrzeug,files_Fahrzeug[4]))
+
+
+
+# Einlesen von datei "Komponente_K1BE1.csv"
 Komponente_K1BE1 <- fread(file.path(dir_Komponente,files_Komponente[17]))
+# Einlesen von datei "Komponente_K1BE2.csv"
 Komponente_K1BE2 <- fread(file.path(dir_Komponente,files_Komponente[18]))
+# Einlesen von datei "Komponente_K1DI1.csv"
 Komponente_K1DI1 <- fread(file.path(dir_Komponente,files_Komponente[19]))
-Komponente_K1DI2 <- fread(file.path(dir_Komponente,files_Komponente[20]))
-glimpse(Komponente_K1BE1)
-glimpse(Komponente_K1BE2)
-glimpse(Komponente_K1DI1)
-#glimpse(Komponente_K1DI2)#  fehlerhaft original Text-Datei nur eine Zeile
+# Einlesen von datei "Komponente_K1DI2.txt"
+#Komponente_K1DI2 <- fread(file.path(dir_Komponente,files_Komponente[20]))   #keine richtige Format von Rückgabewerte 
+#unstructures txt muss separate behandelt werden
+plain_text_Komponente_K1DI2<-read_file(file.path(dir_Komponente,files_Komponente[20]))
+with_tab<-str_replace_all(plain_text_Komponente_K1DI2,"\\s","\n")
+with_semicolon<-str_replace_all(with_tab,"\\\\",";")
+write_file(with_semicolon,file.path(dir_Additional,temp_csv))
+Komponente_K1DI2 <- fread(file.path(dir_Additional,temp_csv))
+file.remove(file.path(dir_Additional,temp_csv))
 
 
 ```
+
+
 
 ```{r}
-#do not run !!!
-#Komponente_K1DI2_V2<-read.table(file.path(dir_Komponente,files_Komponente[20]),sep = "\\")
+
+
 
 
 ```
 
+
+```{r}
+
+
+
+
+```
 
 ## Aufbereiten der Daten
+
+### 2.1structure analyse
+
+```{r}
+
+# Strukture von datei "Zulassungen_alle_Fahrzeuge.csv"
+glimpse(Zulassungen_alle_Fahrzeuge)
+
+
+# Strukture von datei "Fahrzeuge_OEM1_Typ11.csv"
+glimpse(Fahrzeuge_OEM1_Typ11)
+
+
+# Strukture von datei "Fahrzeuge_OEM1_Typ12.csv"
+glimpse(Fahrzeuge_OEM1_Typ12)
+
+# Strukture von datei "Fahrzeuge_OEM2_Typ21.csv"
+glimpse(Fahrzeuge_OEM2_Typ21)
+
+# Strukture von datei "Fahrzeuge_OEM2_Typ22.csv"
+glimpse(Fahrzeuge_OEM2_Typ22)
+
+# Strukture von datei "Bestandteile_Fahrzeuge_OEM1_Typ11.csv"
+glimpse(Bestandteile_Fahrzeuge_OEM1_Typ11)
+
+# Strukture von datei "Bestandteile_Fahrzeuge_OEM1_Typ12.csv"
+glimpse(Bestandteile_Fahrzeuge_OEM1_Typ12)
+
+# Strukture von datei "Bestandteile_Fahrzeuge_OEM2_Typ21.csv"
+glimpse(Bestandteile_Fahrzeuge_OEM2_Typ21)
+
+# Strukture von datei "Bestandteile_Fahrzeuge_OEM2_Typ22.csv"
+glimpse(Bestandteile_Fahrzeuge_OEM2_Typ22)
+
+
+
+# Strukture von datei "Komponente_K1BE1.csv"
+glimpse(Komponente_K1BE1)
+
+# Strukture von datei "Komponente_K1BE2.csv"
+glimpse(Komponente_K1BE2)
+
+# Strukture von datei "Komponente_K1DI1.csv"
+glimpse(Komponente_K1DI1)
+
+# Strukture von datei "Komponente_K1DI2.txt"
+glimpse(Komponente_K1DI2)
+
+```
+
+
+
+### 2.2structure analyse
+
+
+```{r}
+
+
+
+
+```
+
+
+
+### 2.2structure analyse
+
+
+
 ```{r}
 
 
