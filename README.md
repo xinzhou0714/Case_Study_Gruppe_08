@@ -10,7 +10,7 @@ the screenshot of origin content of directory  is  shown below:
 
 ![Directory-Shortcut.png](pics/Directory-Shortcut.png)
 
-but  the directory `Data`   will ignored  on  Github because the data files are to large.
+but  the directory `Data`   will ignored  on  Github because the data files are too large.
 
 so please add data file after you cloned this repository.
 
