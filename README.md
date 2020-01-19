@@ -2,7 +2,29 @@
 
 
 
+## How to use this repository
 
+
+
+the screenshot of origin content of directory  is  shown below:
+
+![Directory-Shortcut.png](pics/Directory-Shortcut.png)
+
+but  the directory `Data`   will ignored  on  Github because the data files are to large.
+
+so please add data file after you cloned this repository.
+
+the directory `Data` in this  repository(below) is same as the directory  `Data` in [tubcloud]( https://tubcloud.tu-berlin.de/s/QY3zTYfpam2s5nn ):
+
+![DataDirectoryLocal](pics/DataDirectoryLocal-1579439600975.PNG)
+
+
+
+
+
+
+
+## the Data we used
 
 
 
