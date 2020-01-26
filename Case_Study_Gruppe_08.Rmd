@@ -1,57 +1,91 @@
 ---
 title: "Case_Study_Gruppe_08"
-author: "Brayan Orjuela Pico, Chen Xue,  Tobias Königer, Xin Zhou,  Yue Zhang  "
-output: html_document
+author: "Brayan Orjuela Pico, Chen Xue,  Tobias Königer, Xin Zhou,  Yue Zhang"
+date: "März 1, 2020"
 
+# Erstellen von Inhaltsverzeichnis
+
+output: 
+  html_document:
+    toc: true
+    theme: united
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Aufgabenstellung
+```{r frage, include=FALSE}
+# ich weiss nicht, ob die Aufgabenstellung in dem RMarkdown Dokument sein sollte
+```
+
+**Aufgabenstellung**
 
 Wir sind Mitarbeiter eines fiktiven großen Automobilkonzerns, der unter zwei Automobilmarken, “OEM1” und “OEM2”, mehrere Fahrzeugtypen herstellt. Die Zulieferkette setzt sich aus zwei Instanzen zusammen: den Teilelieferanten und den Komponentenlieferanten. Das Produktionswerk verbaut die Komponenten in die jeweiligen Fahrzeuge. Momentan versuchen die Automobilhersteller, trotz negativer Berichterstattung über Dieselfahrzeuge, Kunden für Autos mit Dieselmotoren zu gewinnen. Ein oft verwendetes Argument ist **die Langlebigkeit von Dieselmotoren, die deutlich größer als die Lebensdauer der Benzinmotoren sein soll.**  Das Management beauftragt Sie, diese Behauptung zu überprüfen um mit der Aussage künftig werben zu können. Überprüfen Sie die Aussage über die Langlebigkeit von Dieselmotoren durch einen Vergleich mit Benzinmotoren. Überprüfen Sie die Aussage über die Langlebigkeit von Dieselmotoren durch einen Vergleich mit Benzinmotoren. Ermitteln Sie den Zeitraum zwischen Zulassungsdatum und Fehlerdatum aller Fahrzeuge, getrennt nach Motorisierungsart und Fahrzeugart. Visualisieren Sie Ihre Ergebnisse entsprechend Ihrer Zielgruppe. Ermöglichen Sie einen Vergleich zwischen den Fahrzeugtypen.
 
 
 
-```{r librarys,include=FALSE}
+```{r packages, include=FALSE}
+# Einbinden der Packages
 
-if(!require(data.table)) {
+if(!require(data.table)){
   install.packages("data.table")
-  require(data.table)
-}# für Verwendung von fread()
-
-if(!require(tidyverse)) {
-  install.packages("tidyverse")
-  require(tidyverse)
 }
+# für die Verwendung von fread()
+library(data.table)
+
+if(!require(tidyverse)){
+  install.packages("tidyverse")
+}
+library(tidyverse)
+
+if(!require(shiny)){
+  install.packages("shiny")
+}
+library(shiny)
+
 ```
 
 
-## Importieren der Daten
+# Importieren der Daten
 
-Aus die Aufgabenstellung gibt solche Annahme:
+Aus die Aufgabenstellung gibt es solche Annahme:
 $$
 Lebensdauer=  Fehlerdatum -Zulassungsdatum
 $$
-### 1.1 relevante Daten
-zuerst wurde es analysiert, welche daten relevant sind.
 
-es gibt drei Teilaufgaben:
+## Relevante Daten
+```{r commit, include=FALSE}
+
+# ich habe den 1.1 gelöscht, weil ich schon der TOC erstellt habe und so kann die Hierarchie der Themen in der TOC gezeigt werden
+
+```
+
+Zuerst wurde/wird es analysiert, welche daten relevant sind. Dieses Verfahren hängt von den folgenden drei Aufgaben und weiteren detallierten Anforderungen des Inhalts und der Eigenschaften der Shiny-Applikation. Darüber hinaus hängen die relevanten Daten mit den Dateien zusammen, die nicht nur die unterschiedlichen Motorentypen als ganze Systeme sondern auch die Einzelteile dieser Motoren beschreiben. 
 
 1. Überprüfen Sie die Aussage über die Langlebigkeit von Dieselmotoren durch einen Vergleich mit Benzinmotoren.
 2. Ermitteln Sie den Zeitraum zwischen Zulassungsdatum und Fehlerdatum aller Fahrzeuge, getrennt nach Motorisierungsart und Fahrzeugart.
 3.  Visualisieren Sie Ihre Ergebnisse entsprechend Ihrer Zielgruppe. Ermöglichen Sie einen Vergleich zwischen den Fahrzeugtypen.
 
 
-Für Analyse nötwendige Parameter sind wie folgend aufgelistet :
+Die für die Analyse nötwendigen Parameter sind wie folgend aufgelistet :
 
 
-- Fehlerdatum  aller Fahrzeuge
-- Zulassungsdatum aller Fahrzeuge
-- Motorisierungsart (mit Diesel oder Benzin angetrieben)
+- Fehlerdatum  der Fahrzeuge, die wegen eines fehlerhaften Motors, defekt geworden sind 
+- Zulassungsdatum der oben geschriebenen Fahrzeuge
+- Motorisierungsart dieser Fahrzeuge (Mit Diesel oder Benzin angetrieben) 
 - Fahrzeugart(Typ11,Typ12, Typ21 oder Typ22)
+- Fahrzeugmarke (OEM1 oder OEM2)
+- Fehlermeldung aller Motoren (Fehlerhaft oder nicht) einschließlich Fehlermeldung ihrer Komponente 
+```{r kommentare, include=FALSE}
+
+# die Marke des Autos, weil das in der App ab- und anwählbar sein soll
+
+# die Fehlermeldung wegen der ersten Funktionalität der Schinyapp, die zur Fehlerhäufigkeit der defekten Motoren fragt.  
+
+# ich denke, vielleicht am Ende des Projekts kann die Tabelle entfallen, weil ich weiss nicht, ob die Tabelle redundant sein kann, weil es Informationen enthält, die ausführlich beschrieben werden bei der Importierung und Aufbereitung der Daten. Wenn ihr die Tabelle in der CaseStudy haben möchtet, können wir einfach die ergänzen, und zwar sollen wir die Daten hinzufügen, die mit den Bestandteile der Motoren zu tun haben.
+```
+
 
 
 | Nr.  | Faktoren                  | directory name       | file name                               | Spezifikation |
@@ -72,8 +106,11 @@ Für Analyse nötwendige Parameter sind wie folgend aufgelistet :
 
 
 
-### 1.2 Pfad configuration
+## 1.2 Pfad configuration
 
+```{r}
+## Ich bin mir nicht sicher, ob dieser Teil notwendig ist. Ich habe die Filepaths direkt geschrieben, ohne Vektoren zu erstellen.  
+```
 
 
 ```{r path_config,}
@@ -101,11 +138,228 @@ temp_csv<-"temp.csv"
 
 ```
 
-### 1.3 Einlesen
+## 1.3 Einlesen
 
 ```{r}
+# Der folgende Code ist einfach einen Vorschlag für das einlesen 
+```
+# Einlesen der Daten 
+
+**Einzelteile**
+
+Obwohl es 38 Einzelteile gibt, werden nur die Dateien mit Data zu den Einzelteilen 1-10 eingelesen, weil sie die Bestandteile der unterschiedlichen Motoren sind. Die Dateien, die ausführliche Informationen zum Einzelteil 1, 2, 3, 7 und 9 enthalten, haben so ein Format, dass es keine entsprechende Funktion gibt, die nach dem Einlesen unmittelbar aus dem original Format eine übersichtliche Struktur erzeugen würde. Deswegen werden die Dateien auf die folgende Weise modifiziert. Die Data in der Dateien werden in übersichtliche Zeile nach der Analysierung ihrer Struktur organisiert und die Field Parameters werden simplifiziert, was es ermöglicht, die Dateien durch eine Funktion wie Fread einzulesen, um eine Data Frame zu erzeugen. 
+
+*Einzelteil 01*
+
+```{r Einzelteil_01, message = FALSE, warning = FALSE}
+
+plaintext_T01 <- read_file("Data/Einzelteil/Einzelteil_T01.txt")
+Modifikation_T01 <- str_replace_all(plaintext_T01,"Fahrleistung\"","\n")
+Modifikation_T01_2 <- str_replace_all(Modifikation_T01,"A \"","\n")
+Modifikation_T01_3 <- str_replace_all(Modifikation_T01_2,"[0-9] \"","\n")
+Modifikation_T01_4 <- str_replace_all(Modifikation_T01_3," | | ",",")
+Datei_T01 <- write_file(Modifikation_T01_4, path ="Data/Einzelteil/Datei_T01.txt")
+Einzelteil_T01 <- fread("Data/Einzelteil/Datei_T01.txt")
+
+```
+ 
+*Einzelteil 02*
+
+```{r Einzelteil_T02, message = FALSE, warning = FALSE}
+
+plaintext_T02 <- read_file("Data/Einzelteil/Einzelteil_T02.txt")
+Modifikation_T02 <- str_replace_all(plaintext_T02,"\t","\n")
+Modifikation_T02_2 <- str_replace_all(Modifikation_T02,"  ",",")
+Datei_T02 <- write_file(Modifikation_T02_2, path ="Data/Einzelteil/Datei_T02.txt")
+Einzelteil_T02 <- fread("Data/Einzelteil/Datei_T02.txt")
+
+```
+
+*Einzelteil 03*
+
+```{r Einzelteil_T03, message = FALSE, warning = FALSE}
+
+plaintext_T03 <- read_file("Data/Einzelteil/Einzelteil_T03.txt")
+Modifikation_T03 <- str_replace_all(plaintext_T03,"","\n")
+Datei_T03 <- write_file(Modifikation_T03, path ="Data/Einzelteil/Datei_T03.txt")
+Einzelteil_T03 <- fread("Data/Einzelteil/Datei_T03.txt",sep="|")
+
+```
+ 
+*Einzelteil 04 - 06* 
+
+Dank des Formats dieser Dateien können sie einfach durch fread eingelesen werden.
+
+```{r Einzelteil_T04_5_6, message = FALSE, warning = FALSE}
+
+Einzelteil_T04 <- fread("Data/Einzelteil/Einzelteil_T04.csv")
+Einzelteil_T05 <- fread("Data/Einzelteil/Einzelteil_T05.csv")
+Einzelteil_T06 <- fread("Data/Einzelteil/Einzelteil_T06.csv")
+
+```
+
+*Einzelteil 07*
+
+```{r Einzelteil_T07, message = FALSE, warning = FALSE}
+
+plaintext_T07 <- read_file("Data/Einzelteil/Einzelteil_T07.txt")
+Modifikation_T07 <- str_replace_all(plaintext_T07,"\"\"","\n")
+Datei_T07 <- write_file(Modifikation_T07, path ="Data/Einzelteil/Datei_T07.txt")
+Einzelteil_T07 <- fread("Data/Einzelteil/Datei_T07.txt",sep="\t")
+
+```
+
+*Einzelteil 08* 
+
+Dank des Formats dieser Datei kann sie einfach durch fread eingelesen werden.
+
+```{r Einzelteil_T08, message = FALSE, warning = FALSE}
+
+Einzelteil_T08 <- fread("Data/Einzelteil/Einzelteil_T08.csv")
+
+```
+
+*Einzelteil 09*
+
+```{r Einzelteil_T09, message = FALSE, warning = FALSE}
+
+plaintext_T09 <- read_file("Data/Einzelteil/Einzelteil_T09.txt")
+Modifikation_T09 <- str_replace_all(plaintext_T09,"","\n")
+Datei_T09 <- write_file(Modifikation_T09, path ="Data/Einzelteil/Datei_T09.txt")
+Einzelteil_T09 <- fread("Data/Einzelteil/Datei_T09.txt", sep="\\")
+
+```
+
+*Einzelteil 10*
+
+Dank des Formats dieser Datei kann sie einfach durch fread eingelesen werden.
+
+```{r Einzelteil_T10, message = FALSE, warning = FALSE}
+
+Einzelteil_T10 <- fread("Data/Einzelteil/Einzelteil_T10.csv")
+
+```
+
+**Fahrzeuge und ihre Bestandteile**
+
+*Fahrzeug 11*
+
+Dank des Formats dieser Dateien können sie einfach durch fread eingelesen werden.
+
+```{r Fahrzeug_11, message = FALSE, warning = FALSE}
+
+Fahrzeuge_OEM1_Typ11 <- fread("Data/Fahrzeug/Fahrzeuge_OEM1_Typ11.csv")
+Bestandteile_Fahrzeuge_OEM1_Typ11 <- fread("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM1_Typ11.csv")
+
+```
+
+*Fahrzeug 12*
+
+Dank des Formats dieser Dateien können sie einfach durch fread eingelesen werden.
+
+```{r Fahrzeug_12, message = FALSE, warning = FALSE}
+
+Fahrzeuge_OEM1_Typ12 <- fread("Data/Fahrzeug/Fahrzeuge_OEM1_Typ12.csv")
+Bestandteile_Fahrzeuge_OEM1_Typ12 <- fread("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM1_Typ12.csv")
+
+```
+
+*Fahrzeug 21*
+
+Dank des Formats dieser Dateien können sie einfach durch fread eingelesen werden.
+
+```{r Fahrzeug_21, message = FALSE, warning = FALSE}
+
+Fahrzeuge_OEM2_Typ21 <- fread("Data/Fahrzeug/Fahrzeuge_OEM2_Typ21.csv")
+Bestandteile_Fahrzeuge_OEM2_Typ21 <- fread("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM2_Typ21.csv")
+
+```
+
+*Fahrzeug 22*
+
+Dank des Formats dieser Dateien können sie einfach durch fread eingelesen werden.
+
+```{r Fahrzeug_22, message = FALSE, warning = FALSE}
+
+Fahrzeuge_OEM2_Typ22 <- fread("Data/Fahrzeug/Fahrzeuge_OEM2_Typ22.csv")
+Bestandteile_Fahrzeuge_OEM2_Typ22 <- fread("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM2_Typ22.csv")
+
+```
+
+**Komponente(Motoren) und ihre Bestandteile**
+
+*Motor K1BE1*
+
+Dank des Formats dieser Dateien können sie einfach durch fread eingelesen werden.
+
+```{r Motor_K1BE1, message = FALSE, warning = FALSE}
+
+Komponente_K1BE1 <- fread("Data/Komponente/Komponente_K1BE1.csv")
+Bestandteile_Komponente_K1BE1 <- fread("Data/Komponente/Bestandteile_Komponente_K1BE1.csv")
+
+```
+
+*Motor K1BE2*
+
+Dank des Formats dieser Dateien können sie einfach durch fread eingelesen werden.
+
+```{r Motor_K1BE2, message = FALSE, warning = FALSE}
+
+Komponente_K1BE2 <- fread("Data/Komponente/Komponente_K1BE2.csv")
+Bestandteile_Komponente_K1BE2 <- fread("Data/Komponente/Bestandteile_Komponente_K1BE2.csv")
+
+```
+
+*Motor K1DI1*
+
+Dank des Formats dieser Dateien können sie einfach durch fread eingelesen werden.
+
+```{r Motor_K1DI1, message = FALSE, warning = FALSE}
+
+Komponente_K1DI1 <- fread("Data/Komponente/Komponente_K1DI1.csv")
+Bestandteile_Komponente_K1DI1 <- fread("Data/Komponente/Bestandteile_Komponente_K1DI1.csv")
+
+```
+
+*Motor K1DI2*
+
+Folgende Datei wird so modifiziert, dass eine einlesbare Struktur generiert wird, mit der eine Funktion wie Fread eine Data Frame erstellen kann. 
+
+```{r Motor_K1DI2_1, message = FALSE, warning = FALSE}
+
+plaintext_K1DI2 <- read_file("Data/Komponente/Komponente_K1DI2.txt")
+Modifikation_K1DI2 <- str_replace_all(plaintext_K1DI2,"\t","\n")
+Datei_K1DI2 <- write_file(Modifikation_K1DI2, path ="Data/Komponente/Datei_K1DI2.txt")
+Komponente_K1DI2 <- fread("Data/Komponente/Datei_K1DI2.txt",sep="\\")
+
+```
+
+Dank des Formats folgender Datei kann sie einfach durch fread eingelesen werden.
+
+```{r Motor_K1DI2_2, message = FALSE, warning = FALSE}
+
+Bestandteile_Komponente_K1DI2 <- fread("Data/Komponente/Bestandteile_Komponente_K1DI2.csv")
+
+```
+
+**Zulassungen**
+
+Dank des Formats dieser Datei kann sie einfach durch fread eingelesen werden.
+
+```{r Zulassungen, message = FALSE, warning = FALSE}
+
+Zulassungen_alle_Fahrzeuge <- fread("Data/Zulassungen/Zulassungen_alle_Fahrzeuge.csv")
+
+```
+
+
+
+
+
+```{r EINLESEN, include=FALSE}
 # Einlesen von datei "Zulassungen_alle_Fahrzeuge.csv"
 Zulassungen_alle_Fahrzeuge <- fread(file.path(dir_Zulassungen,files_Zulassungen[1]))
+Zulassungen_alle_Fahrzeuge1 <- fread(file = "Data/Zulassungen/Zulassungen_alle_Fahrzeuge.csv" )
 
 
 # Einlesen von datei "Fahrzeuge_OEM1_Typ11.csv"
@@ -171,11 +425,11 @@ file.remove(file.path(dir_Additional,temp_csv))
 
 ```
 
-## Aufbereiten der Daten
+# Datenaufbereitung
 
-### 2.1structure analyse
+## 2.1structure analyse
 
-```{r}
+```{r GLIMPSE, include=FALSE}
 
 # Strukture von datei "Zulassungen_alle_Fahrzeuge.csv"
 glimpse(Zulassungen_alle_Fahrzeuge)
@@ -224,7 +478,7 @@ glimpse(Komponente_K1DI2)
 
 
 
-### 2.2structure analyse
+## 2.2structure analyse
 
 
 ```{r}
@@ -236,8 +490,7 @@ glimpse(Komponente_K1DI2)
 
 
 
-### 2.2structure analyse
-
+# Erstellen des finalen Datensatzes
 
 
 ```{r}
@@ -246,3 +499,17 @@ glimpse(Komponente_K1DI2)
 
 
 ```
+
+# Auswertung 
+
+```{r}
+
+```
+
+
+# Ergebnis
+
+```{r}
+
+```
+
