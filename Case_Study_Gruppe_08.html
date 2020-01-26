@@ -376,15 +376,15 @@ summary {
 
 <div id="TOC">
 <ul>
-<li><a href="#importieren-der-daten">Importieren der Daten</a><ul>
-<li><a href="#relevante-daten">Relevante Daten</a></li>
-<li><a href="#pfad-configuration">1.2 Pfad configuration</a></li>
-<li><a href="#einlesen">1.3 Einlesen</a></li>
+<li><a href="#laden-und-geg.-installieren-notwendiger-bibliotheken">0. Laden und geg. installieren notwendiger Bibliotheken</a></li>
+<li><a href="#importieren-der-daten">1. Importieren der Daten</a><ul>
+<li><a href="#relevante-daten">1.1 Relevante Daten</a></li>
+<li><a href="#pfad-konfiguration">1.2 Pfad Konfiguration</a></li>
+<li><a href="#einlesen-der-daten">1.3 Einlesen der Daten</a></li>
 </ul></li>
-<li><a href="#einlesen-der-daten">Einlesen der Daten</a></li>
 <li><a href="#datenaufbereitung">Datenaufbereitung</a><ul>
-<li><a href="#structure-analyse">2.1structure analyse</a></li>
-<li><a href="#structure-analyse-1">2.2structure analyse</a></li>
+<li><a href="#structure-analysis">2.1 Structure analysis</a></li>
+<li><a href="#structure-analysis-1">2.2 Structure analysis</a></li>
 </ul></li>
 <li><a href="#erstellen-des-finalen-datensatzes">Erstellen des finalen Datensatzes</a></li>
 <li><a href="#auswertung">Auswertung</a></li>
@@ -395,15 +395,35 @@ summary {
 <p><strong>Aufgabenstellung</strong></p>
 <p>Wir sind Mitarbeiter eines fiktiven großen Automobilkonzerns, der unter zwei Automobilmarken, “OEM1” und “OEM2”, mehrere Fahrzeugtypen herstellt. Die Zulieferkette setzt sich aus zwei Instanzen zusammen: den Teilelieferanten und den Komponentenlieferanten. Das Produktionswerk verbaut die Komponenten in die jeweiligen Fahrzeuge. Momentan versuchen die Automobilhersteller, trotz negativer Berichterstattung über Dieselfahrzeuge, Kunden für Autos mit Dieselmotoren zu gewinnen. Ein oft verwendetes Argument ist <strong>die Langlebigkeit von Dieselmotoren, die deutlich größer als die Lebensdauer der Benzinmotoren sein soll.</strong> Das Management beauftragt Sie, diese Behauptung zu überprüfen um mit der Aussage künftig werben zu können. Überprüfen Sie die Aussage über die Langlebigkeit von Dieselmotoren durch einen Vergleich mit Benzinmotoren. Überprüfen Sie die Aussage über die Langlebigkeit von Dieselmotoren durch einen Vergleich mit Benzinmotoren. Ermitteln Sie den Zeitraum zwischen Zulassungsdatum und Fehlerdatum aller Fahrzeuge, getrennt nach Motorisierungsart und Fahrzeugart. Visualisieren Sie Ihre Ergebnisse entsprechend Ihrer Zielgruppe. Ermöglichen Sie einen Vergleich zwischen den Fahrzeugtypen.</p>
 <p><strong>Visualisierung</strong></p>
-<p>A Ein Balkendiagramm, das die relativen Fehlerhäufigkeiten aller Motoren, getrennt in Benzin- und Dieselantrieb, darstellt. Das Diagramm muss interaktive Elemente enthalten. Der Produktionszeitraum der Fahrzeuge muss durch den Nutzer variabel eingrenzbar sein.</p>
-<p>B Pro Fahrzeugtyp jeweils einen Boxplot für Varianten mit Dieselmotor und einen Boxplot für Varianten mit Benzinmotor. Die Boxplots beziehen sich dabei auf das Zeitintervall zwischen Zulassung eines Fahrzeugs und Fehlerdatum der Fahrzeuge. Wichtige Kennzahlen müssen interaktiv ablesbar sein. Die Fahrzeugtypen sollen an- und abwählbar sein. Alle Fahrzeugtypen von OEM1 und OEM2 sollen mit einem Klick an- und abwählbar sein. Der für das Balkendiagramm ausgewählte Produktionszeitraum soll auch hier angewendet werden.</p>
+<p>A: Ein Balkendiagramm, das die relativen Fehlerhäufigkeiten aller Motoren, getrennt in Benzin- und Dieselantrieb, darstellt. Das Diagramm muss interaktive Elemente enthalten. Der Produktionszeitraum der Fahrzeuge muss durch den Nutzer variabel eingrenzbar sein.</p>
+<p>B: Pro Fahrzeugtyp jeweils einen Boxplot für Varianten mit Dieselmotor und einen Boxplot für Varianten mit Benzinmotor. Die Boxplots beziehen sich dabei auf das Zeitintervall zwischen Zulassung eines Fahrzeugs und Fehlerdatum der Fahrzeuge. Wichtige Kennzahlen müssen interaktiv ablesbar sein. Die Fahrzeugtypen sollen an- und abwählbar sein. Alle Fahrzeugtypen von OEM1 und OEM2 sollen mit einem Klick an- und abwählbar sein. Der für das Balkendiagramm ausgewählte Produktionszeitraum soll auch hier angewendet werden.</p>
+<div id="laden-und-geg.-installieren-notwendiger-bibliotheken" class="section level1">
+<h1>0. Laden und geg. installieren notwendiger Bibliotheken</h1>
+<pre class="r"><code># Einbinden der Packages
+
+if(!require(data.table)){
+  install.packages(&quot;data.table&quot;)
+}
+# für die Verwendung von fread()
+library(data.table)
+
+if(!require(tidyverse)){
+  install.packages(&quot;tidyverse&quot;)
+}
+library(tidyverse)
+
+if(!require(shiny)){
+  install.packages(&quot;shiny&quot;)
+}
+library(shiny)</code></pre>
+</div>
 <div id="importieren-der-daten" class="section level1">
-<h1>Importieren der Daten</h1>
+<h1>1. Importieren der Daten</h1>
 <p>Aus die Aufgabenstellung gibt es solche Annahme: <span class="math display">\[
-Lebensdauer=  Fehlerdatum -Zulassungsdatum
+Lebensdauer = Zulassungsdatum - Fehlerdatum
 \]</span></p>
 <div id="relevante-daten" class="section level2">
-<h2>Relevante Daten</h2>
+<h2>1.1 Relevante Daten</h2>
 <p>Zuerst wurde/wird es analysiert, welche daten relevant sind. Dieses Verfahren hängt von den folgenden drei Aufgaben und weiteren detallierten Anforderungen des Inhalts und der Eigenschaften der Shiny-Applikation. Darüber hinaus hängen die relevanten Daten mit den Dateien zusammen, die nicht nur die unterschiedlichen Motorentypen als ganze Systeme sondern auch die Einzelteile dieser Motoren beschreiben.</p>
 <ol style="list-style-type: decimal">
 <li>Überprüfen Sie die Aussage über die Langlebigkeit von Dieselmotoren durch einen Vergleich mit Benzinmotoren.</li>
@@ -449,60 +469,60 @@ Lebensdauer=  Fehlerdatum -Zulassungsdatum
 <td>Fehlerdatum der Fahrzeuge</td>
 <td>“./Data/Fahrzeug”</td>
 <td>“Fahrzeuge_OEM1_Typ11.csv”</td>
-<td>Typ11</td>
+<td>Typ 11</td>
 </tr>
 <tr class="odd">
 <td>3</td>
 <td></td>
 <td></td>
 <td>“Fahrzeuge_OEM1_Typ12.csv”</td>
-<td>Typ12</td>
+<td>Typ 12</td>
 </tr>
 <tr class="even">
 <td>4</td>
 <td></td>
 <td></td>
 <td>“Fahrzeuge_OEM2_Typ21.csv”</td>
-<td>Typ21</td>
+<td>Typ 21</td>
 </tr>
 <tr class="odd">
 <td>5</td>
 <td></td>
 <td></td>
 <td>“Fahrzeuge_OEM2_Typ22.csv”</td>
-<td>Typ22</td>
+<td>Typ 22</td>
 </tr>
 <tr class="even">
 <td>6</td>
-<td>Motorisierungsart</td>
+<td>Motoren der Fahrzeuge</td>
 <td>“./Data/Fahrzeug”</td>
 <td>“Bestandteile_Fahrzeuge_OEM1_Typ11.csv”</td>
-<td>Typ11</td>
+<td>Typ 11</td>
 </tr>
 <tr class="odd">
 <td>7</td>
 <td></td>
 <td></td>
 <td>“Bestandteile_Fahrzeuge_OEM1_Typ12.csv”</td>
-<td>Typ12</td>
+<td>Typ 12</td>
 </tr>
 <tr class="even">
 <td>8</td>
 <td></td>
 <td></td>
 <td>“Bestandteile_Fahrzeuge_OEM2_Typ21.csv”</td>
-<td>Typ21</td>
+<td>Typ 21</td>
 </tr>
 <tr class="odd">
 <td>9</td>
 <td></td>
 <td></td>
 <td>“Bestandteile_Fahrzeuge_OEM2_Typ22.csv”</td>
-<td>Typ22</td>
+<td>Typ 22</td>
 </tr>
 <tr class="even">
 <td>10</td>
-<td>Fehlerdatum der Motor</td>
+<td>Fehlerdatum der Motoren</td>
 <td>“./Data/Komponente”</td>
 <td>“Komponente_K1BE1.csv”</td>
 <td></td>
@@ -528,39 +548,75 @@ Lebensdauer=  Fehlerdatum -Zulassungsdatum
 <td>“Komponente_K1DI2.txt”</td>
 <td></td>
 </tr>
+<tr class="even">
+<td>14</td>
+<td>Bestandteile der Motoren</td>
+<td>“./Data/Komponente”</td>
+<td>“Bestandteile_Komponente_K1BE1.csv”</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>15</td>
+<td></td>
+<td></td>
+<td>“Bestandteile_Komponente_K1BE2.csv”</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>16</td>
+<td></td>
+<td></td>
+<td>“Bestandteile_Komponente_K1DI1.csv”</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>17</td>
+<td></td>
+<td></td>
+<td>“Bestandteile_Komponente_K1DI2.csv”</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>18-28</td>
+<td>Einzelteile der Motoren</td>
+<td>“./Data/Einzelteile”</td>
+<td>“Einzelteil_T0X.txt”</td>
+<td>X = 01 bis 10</td>
+</tr>
 </tbody>
 </table>
 </div>
-<div id="pfad-configuration" class="section level2">
-<h2>1.2 Pfad configuration</h2>
-<pre class="r"><code>## Ich bin mir nicht sicher, ob dieser Teil notwendig ist. Ich habe die Filepaths direkt geschrieben, ohne Vektoren zu erstellen.  </code></pre>
+<div id="pfad-konfiguration" class="section level2">
+<h2>1.2 Pfad Konfiguration</h2>
 <pre class="r"><code># figure out  File-index in each folder
 
 dir_Fahrzeug&lt;-&quot;./Data/Fahrzeug&quot; 
 
 dir_Komponente&lt;-&quot;./Data/Komponente&quot;
 
+dir_Einzelteile&lt;-&quot;./Data/Einzelteil&quot; 
+
 dir_Zulassungen&lt;-&quot;./Data/Zulassungen&quot; 
 
-dir_Additional&lt;-&quot;./Additional&quot;
 
 files_Fahrzeug&lt;-list.files(path = dir_Fahrzeug)
 files_Fahrzeug
+
 files_Komponente&lt;-list.files(path = dir_Komponente)
 files_Komponente
+
+files_Einzelteile&lt;-list.files(path = dir_Einzelteile)
+files_Einzelteile
+
 files_Zulassungen&lt;-list.files(path = dir_Zulassungen)
 files_Zulassungen
 
+
 temp_csv&lt;-&quot;temp.csv&quot;</code></pre>
 </div>
-<div id="einlesen" class="section level2">
-<h2>1.3 Einlesen</h2>
-<pre class="r"><code># Der folgende Code ist einfach einen Vorschlag für das einlesen </code></pre>
-</div>
-</div>
-<div id="einlesen-der-daten" class="section level1">
-<h1>Einlesen der Daten</h1>
-<p><strong>Einzelteile</strong></p>
+<div id="einlesen-der-daten" class="section level2">
+<h2>1.3 Einlesen der Daten</h2>
+<p><strong>Einzelteile 01 bis 10</strong></p>
 <p>Obwohl es 38 Einzelteile gibt, werden nur die Dateien mit Data zu den Einzelteilen 1-10 eingelesen, weil sie die Bestandteile der unterschiedlichen Motoren sind. Die Dateien, die ausführliche Informationen zum Einzelteil 1, 2, 3, 7 und 9 enthalten, haben so ein Format, dass es keine entsprechende Funktion gibt, die nach dem Einlesen unmittelbar aus dem original Format eine übersichtliche Struktur erzeugen würde. Deswegen werden die Dateien auf die folgende Weise modifiziert. Die Data in der Dateien werden in übersichtliche Zeile nach der Analysierung ihrer Struktur organisiert und die Field Parameters werden simplifiziert, was es ermöglicht, die Dateien durch eine Funktion wie Fread einzulesen, um eine Data Frame zu erzeugen.</p>
 <p><em>Einzelteil 01</em></p>
 <pre class="r"><code>plaintext_T01 &lt;- read_file(&quot;Data/Einzelteil/Einzelteil_T01.txt&quot;)
@@ -570,6 +626,14 @@ Modifikation_T01_3 &lt;- str_replace_all(Modifikation_T01_2,&quot;[0-9] \&quot;&
 Modifikation_T01_4 &lt;- str_replace_all(Modifikation_T01_3,&quot; | | &quot;,&quot;,&quot;)
 Datei_T01 &lt;- write_file(Modifikation_T01_4, path =&quot;Data/Einzelteil/Datei_T01.txt&quot;)
 Einzelteil_T01 &lt;- fread(&quot;Data/Einzelteil/Datei_T01.txt&quot;)</code></pre>
+<p>Mit Piping</p>
+<pre class="r"><code>Einzelteil_T01 &lt;- read_file(&quot;Data/Einzelteil/Einzelteil_T01.txt&quot;) %&gt;%
+str_replace_all(&quot;Fahrleistung\&quot;&quot;,&quot;\n&quot;) %&gt;%
+str_replace_all(&quot;A \&quot;&quot;,&quot;\n&quot;) %&gt;%
+str_replace_all(&quot;[0-9] \&quot;&quot;,&quot;\n&quot;) %&gt;%
+str_replace_all(&quot; | | &quot;,&quot;,&quot;)
+Datei_T01 &lt;- write_file(Einzelteil_T01, path =&quot;Data/Einzelteil/Datei_T01.txt&quot;)
+# Einzelteil_T01 &lt;- fread(&quot;Data/Einzelteil/Datei_T01.txt&quot;)</code></pre>
 <p><em>Einzelteil 02</em></p>
 <pre class="r"><code>plaintext_T02 &lt;- read_file(&quot;Data/Einzelteil/Einzelteil_T02.txt&quot;)
 Modifikation_T02 &lt;- str_replace_all(plaintext_T02,&quot;\t&quot;,&quot;\n&quot;)
@@ -644,13 +708,14 @@ Komponente_K1DI2 &lt;- fread(&quot;Data/Komponente/Datei_K1DI2.txt&quot;,sep=&qu
 <p>Dank des Formats dieser Datei kann sie einfach durch fread eingelesen werden.</p>
 <pre class="r"><code>Zulassungen_alle_Fahrzeuge &lt;- fread(&quot;Data/Zulassungen/Zulassungen_alle_Fahrzeuge.csv&quot;)</code></pre>
 </div>
+</div>
 <div id="datenaufbereitung" class="section level1">
 <h1>Datenaufbereitung</h1>
-<div id="structure-analyse" class="section level2">
-<h2>2.1structure analyse</h2>
+<div id="structure-analysis" class="section level2">
+<h2>2.1 Structure analysis</h2>
 </div>
-<div id="structure-analyse-1" class="section level2">
-<h2>2.2structure analyse</h2>
+<div id="structure-analysis-1" class="section level2">
+<h2>2.2 Structure analysis</h2>
 </div>
 </div>
 <div id="erstellen-des-finalen-datensatzes" class="section level1">
