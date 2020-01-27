@@ -15,7 +15,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-# knitr::opts_chunk$set(echo = TRUE)
+# knitr::opts_chunk$set(echo = TRUE)  
 
 # Setze eval = TRUE um Berechnungen duchzufuehren
 knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
@@ -181,9 +181,8 @@ Einzelteil_T01 <- fread("Data/Einzelteil/Datei_T01.txt")
 
 ```
 
-Mit Piping 
 
-```{r Einzelteil_01_mit_Piping, message=FALSE, warning=FALSE}
+```{r Einzelteil_01_ammended_again, message=FALSE, warning=FALSE}
 
 Einzelteil_T01 <- read_file("Data/Einzelteil/Einzelteil_T01.txt") %>% 
 str_replace("Fahrleistung\"", "Fahrleistung\"\n") %>%  
@@ -193,7 +192,9 @@ str_replace_all("\"\n", "\n\"") %>%
 str_replace_all("  NA", " NA") %>%  
 str_replace_all("Fahrleistung", "Fahrleistung\"") %>%  
 str_replace_all("\" \"", "\"") %>%  
-write_file(path ="Data/Einzelteil/Datei_T01.txt")
+str_replace_all(", ", ",") %>%  
+# write_file(path ="Data/Einzelteil/Datei_T01.csv") %>%
+read_delim(",")
 
 ```
  
@@ -209,19 +210,14 @@ Einzelteil_T02 <- fread("Data/Einzelteil/Datei_T02.txt")
 
 ```
 
-Mit Piping 
 
-```{r Einzelteil_01_mit_Piping, message=FALSE, warning=FALSE}
+```{r Einzelteil_02_ammended_again, message=FALSE, warning=FALSE}
 
-Einzelteil_T01 <- read_file("Data/Einzelteil/Einzelteil_T01.txt") %>% 
-str_replace("Fahrleistung\"", "Fahrleistung\"\n") %>%  
-str_replace_all(" [|] [|]", ",") %>%  
-str_replace_all(" NA \"", "  NA \"\n") %>%  
-str_replace_all("\"\n", "\n\"") %>%  
-str_replace_all("  NA", " NA") %>%  
-str_replace_all("Fahrleistung", "Fahrleistung\"") %>%  
-str_replace_all("\" \"", "\"") %>%  
-write_file(path ="Data/Einzelteil/Datei_T01.txt")
+Einzelteil_T02 <- read_file("Data/Einzelteil/Einzelteil_T02.txt") %>%
+str_replace_all("\t","\n") %>%
+str_replace_all("  ",",") %>%
+# write_file(path ="Data/Einzelteil/Datei_T02.csv") %>%
+read_delim(",")
 
 ```  
 
@@ -235,7 +231,18 @@ Datei_T03 <- write_file(Modifikation_T03, path ="Data/Einzelteil/Datei_T03.txt")
 Einzelteil_T03 <- fread("Data/Einzelteil/Datei_T03.txt",sep="|")
 
 ```
- 
+
+
+```{r Einzelteil_T03_ammended_again, message = FALSE, warning = FALSE}
+
+Einzelteil_T03 <- read_file("Data/Einzelteil/Einzelteil_T03.txt") %>%
+str_replace_all("","\n") %>%
+str_replace_all("[|]",",") %>%
+# write_file(path ="Data/Einzelteil/Datei_T03.csv")
+read_delim(",")
+
+```
+
 *Einzelteil 04 - 06* 
 
 Dank des Formats dieser Dateien können sie einfach durch fread eingelesen werden.
@@ -245,6 +252,15 @@ Dank des Formats dieser Dateien können sie einfach durch fread eingelesen werde
 Einzelteil_T04 <- fread("Data/Einzelteil/Einzelteil_T04.csv")
 Einzelteil_T05 <- fread("Data/Einzelteil/Einzelteil_T05.csv")
 Einzelteil_T06 <- fread("Data/Einzelteil/Einzelteil_T06.csv")
+
+```
+
+
+```{r Einzelteil_T04_5_6_ammended, message = FALSE, warning = FALSE}
+
+Einzelteil_T04 <- read_csv2("Data/Einzelteil/Einzelteil_T04.csv")
+Einzelteil_T05 <- read_delim("Data/Einzelteil/Einzelteil_T05.csv", ",")
+Einzelteil_T06 <- read_delim("Data/Einzelteil/Einzelteil_T06.csv", ",")
 
 ```
 
@@ -259,6 +275,16 @@ Einzelteil_T07 <- fread("Data/Einzelteil/Datei_T07.txt",sep="\t")
 
 ```
 
+```{r Einzelteil_T07_ammended, message = FALSE, warning = FALSE}
+
+Einzelteil_T07 <- read_file("Data/Einzelteil/Einzelteil_T07.txt") %>%
+str_replace_all("\"\"", "\"\n\"") %>%
+str_replace_all("\t", ",") %>%
+# write_file(path ="Data/Einzelteil/Datei_T07.csv")
+read_delim(",")
+
+```
+
 *Einzelteil 08* 
 
 Dank des Formats dieser Datei kann sie einfach durch fread eingelesen werden.
@@ -266,6 +292,12 @@ Dank des Formats dieser Datei kann sie einfach durch fread eingelesen werden.
 ```{r Einzelteil_T08, message = FALSE, warning = FALSE}
 
 Einzelteil_T08 <- fread("Data/Einzelteil/Einzelteil_T08.csv")
+
+```
+
+```{r Einzelteil_T08_ammended, message = FALSE, warning = FALSE}
+
+Einzelteil_T08 <- read_delim("Data/Einzelteil/Einzelteil_T08.csv", ",")
 
 ```
 
@@ -280,6 +312,16 @@ Einzelteil_T09 <- fread("Data/Einzelteil/Datei_T09.txt", sep="\\")
 
 ```
 
+```{r Einzelteil_T09_ammended, message = FALSE, warning = FALSE}
+
+Einzelteil_T09 <- read_file("Data/Einzelteil/Einzelteil_T09.txt") %>%
+str_replace_all("", "\n") %>%
+str_replace_all("\\\\", ",") %>%
+# write_file(path = "Data/Einzelteil/Datei_T09.csv")
+read_delim(",")
+
+```
+
 *Einzelteil 10*
 
 Dank des Formats dieser Datei kann sie einfach durch fread eingelesen werden.
@@ -290,6 +332,12 @@ Einzelteil_T10 <- fread("Data/Einzelteil/Einzelteil_T10.csv")
 
 ```
 
+```{r Einzelteil_T10_ammended, message = FALSE, warning = FALSE}
+
+Einzelteil_T10 <- read_csv2("Data/Einzelteil/Einzelteil_T10.csv")
+
+```
+
 **Fahrzeuge und ihre Bestandteile**
 
 *Fahrzeug 11*
@@ -297,6 +345,13 @@ Einzelteil_T10 <- fread("Data/Einzelteil/Einzelteil_T10.csv")
 Dank des Formats dieser Dateien können sie einfach durch fread eingelesen werden.
 
 ```{r Fahrzeug_11, message = FALSE, warning = FALSE}
+
+Fahrzeuge_OEM1_Typ11 <- fread("Data/Fahrzeug/Fahrzeuge_OEM1_Typ11.csv")
+Bestandteile_Fahrzeuge_OEM1_Typ11 <- fread("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM1_Typ11.csv")
+
+```
+
+```{r Fahrzeug_11_ammended, message = FALSE, warning = FALSE}
 
 Fahrzeuge_OEM1_Typ11 <- fread("Data/Fahrzeug/Fahrzeuge_OEM1_Typ11.csv")
 Bestandteile_Fahrzeuge_OEM1_Typ11 <- fread("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM1_Typ11.csv")
