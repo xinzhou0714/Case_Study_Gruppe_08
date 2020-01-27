@@ -353,8 +353,8 @@ Bestandteile_Fahrzeuge_OEM1_Typ11 <- fread("Data/Fahrzeug/Bestandteile_Fahrzeuge
 
 ```{r Fahrzeug_11_ammended, message = FALSE, warning = FALSE}
 
-Fahrzeuge_OEM1_Typ11 <- fread("Data/Fahrzeug/Fahrzeuge_OEM1_Typ11.csv")
-Bestandteile_Fahrzeuge_OEM1_Typ11 <- fread("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM1_Typ11.csv")
+Fahrzeuge_OEM1_Typ11 <- read_delim("Data/Fahrzeug/Fahrzeuge_OEM1_Typ11.csv", ",")
+Bestandteile_Fahrzeuge_OEM1_Typ11 <- read_csv2("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM1_Typ11.csv")
 
 ```
 
@@ -369,6 +369,13 @@ Bestandteile_Fahrzeuge_OEM1_Typ12 <- fread("Data/Fahrzeug/Bestandteile_Fahrzeuge
 
 ```
 
+```{r Fahrzeug_12_ammended, message = FALSE, warning = FALSE}
+
+Fahrzeuge_OEM1_Typ12 <- read_csv2("Data/Fahrzeug/Fahrzeuge_OEM1_Typ12.csv")
+Bestandteile_Fahrzeuge_OEM1_Typ12 <- read_csv2("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM1_Typ12.csv")
+
+```
+
 *Fahrzeug 21*
 
 Dank des Formats dieser Dateien können sie einfach durch fread eingelesen werden.
@@ -380,6 +387,13 @@ Bestandteile_Fahrzeuge_OEM2_Typ21 <- fread("Data/Fahrzeug/Bestandteile_Fahrzeuge
 
 ```
 
+```{r Fahrzeug_21_ammended, message = FALSE, warning = FALSE}
+
+Fahrzeuge_OEM2_Typ21 <- read_delim("Data/Fahrzeug/Fahrzeuge_OEM2_Typ21.csv", ",")
+Bestandteile_Fahrzeuge_OEM2_Typ21 <- read_csv2("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM2_Typ21.csv")
+
+```
+
 *Fahrzeug 22*
 
 Dank des Formats dieser Dateien können sie einfach durch fread eingelesen werden.
@@ -388,6 +402,13 @@ Dank des Formats dieser Dateien können sie einfach durch fread eingelesen werde
 
 Fahrzeuge_OEM2_Typ22 <- fread("Data/Fahrzeug/Fahrzeuge_OEM2_Typ22.csv")
 Bestandteile_Fahrzeuge_OEM2_Typ22 <- fread("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM2_Typ22.csv")
+
+```
+
+```{r Fahrzeug_22_ammended, message = FALSE, warning = FALSE}
+
+Fahrzeuge_OEM2_Typ22 <- read_csv2("Data/Fahrzeug/Fahrzeuge_OEM2_Typ22.csv")
+Bestandteile_Fahrzeuge_OEM2_Typ22 <- read_csv2("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM2_Typ22.csv")
 
 ```
 
