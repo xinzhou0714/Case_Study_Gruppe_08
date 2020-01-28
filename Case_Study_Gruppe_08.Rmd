@@ -425,6 +425,13 @@ Bestandteile_Komponente_K1BE1 <- fread("Data/Komponente/Bestandteile_Komponente_
 
 ```
 
+```{r Motor_K1BE1_ammended, message = FALSE, warning = FALSE}
+
+Komponente_K1BE1 <- read_delim("Data/Komponente/Komponente_K1BE1.csv", ",")
+Bestandteile_Komponente_K1BE1 <- read_csv2("Data/Komponente/Bestandteile_Komponente_K1BE1.csv")
+
+```
+
 *Motor K1BE2*
 
 Dank des Formats dieser Dateien können sie einfach durch fread eingelesen werden.
@@ -436,6 +443,13 @@ Bestandteile_Komponente_K1BE2 <- fread("Data/Komponente/Bestandteile_Komponente_
 
 ```
 
+```{r Motor_K1BE2_ammended, message = FALSE, warning = FALSE}
+
+Komponente_K1BE2 <- read_csv2("Data/Komponente/Komponente_K1BE2.csv")
+Bestandteile_Komponente_K1BE2 <- read_csv2("Data/Komponente/Bestandteile_Komponente_K1BE2.csv")
+
+```
+
 *Motor K1DI1*
 
 Dank des Formats dieser Dateien können sie einfach durch fread eingelesen werden.
@@ -444,6 +458,13 @@ Dank des Formats dieser Dateien können sie einfach durch fread eingelesen werde
 
 Komponente_K1DI1 <- fread("Data/Komponente/Komponente_K1DI1.csv")
 Bestandteile_Komponente_K1DI1 <- fread("Data/Komponente/Bestandteile_Komponente_K1DI1.csv")
+
+```
+
+```{r Motor_K1DI1_ammended, message = FALSE, warning = FALSE}
+
+Komponente_K1DI1 <- read_delim("Data/Komponente/Komponente_K1DI1.csv", ",")
+Bestandteile_Komponente_K1DI1 <- read_csv2("Data/Komponente/Bestandteile_Komponente_K1DI1.csv")
 
 ```
 
@@ -460,6 +481,17 @@ Komponente_K1DI2 <- fread("Data/Komponente/Datei_K1DI2.txt",sep="\\")
 
 ```
 
+```{r Motor_K1DI2_1_ammended, message = FALSE, warning = FALSE}
+
+Komponente_K1DI2 <- read_file("Data/Komponente/Komponente_K1DI2.txt") %>%
+str_replace_all("\t","\n") %>%
+str_replace_all("\\\\",",") %>%
+read_delim(",")
+# write_file(path ="Data/Komponente/Datei_K1DI2.csv")
+# fread("Data/Komponente/Datei_K1DI2.txt",sep="\\")
+
+```
+
 Dank des Formats folgender Datei kann sie einfach durch fread eingelesen werden.
 
 ```{r Motor_K1DI2_2, message = FALSE, warning = FALSE}
@@ -467,6 +499,13 @@ Dank des Formats folgender Datei kann sie einfach durch fread eingelesen werden.
 Bestandteile_Komponente_K1DI2 <- fread("Data/Komponente/Bestandteile_Komponente_K1DI2.csv")
 
 ```
+
+```{r Motor_K1DI2_2_ammended, message = FALSE, warning = FALSE}
+
+Bestandteile_Komponente_K1DI2 <- read_csv2("Data/Komponente/Bestandteile_Komponente_K1DI2.csv")
+
+```
+
 
 **Zulassungen**
 
@@ -478,7 +517,11 @@ Zulassungen_alle_Fahrzeuge <- fread("Data/Zulassungen/Zulassungen_alle_Fahrzeuge
 
 ```
 
+```{r Zulassungen_ammended, message = FALSE, warning = FALSE}
 
+Zulassungen_alle_Fahrzeuge <- read_csv2("Data/Zulassungen/Zulassungen_alle_Fahrzeuge.csv")
+
+```
 
 
 
