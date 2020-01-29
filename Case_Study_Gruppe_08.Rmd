@@ -2,27 +2,17 @@
 title: "Case_Study_Gruppe_08"
 author: "Brayan Orjuela Pico, Chen Xue,  Tobias Königer, Xin Zhou,  Yue Zhang"
 date: "März 1, 2020"
-
-# Erstellen von Inhaltsverzeichnis
-
-# commit and push to git with: 
-# git add . ; git commit -m "Next commit3" ; git push origin master
-
 output: 
   html_document:
     toc: true
     theme: united
+    number_sections: true
 ---
 
 ```{r setup, include=FALSE}
-# knitr::opts_chunk$set(echo = TRUE)  
 
-# Setze eval = TRUE um Berechnungen duchzufuehren
 knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
-```
 
-```{r frage, include=FALSE}
-# ich weiss nicht, ob die Aufgabenstellung in dem RMarkdown Dokument sein sollte
 ```
 
 **Aufgabenstellung**
@@ -36,10 +26,9 @@ A: Ein Balkendiagramm, das die relativen Fehlerhäufigkeiten aller Motoren, getr
 B: Pro Fahrzeugtyp jeweils einen Boxplot für Varianten mit Dieselmotor und einen Boxplot für Varianten mit Benzinmotor. Die Boxplots beziehen sich dabei auf das Zeitintervall zwischen Zulassung eines Fahrzeugs und Fehlerdatum der Fahrzeuge. Wichtige Kennzahlen müssen interaktiv ablesbar sein. Die Fahrzeugtypen sollen an- und abwählbar sein. Alle Fahrzeugtypen von OEM1 und OEM2 sollen mit einem Klick an- und abwählbar sein. Der für das Balkendiagramm ausgewählte Produktionszeitraum soll auch hier angewendet werden.
 
 
-# 0. Laden und geg. installieren notwendiger Bibliotheken 
+# Laden und geg. Installieren notwendiger Bibliotheken
 
 ```{r packages, include=TRUE}
-# Einbinden der Packages
 
 if(!require(data.table)){
   install.packages("data.table")
@@ -57,22 +46,27 @@ if(!require(shiny)){
 }
 library(shiny)
 
+if(!require(plyr)){
+  install.packages("plyr")
+}
+library(plyr)
+
+if(!require(lubridate)){
+  install.packages("lubridate")
+}
+library(lubridate)
+
 ```
 
 
-# 1. Importieren der Daten
+# Importieren der Daten
 
 Aus die Aufgabenstellung gibt es solche Annahme:
 $$
-Lebensdauer = Zulassungsdatum - Fehlerdatum
+Lebensdauer=  Fehlerdatum - Zulassungsdatum
 $$
 
-## 1.1 Relevante Daten
-```{r commit, include=FALSE}
-
-# ich habe den 1.1 gelöscht, weil ich schon der TOC erstellt habe und so kann die Hierarchie der Themen in der TOC gezeigt werden
-
-```
+## Relevante Daten
 
 Zuerst wurde/wird es analysiert, welche daten relevant sind. Dieses Verfahren hängt von den folgenden drei Aufgaben und weiteren detallierten Anforderungen des Inhalts und der Eigenschaften der Shiny-Applikation. Darüber hinaus hängen die relevanten Daten mit den Dateien zusammen, die nicht nur die unterschiedlichen Motorentypen als ganze Systeme sondern auch die Einzelteile dieser Motoren beschreiben. 
 
@@ -90,15 +84,6 @@ Die für die Analyse nötwendigen Parameter sind wie folgend aufgelistet :
 - Fahrzeugart(Typ11,Typ12, Typ21 oder Typ22)
 - Fahrzeugmarke (OEM1 oder OEM2)
 - Fehlermeldung aller Motoren (Fehlerhaft oder nicht) einschließlich Fehlermeldung ihrer Komponente 
-```{r kommentare, include=FALSE}
-
-# die Marke des Autos, weil das in der App ab- und anwählbar sein soll
-
-# die Fehlermeldung wegen der ersten Funktionalität der Schinyapp, die zur Fehlerhäufigkeit der defekten Motoren fragt.  
-
-# ich denke, vielleicht am Ende des Projekts kann die Tabelle entfallen, weil ich weiss nicht, ob die Tabelle redundant sein kann, weil es Informationen enthält, die ausführlich beschrieben werden bei der Importierung und Aufbereitung der Daten. Wenn ihr die Tabelle in der CaseStudy haben möchtet, können wir einfach die ergänzen, und zwar sollen wir die Daten hinzufügen, die mit den Bestandteile der Motoren zu tun haben.
-```
-
 
 
 | Nr.  | Faktoren                  | directory name       | file name                               | Spezifikation |
@@ -122,46 +107,7 @@ Die für die Analyse nötwendigen Parameter sind wie folgend aufgelistet :
 | 17   |                           |                      | "Bestandteile_Komponente_K1DI2.csv"     |               |
 | 18-28| Einzelteile der Motoren   | "./Data/Einzelteile" | "Einzelteil_T0X.txt"                    | X = 01 bis 10 |
 
-
-## 1.2 Pfad Konfiguration
-
-```{r}
-```
-
-
-```{r path_config,}
-
-# figure out  File-index in each folder
-
-dir_Fahrzeug<-"./Data/Fahrzeug" 
-
-dir_Komponente<-"./Data/Komponente"
-
-dir_Einzelteile<-"./Data/Einzelteil" 
-
-dir_Zulassungen<-"./Data/Zulassungen" 
-
-
-files_Fahrzeug<-list.files(path = dir_Fahrzeug)
-files_Fahrzeug
-
-files_Komponente<-list.files(path = dir_Komponente)
-files_Komponente
-
-files_Einzelteile<-list.files(path = dir_Einzelteile)
-files_Einzelteile
-
-files_Zulassungen<-list.files(path = dir_Zulassungen)
-files_Zulassungen
-
-
-temp_csv<-"temp.csv"
-
-
-
-```
-
-## 1.3 Einlesen der Daten 
+# Einlesen der Daten 
 
 **Einzelteile 01 bis 10**
 
@@ -171,30 +117,12 @@ Obwohl es 38 Einzelteile gibt, werden nur die Dateien mit Data zu den Einzelteil
 
 ```{r Einzelteil_01, message = FALSE, warning = FALSE}
 
-plaintext_T01 <- read_file("Data/Einzelteil/Einzelteil_T01.txt")
-Modifikation_T01 <- str_replace_all(plaintext_T01,"Fahrleistung\"","\n")
-Modifikation_T01_2 <- str_replace_all(Modifikation_T01,"A \"","\n")
-Modifikation_T01_3 <- str_replace_all(Modifikation_T01_2,"[0-9] \"","\n")
-Modifikation_T01_4 <- str_replace_all(Modifikation_T01_3," | | ",",")
-Datei_T01 <- write_file(Modifikation_T01_4, path ="Data/Einzelteil/Datei_T01.txt")
-Einzelteil_T01 <- fread("Data/Einzelteil/Datei_T01.txt")
-
-```
-
-
-```{r Einzelteil_01_ammended_again, message=FALSE, warning=FALSE}
-
-Einzelteil_T01 <- read_file("Data/Einzelteil/Einzelteil_T01.txt") %>% 
-str_replace("Fahrleistung\"", "Fahrleistung\"\n") %>%  
-str_replace_all(" [|] [|]", ",") %>%  
-str_replace_all(" NA \"", "  NA \"\n") %>%  
-str_replace_all("\"\n", "\n\"") %>%  
-str_replace_all("  NA", " NA") %>%  
-str_replace_all("Fahrleistung", "Fahrleistung\"") %>%  
-str_replace_all("\" \"", "\"") %>%  
-str_replace_all(", ", ",") %>%  
-# write_file(path ="Data/Einzelteil/Datei_T01.csv") %>%
-read_delim(",")
+Einzelteil_T01 <- read_file("Data/Einzelteil/Einzelteil_T01.txt") %>%
+  str_replace_all("Fahrleistung\"","\n") %>%
+  str_replace_all("A \"","\n") %>%
+  str_replace_all("[0-9] \"","\n") %>%
+  str_replace_all(" | | ",",") %>%
+  fread()
 
 ```
  
@@ -202,47 +130,24 @@ read_delim(",")
 
 ```{r Einzelteil_T02, message = FALSE, warning = FALSE}
 
-plaintext_T02 <- read_file("Data/Einzelteil/Einzelteil_T02.txt")
-Modifikation_T02 <- str_replace_all(plaintext_T02,"\t","\n")
-Modifikation_T02_2 <- str_replace_all(Modifikation_T02,"  ",",")
-Datei_T02 <- write_file(Modifikation_T02_2, path ="Data/Einzelteil/Datei_T02.txt")
-Einzelteil_T02 <- fread("Data/Einzelteil/Datei_T02.txt")
+Einzelteil_T02 <- read_file("Data/Einzelteil/Einzelteil_T02.txt") %>%
+  str_replace_all("\t","\n") %>%
+  str_replace_all("  ",",") %>%
+  fread()
 
 ```
-
-
-```{r Einzelteil_02_ammended_again, message=FALSE, warning=FALSE}
-
-Einzelteil_T02 <- read_file("Data/Einzelteil/Einzelteil_T02.txt") %>%
-str_replace_all("\t","\n") %>%
-str_replace_all("  ",",") %>%
-# write_file(path ="Data/Einzelteil/Datei_T02.csv") %>%
-read_delim(",")
-
-```  
 
 *Einzelteil 03*
 
 ```{r Einzelteil_T03, message = FALSE, warning = FALSE}
 
-plaintext_T03 <- read_file("Data/Einzelteil/Einzelteil_T03.txt")
-Modifikation_T03 <- str_replace_all(plaintext_T03,"","\n")
-Datei_T03 <- write_file(Modifikation_T03, path ="Data/Einzelteil/Datei_T03.txt")
-Einzelteil_T03 <- fread("Data/Einzelteil/Datei_T03.txt",sep="|")
-
-```
-
-
-```{r Einzelteil_T03_ammended_again, message = FALSE, warning = FALSE}
-
 Einzelteil_T03 <- read_file("Data/Einzelteil/Einzelteil_T03.txt") %>%
-str_replace_all("","\n") %>%
-str_replace_all("[|]",",") %>%
-# write_file(path ="Data/Einzelteil/Datei_T03.csv")
-read_delim(",")
+  str_replace_all("
+","\n") %>%
+  fread(sep="|")
 
 ```
-
+ 
 *Einzelteil 04 - 06* 
 
 Dank des Formats dieser Dateien können sie einfach durch fread eingelesen werden.
@@ -255,33 +160,13 @@ Einzelteil_T06 <- fread("Data/Einzelteil/Einzelteil_T06.csv")
 
 ```
 
-
-```{r Einzelteil_T04_5_6_ammended, message = FALSE, warning = FALSE}
-
-Einzelteil_T04 <- read_csv2("Data/Einzelteil/Einzelteil_T04.csv")
-Einzelteil_T05 <- read_delim("Data/Einzelteil/Einzelteil_T05.csv", ",")
-Einzelteil_T06 <- read_delim("Data/Einzelteil/Einzelteil_T06.csv", ",")
-
-```
-
 *Einzelteil 07*
 
 ```{r Einzelteil_T07, message = FALSE, warning = FALSE}
 
-plaintext_T07 <- read_file("Data/Einzelteil/Einzelteil_T07.txt")
-Modifikation_T07 <- str_replace_all(plaintext_T07,"\"\"","\n")
-Datei_T07 <- write_file(Modifikation_T07, path ="Data/Einzelteil/Datei_T07.txt")
-Einzelteil_T07 <- fread("Data/Einzelteil/Datei_T07.txt",sep="\t")
-
-```
-
-```{r Einzelteil_T07_ammended, message = FALSE, warning = FALSE}
-
 Einzelteil_T07 <- read_file("Data/Einzelteil/Einzelteil_T07.txt") %>%
-str_replace_all("\"\"", "\"\n\"") %>%
-str_replace_all("\t", ",") %>%
-# write_file(path ="Data/Einzelteil/Datei_T07.csv")
-read_delim(",")
+  str_replace_all("\"\"","\"\n") %>%
+  fread(sep="\t")
 
 ```
 
@@ -295,30 +180,14 @@ Einzelteil_T08 <- fread("Data/Einzelteil/Einzelteil_T08.csv")
 
 ```
 
-```{r Einzelteil_T08_ammended, message = FALSE, warning = FALSE}
-
-Einzelteil_T08 <- read_delim("Data/Einzelteil/Einzelteil_T08.csv", ",")
-
-```
-
 *Einzelteil 09*
 
 ```{r Einzelteil_T09, message = FALSE, warning = FALSE}
 
-plaintext_T09 <- read_file("Data/Einzelteil/Einzelteil_T09.txt")
-Modifikation_T09 <- str_replace_all(plaintext_T09,"","\n")
-Datei_T09 <- write_file(Modifikation_T09, path ="Data/Einzelteil/Datei_T09.txt")
-Einzelteil_T09 <- fread("Data/Einzelteil/Datei_T09.txt", sep="\\")
-
-```
-
-```{r Einzelteil_T09_ammended, message = FALSE, warning = FALSE}
-
 Einzelteil_T09 <- read_file("Data/Einzelteil/Einzelteil_T09.txt") %>%
-str_replace_all("", "\n") %>%
-str_replace_all("\\\\", ",") %>%
-# write_file(path = "Data/Einzelteil/Datei_T09.csv")
-read_delim(",")
+  str_replace_all("
+","\n") %>%
+  fread(sep="\\")
 
 ```
 
@@ -332,11 +201,6 @@ Einzelteil_T10 <- fread("Data/Einzelteil/Einzelteil_T10.csv")
 
 ```
 
-```{r Einzelteil_T10_ammended, message = FALSE, warning = FALSE}
-
-Einzelteil_T10 <- read_csv2("Data/Einzelteil/Einzelteil_T10.csv")
-
-```
 
 **Fahrzeuge und ihre Bestandteile**
 
@@ -347,13 +211,6 @@ Dank des Formats dieser Dateien können sie einfach durch fread eingelesen werde
 ```{r Fahrzeug_11, message = FALSE, warning = FALSE}
 
 Fahrzeuge_OEM1_Typ11 <- fread("Data/Fahrzeug/Fahrzeuge_OEM1_Typ11.csv")
-Bestandteile_Fahrzeuge_OEM1_Typ11 <- fread("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM1_Typ11.csv")
-
-```
-
-```{r Fahrzeug_11_ammended, message = FALSE, warning = FALSE}
-
-Fahrzeuge_OEM1_Typ11 <- read_delim("Data/Fahrzeug/Fahrzeuge_OEM1_Typ11.csv", ",")
 Bestandteile_Fahrzeuge_OEM1_Typ11 <- read_csv2("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM1_Typ11.csv")
 
 ```
@@ -365,13 +222,6 @@ Dank des Formats dieser Dateien können sie einfach durch fread eingelesen werde
 ```{r Fahrzeug_12, message = FALSE, warning = FALSE}
 
 Fahrzeuge_OEM1_Typ12 <- fread("Data/Fahrzeug/Fahrzeuge_OEM1_Typ12.csv")
-Bestandteile_Fahrzeuge_OEM1_Typ12 <- fread("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM1_Typ12.csv")
-
-```
-
-```{r Fahrzeug_12_ammended, message = FALSE, warning = FALSE}
-
-Fahrzeuge_OEM1_Typ12 <- read_csv2("Data/Fahrzeug/Fahrzeuge_OEM1_Typ12.csv")
 Bestandteile_Fahrzeuge_OEM1_Typ12 <- read_csv2("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM1_Typ12.csv")
 
 ```
@@ -383,13 +233,6 @@ Dank des Formats dieser Dateien können sie einfach durch fread eingelesen werde
 ```{r Fahrzeug_21, message = FALSE, warning = FALSE}
 
 Fahrzeuge_OEM2_Typ21 <- fread("Data/Fahrzeug/Fahrzeuge_OEM2_Typ21.csv")
-Bestandteile_Fahrzeuge_OEM2_Typ21 <- fread("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM2_Typ21.csv")
-
-```
-
-```{r Fahrzeug_21_ammended, message = FALSE, warning = FALSE}
-
-Fahrzeuge_OEM2_Typ21 <- read_delim("Data/Fahrzeug/Fahrzeuge_OEM2_Typ21.csv", ",")
 Bestandteile_Fahrzeuge_OEM2_Typ21 <- read_csv2("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM2_Typ21.csv")
 
 ```
@@ -405,12 +248,6 @@ Bestandteile_Fahrzeuge_OEM2_Typ22 <- fread("Data/Fahrzeug/Bestandteile_Fahrzeuge
 
 ```
 
-```{r Fahrzeug_22_ammended, message = FALSE, warning = FALSE}
-
-Fahrzeuge_OEM2_Typ22 <- read_csv2("Data/Fahrzeug/Fahrzeuge_OEM2_Typ22.csv")
-Bestandteile_Fahrzeuge_OEM2_Typ22 <- read_csv2("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM2_Typ22.csv")
-
-```
 
 **Komponente(Motoren) und ihre Bestandteile**
 
@@ -421,13 +258,6 @@ Dank des Formats dieser Dateien können sie einfach durch fread eingelesen werde
 ```{r Motor_K1BE1, message = FALSE, warning = FALSE}
 
 Komponente_K1BE1 <- fread("Data/Komponente/Komponente_K1BE1.csv")
-Bestandteile_Komponente_K1BE1 <- fread("Data/Komponente/Bestandteile_Komponente_K1BE1.csv")
-
-```
-
-```{r Motor_K1BE1_ammended, message = FALSE, warning = FALSE}
-
-Komponente_K1BE1 <- read_delim("Data/Komponente/Komponente_K1BE1.csv", ",")
 Bestandteile_Komponente_K1BE1 <- read_csv2("Data/Komponente/Bestandteile_Komponente_K1BE1.csv")
 
 ```
@@ -439,13 +269,6 @@ Dank des Formats dieser Dateien können sie einfach durch fread eingelesen werde
 ```{r Motor_K1BE2, message = FALSE, warning = FALSE}
 
 Komponente_K1BE2 <- fread("Data/Komponente/Komponente_K1BE2.csv")
-Bestandteile_Komponente_K1BE2 <- fread("Data/Komponente/Bestandteile_Komponente_K1BE2.csv")
-
-```
-
-```{r Motor_K1BE2_ammended, message = FALSE, warning = FALSE}
-
-Komponente_K1BE2 <- read_csv2("Data/Komponente/Komponente_K1BE2.csv")
 Bestandteile_Komponente_K1BE2 <- read_csv2("Data/Komponente/Bestandteile_Komponente_K1BE2.csv")
 
 ```
@@ -457,13 +280,6 @@ Dank des Formats dieser Dateien können sie einfach durch fread eingelesen werde
 ```{r Motor_K1DI1, message = FALSE, warning = FALSE}
 
 Komponente_K1DI1 <- fread("Data/Komponente/Komponente_K1DI1.csv")
-Bestandteile_Komponente_K1DI1 <- fread("Data/Komponente/Bestandteile_Komponente_K1DI1.csv")
-
-```
-
-```{r Motor_K1DI1_ammended, message = FALSE, warning = FALSE}
-
-Komponente_K1DI1 <- read_delim("Data/Komponente/Komponente_K1DI1.csv", ",")
 Bestandteile_Komponente_K1DI1 <- read_csv2("Data/Komponente/Bestandteile_Komponente_K1DI1.csv")
 
 ```
@@ -474,33 +290,15 @@ Folgende Datei wird so modifiziert, dass eine einlesbare Struktur generiert wird
 
 ```{r Motor_K1DI2_1, message = FALSE, warning = FALSE}
 
-plaintext_K1DI2 <- read_file("Data/Komponente/Komponente_K1DI2.txt")
-Modifikation_K1DI2 <- str_replace_all(plaintext_K1DI2,"\t","\n")
-Datei_K1DI2 <- write_file(Modifikation_K1DI2, path ="Data/Komponente/Datei_K1DI2.txt")
-Komponente_K1DI2 <- fread("Data/Komponente/Datei_K1DI2.txt",sep="\\")
-
-```
-
-```{r Motor_K1DI2_1_ammended, message = FALSE, warning = FALSE}
-
 Komponente_K1DI2 <- read_file("Data/Komponente/Komponente_K1DI2.txt") %>%
-str_replace_all("\t","\n") %>%
-str_replace_all("\\\\",",") %>%
-read_delim(",")
-# write_file(path ="Data/Komponente/Datei_K1DI2.csv")
-# fread("Data/Komponente/Datei_K1DI2.txt",sep="\\")
+  str_replace_all("\t","\n") %>%
+  fread(sep="\\")
 
 ```
 
 Dank des Formats folgender Datei kann sie einfach durch fread eingelesen werden.
 
 ```{r Motor_K1DI2_2, message = FALSE, warning = FALSE}
-
-Bestandteile_Komponente_K1DI2 <- fread("Data/Komponente/Bestandteile_Komponente_K1DI2.csv")
-
-```
-
-```{r Motor_K1DI2_2_ammended, message = FALSE, warning = FALSE}
 
 Bestandteile_Komponente_K1DI2 <- read_csv2("Data/Komponente/Bestandteile_Komponente_K1DI2.csv")
 
@@ -513,151 +311,364 @@ Dank des Formats dieser Datei kann sie einfach durch fread eingelesen werden.
 
 ```{r Zulassungen, message = FALSE, warning = FALSE}
 
-Zulassungen_alle_Fahrzeuge <- fread("Data/Zulassungen/Zulassungen_alle_Fahrzeuge.csv")
-
-```
-
-```{r Zulassungen_ammended, message = FALSE, warning = FALSE}
-
 Zulassungen_alle_Fahrzeuge <- read_csv2("Data/Zulassungen/Zulassungen_alle_Fahrzeuge.csv")
-
-```
-
-
-
-```{r EINLESEN, include=FALSE, eval=FALSE}
-# Einlesen von datei "Zulassungen_alle_Fahrzeuge.csv"
-Zulassungen_alle_Fahrzeuge <- fread(file.path(dir_Zulassungen,files_Zulassungen[1]))
-Zulassungen_alle_Fahrzeuge1 <- fread(file = "Data/Zulassungen/Zulassungen_alle_Fahrzeuge.csv" )
-
-
-# Einlesen von datei "Fahrzeuge_OEM1_Typ11.csv"
-Fahrzeuge_OEM1_Typ11 <- fread(file.path(dir_Fahrzeug,files_Fahrzeug[5]))
-
-# Einlesen von datei "Fahrzeuge_OEM1_Typ12.csv"
-Fahrzeuge_OEM1_Typ12 <- fread(file.path(dir_Fahrzeug,files_Fahrzeug[6]))
-
-# Einlesen von datei "Fahrzeuge_OEM2_Typ21.csv"
-Fahrzeuge_OEM2_Typ21 <- fread(file.path(dir_Fahrzeug,files_Fahrzeug[7]))
-
-# Einlesen von datei "Fahrzeuge_OEM2_Typ22.csv"
-Fahrzeuge_OEM2_Typ22 <- fread(file.path(dir_Fahrzeug,files_Fahrzeug[8]))
-
-
-# Einlesen von datei "Bestandteile_Fahrzeuge_OEM1_Typ11.csv"
-Bestandteile_Fahrzeuge_OEM1_Typ11 <- fread(file.path(dir_Fahrzeug,files_Fahrzeug[1]))
-
-# Einlesen von datei "Bestandteile_Fahrzeuge_OEM1_Typ12.csv"
-Bestandteile_Fahrzeuge_OEM1_Typ12 <- fread(file.path(dir_Fahrzeug,files_Fahrzeug[2]))
-
-# Einlesen von datei "Bestandteile_Fahrzeuge_OEM2_Typ21.csv"
-Bestandteile_Fahrzeuge_OEM2_Typ21 <- fread(file.path(dir_Fahrzeug,files_Fahrzeug[3]))
-
-# Einlesen von datei "Bestandteile_Fahrzeuge_OEM2_Typ22.csv"
-Bestandteile_Fahrzeuge_OEM2_Typ22 <- fread(file.path(dir_Fahrzeug,files_Fahrzeug[4]))
-
-
-
-# Einlesen von datei "Komponente_K1BE1.csv"
-# Komponente_K1BE1 <- fread(file.path(dir_Komponente,files_Komponente[17]))
-# Einlesen von datei "Komponente_K1BE2.csv"
-Komponente_K1BE2 <- fread(file.path(dir_Komponente,files_Komponente[18]))
-# Einlesen von datei "Komponente_K1DI1.csv"
-Komponente_K1DI1 <- fread(file.path(dir_Komponente,files_Komponente[19]))
-# Einlesen von datei "Komponente_K1DI2.txt"
-# Komponente_K1DI2 <- fread(file.path(dir_Komponente,files_Komponente[20]))   #keine richtige Format von Rückgabewerte 
-# unstructures txt muss separate behandelt werden
-plain_text_Komponente_K1DI2<-read_file(file.path(dir_Komponente,files_Komponente[20]))
-with_tab<-str_replace_all(plain_text_Komponente_K1DI2,"\\s","\n")
-with_semicolon<-str_replace_all(with_tab,"\\\\",";")
-write_file(with_semicolon,file.path(dir_Additional,temp_csv))
-Komponente_K1DI2 <- fread(file.path(dir_Additional,temp_csv))
-file.remove(file.path(dir_Additional,temp_csv))
-
-
-```
-
-
-
-```{r}
-
-
-
-
-```
-
-
-```{r}
-
-
-
 
 ```
 
 # Datenaufbereitung
 
-## 2.1 Structure analysis
+Die durch die Importierung resultierenden Datensätze enthalten mehrere Variablen, die völlig irrelevant bezüglich des Zieles der CaseStudy sind, so wie Spalten, die nach der Importierung generiert wurden, die überhaupt keine Information haben. Entsprechend werden diese Variablen und Spalten entfernt und das Format der relevanten Variablen geändert, falls notwendig.    
 
-```{r GLIMPSE, include=FALSE}
+**Funktionen für die Datenaufbereitung**
 
-# Strukture von datei "Zulassungen_alle_Fahrzeuge.csv"
-glimpse(Zulassungen_alle_Fahrzeuge)
+```{r Function_Datentyp, message = FALSE, warning = FALSE}
 
+# Initiale Aufbereitung bezieht sich auf die Union von Variablen und Entfernung von unnötigen Zeichen je nach Datensatz
 
-# Strukture von datei "Fahrzeuge_OEM1_Typ11.csv"
-glimpse(Fahrzeuge_OEM1_Typ11)
+# Function für die Anpassung des Datentyps von Variablen nach initialer Aufbereitung
 
+Anpassung_Datentyp <- function(datensatz, ID_Typ) {
+  datensatz[[ID_Typ]] <- type.convert(datensatz[[ID_Typ]],as.is = T)
+  datensatz$Produktionsdatum <- as.Date(datensatz$Produktionsdatum)
+  datensatz$Fehlerhaft_Datum <- as.Date(datensatz$Fehlerhaft_Datum, format="%Y-%m-%d")
+  datensatz$Fehlerhaft <- as.integer(as.character(datensatz$Fehlerhaft))
+  return(datensatz)
+}
 
-# Strukture von datei "Fahrzeuge_OEM1_Typ12.csv"
-glimpse(Fahrzeuge_OEM1_Typ12)
+# Function für die mit Einzelteilen zusammenhängende Auswahl von relevanten Variablen und Anpassung des Datentyps von Variablen, die keine initiale Aufbereitung brauchen 
 
-# Strukture von datei "Fahrzeuge_OEM2_Typ21.csv"
-glimpse(Fahrzeuge_OEM2_Typ21)
+Aufbereitung_des_Datensatz_mit_Origin <- function(datensatz, ID_Typ){
+  datensatz <- mutate(datensatz, Produktionsdatum = Produktionsdatum_Origin_01011970 + dmy(origin))
+  datensatz <- select(datensatz, c( ID_Typ, "Fehlerhaft", "Fehlerhaft_Datum", "Produktionsdatum"))
+  datensatz <- Anpassung_Datentyp(datensatz, ID_Typ)
+  return(datensatz)
+}
 
-# Strukture von datei "Fahrzeuge_OEM2_Typ22.csv"
-glimpse(Fahrzeuge_OEM2_Typ22)
+# Function für die mit Fahrzeugen zusammenhängende Auswahl von relevanten Variablen und Anpassung des Datentyps von Variablen, die keine initiale Aufbereitung brauchen 
 
-# Strukture von datei "Bestandteile_Fahrzeuge_OEM1_Typ11.csv"
-glimpse(Bestandteile_Fahrzeuge_OEM1_Typ11)
+Aufbereitung_des_Datensatz_ohne_Origin <- function(datensatz, ID_Typ){
+  datensatz <- select(datensatz, c( ID_Typ, "Fehlerhaft", "Fehlerhaft_Datum", "Produktionsdatum"))
+  datensatz <- Anpassung_Datentyp(datensatz, ID_Typ)
+  return(datensatz)
+}
 
-# Strukture von datei "Bestandteile_Fahrzeuge_OEM1_Typ12.csv"
-glimpse(Bestandteile_Fahrzeuge_OEM1_Typ12)
+# Function für die mit den Bestandteilen der Fahrzeuge zusammenhängende Auswahl von relevanten Variablen und Anpassung des Datentyps von Variablen, die keine initiale Aufbereitung brauchen 
 
-# Strukture von datei "Bestandteile_Fahrzeuge_OEM2_Typ21.csv"
-glimpse(Bestandteile_Fahrzeuge_OEM2_Typ21)
-
-# Strukture von datei "Bestandteile_Fahrzeuge_OEM2_Typ22.csv"
-glimpse(Bestandteile_Fahrzeuge_OEM2_Typ22)
-
-
-
-# Strukture von datei "Komponente_K1BE1.csv"
-glimpse(Komponente_K1BE1)
-
-# Strukture von datei "Komponente_K1BE2.csv"
-glimpse(Komponente_K1BE2)
-
-# Strukture von datei "Komponente_K1DI1.csv"
-glimpse(Komponente_K1DI1)
-
-# Strukture von datei "Komponente_K1DI2.txt"
-glimpse(Komponente_K1DI2)
+Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulassung <- function(datensatz){
+  datensatz <- select(datensatz, -X1)
+  return(datensatz)
+}
 
 ```
 
 
+**Einzelteile 01 bis 10**
 
-## 2.2 Structure analysis
+*Einzelteil 01*
 
+```{r Aufbereitung_T01, message = FALSE, warning = FALSE}
 
-```{r}
+# Blick auf Struktur des Datensatzes  
 
+str(Einzelteil_T01)
 
+# Änderung der Namen der Spalten, sodass die Werte den richtigen Variablennamen entsprechen
+
+Einzelteil_T01 <- Einzelteil_T01 %>% 
+  rename(replace = c(",\"Produktionsdatum.x\"," = "ID_T01.x", ",\"Herstellernummer.x\"," = "Produktionsdatum.x", ",\"Werksnummer.x\"," = "Herstellernummer.x" , ",\"Fehlerhaft.x\"," = "Werksnummer.x", ",\"Fehlerhaft_Datum.x\"," = "Fehlerhaft.x", ",\"Fehlerhaft_Fahrleistung.x\"," = "Fehlerhaft_Datum.x", ",\"ID_T01.y\"," = "Fehlerhaft_Fahrleistung.x", ",\"Produktionsdatum.y\"," = "ID_T01.y", ",\"Herstellernummer.y\"," = "Produktionsdatum.y", ",\"Werksnummer.y\"," = "Herstellernummer.y" , ",\"Fehlerhaft.y\"," = "Werksnummer.y", ",\"Fehlerhaft_Datum.y\"," = "Fehlerhaft.y", ",\"Fehlerhaft_Fahrleistung.y\"," = "Fehlerhaft_Datum.y", ",\"ID_T01\"," = "Fehlerhaft_Fahrleistung.y", ",\"Produktionsdatum\"," = "ID_T01", ",\"Herstellernummer\"," = "Produktionsdatum", ",\"Werksnummer\"," = "Herstellernummer" , ",\"Fehlerhaft\"," = "Werksnummer", ",\"Fehlerhaft_Datum\"," = "Fehlerhaft", ",\"Fehlerhaft_" = "Fehlerhaft_Datum", "V45" = "Fehlerhaft_Fahrleistung")) 
+
+# Auswahl der für die Analyse relevanten Variablen.
+ 
+Einzelteil_T01 <- Einzelteil_T01[,c("ID_T01.x", "ID_T01.y", "ID_T01", "Produktionsdatum.x", "Produktionsdatum.y", "Produktionsdatum", "Fehlerhaft.x", "Fehlerhaft.y", "Fehlerhaft", "Fehlerhaft_Datum.x", "Fehlerhaft_Datum.y", "Fehlerhaft_Datum")]                                                                                                        
+# Union von separaten Variablen, die eigentlich die gleiche Information enthalten, sowie die Entfernung von unnötigen Zeichen innerhalb dieser Variabeln 
+
+Einzelteil_T01 <- Einzelteil_T01 %>%
+  unite("ID_T01", ID_T01, ID_T01.x, ID_T01.y) %>% 
+  unite("Produktionsdatum", Produktionsdatum, Produktionsdatum.x, Produktionsdatum.y) %>%
+  unite("Fehlerhaft", Fehlerhaft, Fehlerhaft.x, Fehlerhaft.y) %>%
+  unite("Fehlerhaft_Datum", Fehlerhaft_Datum, Fehlerhaft_Datum.x, Fehlerhaft_Datum.y) %>%
+  sapply(str_remove_all,"[,\"_NA]") %>%
+  as.data.frame() %>%
+  Anpassung_Datentyp("ID_T01")
+
+```
+
+*Einzelteil 02*
+
+```{r Aufbereitung_T02, message = FALSE, warning = FALSE}
+
+# Blick auf Struktur des Datensatzes  
+
+str(Einzelteil_T02)
+
+# Auswahl der für die Analyse relevanten Variablen und Union von separaten Variablen, die eigentlich die gleiche Information enthalten, sowie die Entfernung von unnötigen Zeichen innerhalb dieser Variabeln
+
+Einzelteil_T02 <- Einzelteil_T02 %>%
+  select(-c("V1", "X1", "Herstellernummer.x", "Werksnummer.x", "Herstellernummer.y", "Werksnummer.y", "Fehlerhaft_Fahrleistung.x", "Fehlerhaft_Fahrleistung.y")) %>%
+  unite("ID_T02", ID_T02.x, ID_T02.y) %>% 
+  unite("Produktionsdatum", Produktionsdatum.x, Produktionsdatum.y) %>%
+  unite("Fehlerhaft", Fehlerhaft.x, Fehlerhaft.y) %>%
+  unite("Fehlerhaft_Datum", Fehlerhaft_Datum.x, Fehlerhaft_Datum.y) %>%
+  sapply(str_remove_all,"[_NA]") %>%
+  as.data.frame() %>%
+  Anpassung_Datentyp("ID_T02")
+
+```
+
+*Einzelteil 03 und 04*
+
+```{r Aufbereitung_T03_04, message = FALSE, warning = FALSE}
+
+# Blick auf Struktur des Datensatzes  
+
+str(Einzelteil_T03)
+str(Einzelteil_T04)
+
+# Anwendung von die Datensätze aufbereitender Funktion für die Einzelteile (Details dieser Funktion liegen bei der Definition der Funktion vor)
+
+Einzelteil_T03 <- Aufbereitung_des_Datensatz_mit_Origin(Einzelteil_T03, "ID_T03")
+Einzelteil_T04 <- Aufbereitung_des_Datensatz_mit_Origin(Einzelteil_T04, "ID_T04")
 
 
 ```
 
+*Einzelteil 05*
 
+```{r Aufbereitung_T05, message = FALSE, warning = FALSE}
+
+# Blick auf Struktur des Datensatzes  
+
+str(Einzelteil_T05)
+
+# Auswahl der für die Analyse relevanten Variablen und Union von separaten Variablen, die eigentlich die gleiche Information enthalten, sowie die Entfernung von unnötigen Zeichen innerhalb dieser Variabeln
+
+
+Einzelteil_T05 <- Einzelteil_T05 %>%
+  select(-c("V1", "X1", "Herstellernummer.x", "Werksnummer.x", "Herstellernummer.y", "Werksnummer.y", "Fehlerhaft_Fahrleistung.x", "Fehlerhaft_Fahrleistung.y")) %>%
+  unite("ID_T05", ID_T05.x, ID_T05.y) %>% 
+  unite("Produktionsdatum", Produktionsdatum.x, Produktionsdatum.y) %>%
+  unite("Fehlerhaft", Fehlerhaft.x, Fehlerhaft.y) %>%
+  unite("Fehlerhaft_Datum", Fehlerhaft_Datum.x, Fehlerhaft_Datum.y) %>%
+  sapply(str_remove_all,"[_NA]") %>%
+  as.data.frame() %>%
+  Anpassung_Datentyp("ID_T05")
+
+```
+
+*Einzelteil 06, 07 und 08*
+
+```{r Aufbereitung_T06_07_08, message = FALSE, warning = FALSE}
+
+# Blick auf Struktur des Datensatzes  
+
+str(Einzelteil_T06)
+str(Einzelteil_T07)
+str(Einzelteil_T08)
+
+# Anwendung von die Datensätze aufbereitender Funktion für die Einzelteile (Details dieser Funktion liegen bei der Definition der Funktion vor)
+
+Einzelteil_T06 <- Aufbereitung_des_Datensatz_mit_Origin(Einzelteil_T06, "ID_T06")
+Einzelteil_T07 <- Aufbereitung_des_Datensatz_mit_Origin(Einzelteil_T07, "ID_T07")
+Einzelteil_T08 <- Aufbereitung_des_Datensatz_mit_Origin(Einzelteil_T08, "ID_T08")
+
+```
+
+*Einzelteil 09*
+
+```{r Aufbereitung_T09, message = FALSE, warning = FALSE}
+
+# Blick auf Struktur des Datensatzes  
+
+str(Einzelteil_T09)
+
+# Auswahl der für die Analyse relevanten Variablen und Union von separaten Variablen, die eigentlich die gleiche Information enthalten, sowie die Entfernung von unnötigen Zeichen innerhalb dieser Variabeln
+
+
+Einzelteil_T09 <- Einzelteil_T09 %>%
+  select(-c("V1", "X1", "Herstellernummer.x", "Werksnummer.x", "Herstellernummer.y", "Werksnummer.y", "Fehlerhaft_Fahrleistung.x", "Fehlerhaft_Fahrleistung.y")) %>%
+  unite("ID_T09", ID_T09.x, ID_T09.y) %>% 
+  unite("Produktionsdatum", Produktionsdatum.x, Produktionsdatum.y) %>%
+  unite("Fehlerhaft", Fehlerhaft.x, Fehlerhaft.y) %>%
+  unite("Fehlerhaft_Datum", Fehlerhaft_Datum.x, Fehlerhaft_Datum.y) %>%
+  sapply(str_remove_all,"[_NA]") %>%
+  as.data.frame() %>%
+  Anpassung_Datentyp("ID_T09")
+
+```
+
+*Einzelteil 10*
+
+```{r Aufbereitung_T10, message = FALSE, warning = FALSE}
+
+# Blick auf Struktur des Datensatzes  
+
+str(Einzelteil_T10)
+
+# Anwendung von die Datensätze aufbereitender Funktion für die Einzelteile (Details dieser Funktion liegen bei der Definition der Funktion vor)
+
+Einzelteil_T10 <- Aufbereitung_des_Datensatz_mit_Origin(Einzelteil_T10, "ID_T10")
+
+```
+
+
+**Fahrzeuge und ihre Bestandteile**
+
+*Fahrzeug 11*
+
+```{r Aufbereitung_Fahrzeug_11, message = FALSE, warning = FALSE}
+
+# Blick auf Struktur des Datensatzes  
+
+str(Fahrzeuge_OEM1_Typ11)
+str(Bestandteile_Fahrzeuge_OEM1_Typ11)
+
+# Anwendung von die Datensätze aufbereitenden Funktionen (Details dieser Funktion liegen bei der Definition der Funktion vor)
+
+Fahrzeuge_OEM1_Typ11 <- Aufbereitung_des_Datensatz_ohne_Origin(Fahrzeuge_OEM1_Typ11, "ID_Fahrzeug")
+Bestandteile_Fahrzeuge_OEM1_Typ11 <- Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulassung(Bestandteile_Fahrzeuge_OEM1_Typ11)
+
+```
+
+*Fahrzeug 12*
+
+```{r Aufbereitung_Fahrzeug_12, message = FALSE, warning = FALSE}
+
+# Blick auf Struktur des Datensatzes  
+
+str(Fahrzeuge_OEM1_Typ12)
+str(Bestandteile_Fahrzeuge_OEM1_Typ12)
+
+# Anwendung von die Datensätze aufbereitenden Funktionen (Details dieser Funktion liegen bei der Definition der Funktion vor)
+
+Fahrzeuge_OEM1_Typ12 <- Aufbereitung_des_Datensatz_ohne_Origin(Fahrzeuge_OEM1_Typ12, "ID_Fahrzeug")
+Bestandteile_Fahrzeuge_OEM1_Typ12 <- Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulassung(Bestandteile_Fahrzeuge_OEM1_Typ12)
+
+```
+
+*Fahrzeug 21*
+
+```{r Aufbereitung_Fahrzeug_21, message = FALSE, warning = FALSE}
+
+# Blick auf Struktur des Datensatzes  
+
+str(Fahrzeuge_OEM2_Typ21)
+str(Bestandteile_Fahrzeuge_OEM2_Typ21)
+
+# Anwendung von die Datensätze aufbereitenden Funktionen (Details dieser Funktion liegen bei der Definition der Funktion vor)
+
+Fahrzeuge_OEM2_Typ21 <- Aufbereitung_des_Datensatz_mit_Origin(Fahrzeuge_OEM2_Typ21, "ID_Fahrzeug")
+Bestandteile_Fahrzeuge_OEM2_Typ21 <- Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulassung(Bestandteile_Fahrzeuge_OEM2_Typ21)
+
+```
+
+*Fahrzeug 22*
+
+```{r Aufbereitung_Fahrzeug_22, message = FALSE, warning = FALSE}
+
+# Blick auf Struktur des Datensatzes  
+
+str(Fahrzeuge_OEM2_Typ22)
+str(Bestandteile_Fahrzeuge_OEM2_Typ22)
+
+# Anwendung von die Datensätze aufbereitenden Funktionen (Details dieser Funktion liegen bei der Definition der Funktion vor)
+
+Fahrzeuge_OEM2_Typ22 <- Aufbereitung_des_Datensatz_mit_Origin(Fahrzeuge_OEM2_Typ22, "ID_Fahrzeug")
+Bestandteile_Fahrzeuge_OEM2_Typ22 <- Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulassung(Bestandteile_Fahrzeuge_OEM2_Typ22)
+
+```
+
+
+**Komponente und ihre Bestandteile**
+
+*Motor K1BE1*
+
+```{r Aufbereitung_Motor_K1BE1, message = FALSE, warning = FALSE}
+
+# Blick auf Struktur des Datensatzes  
+
+str(Komponente_K1BE1)
+str(Bestandteile_Komponente_K1BE1)
+
+# Anwendung von die Datensätze aufbereitenden Funktionen (Details dieser Funktion liegen bei der Definition der Funktion vor)
+
+Komponente_K1BE1 <- Aufbereitung_des_Datensatz_mit_Origin(Komponente_K1BE1, "ID_Motor")
+Bestandteile_Komponente_K1BE1 <- Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulassung(Bestandteile_Komponente_K1BE1)
+
+```
+
+*Motor K1BE2*
+
+```{r Aufbereitung_Motor_K1BE2, message = FALSE, warning = FALSE}
+
+# Blick auf Struktur des Datensatzes  
+
+str(Komponente_K1BE2)
+str(Bestandteile_Komponente_K1BE2)
+
+# Anwendung von die Datensätze aufbereitenden Funktionen (Details dieser Funktion liegen bei der Definition der Funktion vor)
+
+Komponente_K1BE2 <- Aufbereitung_des_Datensatz_mit_Origin(Komponente_K1BE2, "ID_Motor")
+Bestandteile_Komponente_K1BE2 <- Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulassung(Bestandteile_Komponente_K1BE2)
+
+```
+
+*Motor K1DI1*
+
+```{r Aufbereitung_Motor_K1DI1, message = FALSE, warning = FALSE}
+
+# Blick auf Struktur des Datensatzes  
+
+str(Komponente_K1DI1)
+str(Bestandteile_Komponente_K1DI1)
+
+# Auswahl der für die Analyse relevanten Variablen und Union von separaten Variablen, die eigentlich die gleiche Information enthalten, sowie die Entfernung von unnötigen Zeichen innerhalb dieser Variabeln
+
+Komponente_K1DI1 <- Komponente_K1DI1 %>%
+  select(-c("V1", "X1", "Herstellernummer", "Werksnummer", "Fehlerhaft_Fahrleistung", "Herstellernummer.x", "Werksnummer.x", "Herstellernummer.y", "Werksnummer.y", "Fehlerhaft_Fahrleistung.x", "Fehlerhaft_Fahrleistung.y")) %>%
+  unite("ID_Motor", ID_Motor, ID_Motor.x, ID_Motor.y) %>% 
+  unite("Produktionsdatum", Produktionsdatum, Produktionsdatum.x, Produktionsdatum.y) %>%
+  unite("Fehlerhaft", Fehlerhaft, Fehlerhaft.x, Fehlerhaft.y) %>%
+  unite("Fehlerhaft_Datum", Fehlerhaft_Datum, Fehlerhaft_Datum.x, Fehlerhaft_Datum.y) %>%
+  sapply(str_remove_all,"[,\"_NA]") %>%
+  as.data.frame() %>%
+  Anpassung_Datentyp("ID_Motor")
+
+# Anwendung von die Datensätze aufbereitender Funktion (Details dieser Funktion liegen bei der Definition der Funktion vor)
+
+Bestandteile_Komponente_K1DI1 <- Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulassung(Bestandteile_Komponente_K1DI1)
+
+```
+
+*Motor K1DI2*
+
+```{r Aufbereitung_Motor_K1DI2, message = FALSE, warning = FALSE}
+
+# Blick auf Struktur des Datensatzes  
+
+str(Komponente_K1DI2)
+str(Bestandteile_Komponente_K1DI2)
+
+# Anwendung von die Datensätze aufbereitenden Funktionen (Details dieser Funktion liegen bei der Definition der Funktion vor)
+
+Komponente_K1DI2 <- Aufbereitung_des_Datensatz_mit_Origin(Komponente_K1DI2, "ID_Motor")
+Bestandteile_Komponente_K1DI2 <- Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulassung(Bestandteile_Komponente_K1DI2)
+
+```
+
+
+**Zulassungen**
+
+```{r Aufbereitung_Zulassung, message = FALSE, warning = FALSE}
+
+# Blick auf Struktur des Datensatzes  
+
+str(Zulassungen_alle_Fahrzeuge)
+
+# Anwendung von die Datensätze aufbereitender Funktion (Details dieser Funktion liegen bei der Definition der Funktion vor)
+
+Zulassungen_alle_Fahrzeuge <- Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulassung(Zulassungen_alle_Fahrzeuge)
+
+```
 
 # Erstellen des finalen Datensatzes
 
@@ -681,4 +692,3 @@ glimpse(Komponente_K1DI2)
 ```{r}
 
 ```
-
