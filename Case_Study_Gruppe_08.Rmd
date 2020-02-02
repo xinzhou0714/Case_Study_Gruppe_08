@@ -9,6 +9,8 @@ output:
     number_sections: true
 ---
 
+<!-- git add . ; git commit -m "Next commit3" ; git push origin master -->
+
 ```{r setup, include=FALSE}
 
 knitr::opts_chunk$set(echo = TRUE, eval = TRUE)
