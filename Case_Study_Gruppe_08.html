@@ -376,19 +376,15 @@ summary {
 
 <div id="TOC">
 <ul>
-<li><a href="#laden-und-geg.-installieren-notwendiger-bibliotheken">0. Laden und geg. installieren notwendiger Bibliotheken</a></li>
-<li><a href="#importieren-der-daten">1. Importieren der Daten</a><ul>
-<li><a href="#relevante-daten">1.1 Relevante Daten</a></li>
-<li><a href="#pfad-konfiguration">1.2 Pfad Konfiguration</a></li>
-<li><a href="#einlesen-der-daten">1.3 Einlesen der Daten</a></li>
+<li><a href="#laden-und-geg.-installieren-notwendiger-bibliotheken"><span class="toc-section-number">1</span> Laden und geg. Installieren notwendiger Bibliotheken</a></li>
+<li><a href="#importieren-der-daten"><span class="toc-section-number">2</span> Importieren der Daten</a><ul>
+<li><a href="#relevante-daten"><span class="toc-section-number">2.1</span> Relevante Daten</a></li>
 </ul></li>
-<li><a href="#datenaufbereitung">Datenaufbereitung</a><ul>
-<li><a href="#structure-analysis">2.1 Structure analysis</a></li>
-<li><a href="#structure-analysis-1">2.2 Structure analysis</a></li>
-</ul></li>
-<li><a href="#erstellen-des-finalen-datensatzes">Erstellen des finalen Datensatzes</a></li>
-<li><a href="#auswertung">Auswertung</a></li>
-<li><a href="#ergebnis">Ergebnis</a></li>
+<li><a href="#einlesen-der-daten"><span class="toc-section-number">3</span> Einlesen der Daten</a></li>
+<li><a href="#datenaufbereitung"><span class="toc-section-number">4</span> Datenaufbereitung</a></li>
+<li><a href="#erstellen-des-finalen-datensatzes"><span class="toc-section-number">5</span> Erstellen des finalen Datensatzes</a></li>
+<li><a href="#auswertung"><span class="toc-section-number">6</span> Auswertung</a></li>
+<li><a href="#ergebnis"><span class="toc-section-number">7</span> Ergebnis</a></li>
 </ul>
 </div>
 
@@ -398,10 +394,8 @@ summary {
 <p>A: Ein Balkendiagramm, das die relativen Fehlerhäufigkeiten aller Motoren, getrennt in Benzin- und Dieselantrieb, darstellt. Das Diagramm muss interaktive Elemente enthalten. Der Produktionszeitraum der Fahrzeuge muss durch den Nutzer variabel eingrenzbar sein.</p>
 <p>B: Pro Fahrzeugtyp jeweils einen Boxplot für Varianten mit Dieselmotor und einen Boxplot für Varianten mit Benzinmotor. Die Boxplots beziehen sich dabei auf das Zeitintervall zwischen Zulassung eines Fahrzeugs und Fehlerdatum der Fahrzeuge. Wichtige Kennzahlen müssen interaktiv ablesbar sein. Die Fahrzeugtypen sollen an- und abwählbar sein. Alle Fahrzeugtypen von OEM1 und OEM2 sollen mit einem Klick an- und abwählbar sein. Der für das Balkendiagramm ausgewählte Produktionszeitraum soll auch hier angewendet werden.</p>
 <div id="laden-und-geg.-installieren-notwendiger-bibliotheken" class="section level1">
-<h1>0. Laden und geg. installieren notwendiger Bibliotheken</h1>
-<pre class="r"><code># Einbinden der Packages
-
-if(!require(data.table)){
+<h1><span class="header-section-number">1</span> Laden und geg. Installieren notwendiger Bibliotheken</h1>
+<pre class="r"><code>if(!require(data.table)){
   install.packages(&quot;data.table&quot;)
 }
 # für die Verwendung von fread()
@@ -415,15 +409,25 @@ library(tidyverse)
 if(!require(shiny)){
   install.packages(&quot;shiny&quot;)
 }
-library(shiny)</code></pre>
+library(shiny)
+
+if(!require(plyr)){
+  install.packages(&quot;plyr&quot;)
+}
+library(plyr)
+
+if(!require(lubridate)){
+  install.packages(&quot;lubridate&quot;)
+}
+library(lubridate)</code></pre>
 </div>
 <div id="importieren-der-daten" class="section level1">
-<h1>1. Importieren der Daten</h1>
+<h1><span class="header-section-number">2</span> Importieren der Daten</h1>
 <p>Aus die Aufgabenstellung gibt es solche Annahme: <span class="math display">\[
-Lebensdauer = Zulassungsdatum - Fehlerdatum
+Lebensdauer=  Fehlerdatum - Zulassungsdatum
 \]</span></p>
 <div id="relevante-daten" class="section level2">
-<h2>1.1 Relevante Daten</h2>
+<h2><span class="header-section-number">2.1</span> Relevante Daten</h2>
 <p>Zuerst wurde/wird es analysiert, welche daten relevant sind. Dieses Verfahren hängt von den folgenden drei Aufgaben und weiteren detallierten Anforderungen des Inhalts und der Eigenschaften der Shiny-Applikation. Darüber hinaus hängen die relevanten Daten mit den Dateien zusammen, die nicht nur die unterschiedlichen Motorentypen als ganze Systeme sondern auch die Einzelteile dieser Motoren beschreiben.</p>
 <ol style="list-style-type: decimal">
 <li>Überprüfen Sie die Aussage über die Langlebigkeit von Dieselmotoren durch einen Vergleich mit Benzinmotoren.</li>
@@ -586,83 +590,45 @@ Lebensdauer = Zulassungsdatum - Fehlerdatum
 </tbody>
 </table>
 </div>
-<div id="pfad-konfiguration" class="section level2">
-<h2>1.2 Pfad Konfiguration</h2>
-<pre class="r"><code># figure out  File-index in each folder
-
-dir_Fahrzeug&lt;-&quot;./Data/Fahrzeug&quot; 
-
-dir_Komponente&lt;-&quot;./Data/Komponente&quot;
-
-dir_Einzelteile&lt;-&quot;./Data/Einzelteil&quot; 
-
-dir_Zulassungen&lt;-&quot;./Data/Zulassungen&quot; 
-
-
-files_Fahrzeug&lt;-list.files(path = dir_Fahrzeug)
-files_Fahrzeug
-
-files_Komponente&lt;-list.files(path = dir_Komponente)
-files_Komponente
-
-files_Einzelteile&lt;-list.files(path = dir_Einzelteile)
-files_Einzelteile
-
-files_Zulassungen&lt;-list.files(path = dir_Zulassungen)
-files_Zulassungen
-
-
-temp_csv&lt;-&quot;temp.csv&quot;</code></pre>
 </div>
-<div id="einlesen-der-daten" class="section level2">
-<h2>1.3 Einlesen der Daten</h2>
+<div id="einlesen-der-daten" class="section level1">
+<h1><span class="header-section-number">3</span> Einlesen der Daten</h1>
 <p><strong>Einzelteile 01 bis 10</strong></p>
 <p>Obwohl es 38 Einzelteile gibt, werden nur die Dateien mit Data zu den Einzelteilen 1-10 eingelesen, weil sie die Bestandteile der unterschiedlichen Motoren sind. Die Dateien, die ausführliche Informationen zum Einzelteil 1, 2, 3, 7 und 9 enthalten, haben so ein Format, dass es keine entsprechende Funktion gibt, die nach dem Einlesen unmittelbar aus dem original Format eine übersichtliche Struktur erzeugen würde. Deswegen werden die Dateien auf die folgende Weise modifiziert. Die Data in der Dateien werden in übersichtliche Zeile nach der Analysierung ihrer Struktur organisiert und die Field Parameters werden simplifiziert, was es ermöglicht, die Dateien durch eine Funktion wie Fread einzulesen, um eine Data Frame zu erzeugen.</p>
 <p><em>Einzelteil 01</em></p>
-<pre class="r"><code>plaintext_T01 &lt;- read_file(&quot;Data/Einzelteil/Einzelteil_T01.txt&quot;)
-Modifikation_T01 &lt;- str_replace_all(plaintext_T01,&quot;Fahrleistung\&quot;&quot;,&quot;\n&quot;)
-Modifikation_T01_2 &lt;- str_replace_all(Modifikation_T01,&quot;A \&quot;&quot;,&quot;\n&quot;)
-Modifikation_T01_3 &lt;- str_replace_all(Modifikation_T01_2,&quot;[0-9] \&quot;&quot;,&quot;\n&quot;)
-Modifikation_T01_4 &lt;- str_replace_all(Modifikation_T01_3,&quot; | | &quot;,&quot;,&quot;)
-Datei_T01 &lt;- write_file(Modifikation_T01_4, path =&quot;Data/Einzelteil/Datei_T01.txt&quot;)
-Einzelteil_T01 &lt;- fread(&quot;Data/Einzelteil/Datei_T01.txt&quot;)</code></pre>
-<p>Mit Piping</p>
 <pre class="r"><code>Einzelteil_T01 &lt;- read_file(&quot;Data/Einzelteil/Einzelteil_T01.txt&quot;) %&gt;%
-str_replace_all(&quot;Fahrleistung\&quot;&quot;,&quot;\n&quot;) %&gt;%
-str_replace_all(&quot;A \&quot;&quot;,&quot;\n&quot;) %&gt;%
-str_replace_all(&quot;[0-9] \&quot;&quot;,&quot;\n&quot;) %&gt;%
-str_replace_all(&quot; | | &quot;,&quot;,&quot;)
-Datei_T01 &lt;- write_file(Einzelteil_T01, path =&quot;Data/Einzelteil/Datei_T01.txt&quot;)
-# Einzelteil_T01 &lt;- fread(&quot;Data/Einzelteil/Datei_T01.txt&quot;)</code></pre>
+  str_replace_all(&quot;Fahrleistung\&quot;&quot;,&quot;\n&quot;) %&gt;%
+  str_replace_all(&quot;A \&quot;&quot;,&quot;\n&quot;) %&gt;%
+  str_replace_all(&quot;[0-9] \&quot;&quot;,&quot;\n&quot;) %&gt;%
+  str_replace_all(&quot; | | &quot;,&quot;,&quot;) %&gt;%
+  fread()</code></pre>
 <p><em>Einzelteil 02</em></p>
-<pre class="r"><code>plaintext_T02 &lt;- read_file(&quot;Data/Einzelteil/Einzelteil_T02.txt&quot;)
-Modifikation_T02 &lt;- str_replace_all(plaintext_T02,&quot;\t&quot;,&quot;\n&quot;)
-Modifikation_T02_2 &lt;- str_replace_all(Modifikation_T02,&quot;  &quot;,&quot;,&quot;)
-Datei_T02 &lt;- write_file(Modifikation_T02_2, path =&quot;Data/Einzelteil/Datei_T02.txt&quot;)
-Einzelteil_T02 &lt;- fread(&quot;Data/Einzelteil/Datei_T02.txt&quot;)</code></pre>
+<pre class="r"><code>Einzelteil_T02 &lt;- read_file(&quot;Data/Einzelteil/Einzelteil_T02.txt&quot;) %&gt;%
+  str_replace_all(&quot;\t&quot;,&quot;\n&quot;) %&gt;%
+  str_replace_all(&quot;  &quot;,&quot;,&quot;) %&gt;%
+  fread()</code></pre>
 <p><em>Einzelteil 03</em></p>
-<pre class="r"><code>plaintext_T03 &lt;- read_file(&quot;Data/Einzelteil/Einzelteil_T03.txt&quot;)
-Modifikation_T03 &lt;- str_replace_all(plaintext_T03,&quot;&quot;,&quot;\n&quot;)
-Datei_T03 &lt;- write_file(Modifikation_T03, path =&quot;Data/Einzelteil/Datei_T03.txt&quot;)
-Einzelteil_T03 &lt;- fread(&quot;Data/Einzelteil/Datei_T03.txt&quot;,sep=&quot;|&quot;)</code></pre>
+<pre class="r"><code>Einzelteil_T03 &lt;- read_file(&quot;Data/Einzelteil/Einzelteil_T03.txt&quot;) %&gt;%
+  str_replace_all(&quot;
+&quot;,&quot;\n&quot;) %&gt;%
+  fread(sep=&quot;|&quot;)</code></pre>
 <p><em>Einzelteil 04 - 06</em></p>
 <p>Dank des Formats dieser Dateien können sie einfach durch fread eingelesen werden.</p>
 <pre class="r"><code>Einzelteil_T04 &lt;- fread(&quot;Data/Einzelteil/Einzelteil_T04.csv&quot;)
 Einzelteil_T05 &lt;- fread(&quot;Data/Einzelteil/Einzelteil_T05.csv&quot;)
 Einzelteil_T06 &lt;- fread(&quot;Data/Einzelteil/Einzelteil_T06.csv&quot;)</code></pre>
 <p><em>Einzelteil 07</em></p>
-<pre class="r"><code>plaintext_T07 &lt;- read_file(&quot;Data/Einzelteil/Einzelteil_T07.txt&quot;)
-Modifikation_T07 &lt;- str_replace_all(plaintext_T07,&quot;\&quot;\&quot;&quot;,&quot;\n&quot;)
-Datei_T07 &lt;- write_file(Modifikation_T07, path =&quot;Data/Einzelteil/Datei_T07.txt&quot;)
-Einzelteil_T07 &lt;- fread(&quot;Data/Einzelteil/Datei_T07.txt&quot;,sep=&quot;\t&quot;)</code></pre>
+<pre class="r"><code>Einzelteil_T07 &lt;- read_file(&quot;Data/Einzelteil/Einzelteil_T07.txt&quot;) %&gt;%
+  str_replace_all(&quot;\&quot;\&quot;&quot;,&quot;\&quot;\n&quot;) %&gt;%
+  fread(sep=&quot;\t&quot;)</code></pre>
 <p><em>Einzelteil 08</em></p>
 <p>Dank des Formats dieser Datei kann sie einfach durch fread eingelesen werden.</p>
 <pre class="r"><code>Einzelteil_T08 &lt;- fread(&quot;Data/Einzelteil/Einzelteil_T08.csv&quot;)</code></pre>
 <p><em>Einzelteil 09</em></p>
-<pre class="r"><code>plaintext_T09 &lt;- read_file(&quot;Data/Einzelteil/Einzelteil_T09.txt&quot;)
-Modifikation_T09 &lt;- str_replace_all(plaintext_T09,&quot;&quot;,&quot;\n&quot;)
-Datei_T09 &lt;- write_file(Modifikation_T09, path =&quot;Data/Einzelteil/Datei_T09.txt&quot;)
-Einzelteil_T09 &lt;- fread(&quot;Data/Einzelteil/Datei_T09.txt&quot;, sep=&quot;\\&quot;)</code></pre>
+<pre class="r"><code>Einzelteil_T09 &lt;- read_file(&quot;Data/Einzelteil/Einzelteil_T09.txt&quot;) %&gt;%
+  str_replace_all(&quot;
+&quot;,&quot;\n&quot;) %&gt;%
+  fread(sep=&quot;\\&quot;)</code></pre>
 <p><em>Einzelteil 10</em></p>
 <p>Dank des Formats dieser Datei kann sie einfach durch fread eingelesen werden.</p>
 <pre class="r"><code>Einzelteil_T10 &lt;- fread(&quot;Data/Einzelteil/Einzelteil_T10.csv&quot;)</code></pre>
@@ -670,15 +636,15 @@ Einzelteil_T09 &lt;- fread(&quot;Data/Einzelteil/Datei_T09.txt&quot;, sep=&quot;
 <p><em>Fahrzeug 11</em></p>
 <p>Dank des Formats dieser Dateien können sie einfach durch fread eingelesen werden.</p>
 <pre class="r"><code>Fahrzeuge_OEM1_Typ11 &lt;- fread(&quot;Data/Fahrzeug/Fahrzeuge_OEM1_Typ11.csv&quot;)
-Bestandteile_Fahrzeuge_OEM1_Typ11 &lt;- fread(&quot;Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM1_Typ11.csv&quot;)</code></pre>
+Bestandteile_Fahrzeuge_OEM1_Typ11 &lt;- read_csv2(&quot;Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM1_Typ11.csv&quot;)</code></pre>
 <p><em>Fahrzeug 12</em></p>
 <p>Dank des Formats dieser Dateien können sie einfach durch fread eingelesen werden.</p>
 <pre class="r"><code>Fahrzeuge_OEM1_Typ12 &lt;- fread(&quot;Data/Fahrzeug/Fahrzeuge_OEM1_Typ12.csv&quot;)
-Bestandteile_Fahrzeuge_OEM1_Typ12 &lt;- fread(&quot;Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM1_Typ12.csv&quot;)</code></pre>
+Bestandteile_Fahrzeuge_OEM1_Typ12 &lt;- read_csv2(&quot;Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM1_Typ12.csv&quot;)</code></pre>
 <p><em>Fahrzeug 21</em></p>
 <p>Dank des Formats dieser Dateien können sie einfach durch fread eingelesen werden.</p>
 <pre class="r"><code>Fahrzeuge_OEM2_Typ21 &lt;- fread(&quot;Data/Fahrzeug/Fahrzeuge_OEM2_Typ21.csv&quot;)
-Bestandteile_Fahrzeuge_OEM2_Typ21 &lt;- fread(&quot;Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM2_Typ21.csv&quot;)</code></pre>
+Bestandteile_Fahrzeuge_OEM2_Typ21 &lt;- read_csv2(&quot;Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM2_Typ21.csv&quot;)</code></pre>
 <p><em>Fahrzeug 22</em></p>
 <p>Dank des Formats dieser Dateien können sie einfach durch fread eingelesen werden.</p>
 <pre class="r"><code>Fahrzeuge_OEM2_Typ22 &lt;- fread(&quot;Data/Fahrzeug/Fahrzeuge_OEM2_Typ22.csv&quot;)
@@ -687,45 +653,279 @@ Bestandteile_Fahrzeuge_OEM2_Typ22 &lt;- fread(&quot;Data/Fahrzeug/Bestandteile_F
 <p><em>Motor K1BE1</em></p>
 <p>Dank des Formats dieser Dateien können sie einfach durch fread eingelesen werden.</p>
 <pre class="r"><code>Komponente_K1BE1 &lt;- fread(&quot;Data/Komponente/Komponente_K1BE1.csv&quot;)
-Bestandteile_Komponente_K1BE1 &lt;- fread(&quot;Data/Komponente/Bestandteile_Komponente_K1BE1.csv&quot;)</code></pre>
+Bestandteile_Komponente_K1BE1 &lt;- read_csv2(&quot;Data/Komponente/Bestandteile_Komponente_K1BE1.csv&quot;)</code></pre>
 <p><em>Motor K1BE2</em></p>
 <p>Dank des Formats dieser Dateien können sie einfach durch fread eingelesen werden.</p>
 <pre class="r"><code>Komponente_K1BE2 &lt;- fread(&quot;Data/Komponente/Komponente_K1BE2.csv&quot;)
-Bestandteile_Komponente_K1BE2 &lt;- fread(&quot;Data/Komponente/Bestandteile_Komponente_K1BE2.csv&quot;)</code></pre>
+Bestandteile_Komponente_K1BE2 &lt;- read_csv2(&quot;Data/Komponente/Bestandteile_Komponente_K1BE2.csv&quot;)</code></pre>
 <p><em>Motor K1DI1</em></p>
 <p>Dank des Formats dieser Dateien können sie einfach durch fread eingelesen werden.</p>
 <pre class="r"><code>Komponente_K1DI1 &lt;- fread(&quot;Data/Komponente/Komponente_K1DI1.csv&quot;)
-Bestandteile_Komponente_K1DI1 &lt;- fread(&quot;Data/Komponente/Bestandteile_Komponente_K1DI1.csv&quot;)</code></pre>
+Bestandteile_Komponente_K1DI1 &lt;- read_csv2(&quot;Data/Komponente/Bestandteile_Komponente_K1DI1.csv&quot;)</code></pre>
 <p><em>Motor K1DI2</em></p>
 <p>Folgende Datei wird so modifiziert, dass eine einlesbare Struktur generiert wird, mit der eine Funktion wie Fread eine Data Frame erstellen kann.</p>
-<pre class="r"><code>plaintext_K1DI2 &lt;- read_file(&quot;Data/Komponente/Komponente_K1DI2.txt&quot;)
-Modifikation_K1DI2 &lt;- str_replace_all(plaintext_K1DI2,&quot;\t&quot;,&quot;\n&quot;)
-Datei_K1DI2 &lt;- write_file(Modifikation_K1DI2, path =&quot;Data/Komponente/Datei_K1DI2.txt&quot;)
-Komponente_K1DI2 &lt;- fread(&quot;Data/Komponente/Datei_K1DI2.txt&quot;,sep=&quot;\\&quot;)</code></pre>
+<pre class="r"><code>Komponente_K1DI2 &lt;- read_file(&quot;Data/Komponente/Komponente_K1DI2.txt&quot;) %&gt;%
+  str_replace_all(&quot;\t&quot;,&quot;\n&quot;) %&gt;%
+  fread(sep=&quot;\\&quot;)</code></pre>
 <p>Dank des Formats folgender Datei kann sie einfach durch fread eingelesen werden.</p>
-<pre class="r"><code>Bestandteile_Komponente_K1DI2 &lt;- fread(&quot;Data/Komponente/Bestandteile_Komponente_K1DI2.csv&quot;)</code></pre>
+<pre class="r"><code>Bestandteile_Komponente_K1DI2 &lt;- read_csv2(&quot;Data/Komponente/Bestandteile_Komponente_K1DI2.csv&quot;)</code></pre>
 <p><strong>Zulassungen</strong></p>
 <p>Dank des Formats dieser Datei kann sie einfach durch fread eingelesen werden.</p>
-<pre class="r"><code>Zulassungen_alle_Fahrzeuge &lt;- fread(&quot;Data/Zulassungen/Zulassungen_alle_Fahrzeuge.csv&quot;)</code></pre>
-</div>
+<pre class="r"><code>Zulassungen_alle_Fahrzeuge &lt;- read_csv2(&quot;Data/Zulassungen/Zulassungen_alle_Fahrzeuge.csv&quot;)</code></pre>
 </div>
 <div id="datenaufbereitung" class="section level1">
-<h1>Datenaufbereitung</h1>
-<div id="structure-analysis" class="section level2">
-<h2>2.1 Structure analysis</h2>
-</div>
-<div id="structure-analysis-1" class="section level2">
-<h2>2.2 Structure analysis</h2>
-</div>
+<h1><span class="header-section-number">4</span> Datenaufbereitung</h1>
+<p>Die durch die Importierung resultierenden Datensätze enthalten mehrere Variablen, die völlig irrelevant bezüglich des Zieles der CaseStudy sind, so wie Spalten, die nach der Importierung generiert wurden, die überhaupt keine Information haben. Entsprechend werden diese Variablen und Spalten entfernt und das Format der relevanten Variablen geändert, falls notwendig.</p>
+<p><strong>Funktionen für die Datenaufbereitung</strong></p>
+<pre class="r"><code># Initiale Aufbereitung bezieht sich auf die Union von Variablen und Entfernung von unnötigen Zeichen je nach Datensatz
+
+# Function für die Anpassung des Datentyps von Variablen nach initialer Aufbereitung
+
+Anpassung_Datentyp &lt;- function(datensatz, ID_Typ) {
+  datensatz[[ID_Typ]] &lt;- type.convert(datensatz[[ID_Typ]],as.is = T)
+  datensatz$Produktionsdatum &lt;- as.Date(datensatz$Produktionsdatum)
+  datensatz$Fehlerhaft_Datum &lt;- as.Date(datensatz$Fehlerhaft_Datum, format=&quot;%Y-%m-%d&quot;)
+  datensatz$Fehlerhaft &lt;- as.integer(as.character(datensatz$Fehlerhaft))
+  return(datensatz)
+}
+
+# Function für die mit Einzelteilen zusammenhängende Auswahl von relevanten Variablen und Anpassung des Datentyps von Variablen, die keine initiale Aufbereitung brauchen 
+
+Aufbereitung_des_Datensatz_mit_Origin &lt;- function(datensatz, ID_Typ){
+  datensatz &lt;- mutate(datensatz, Produktionsdatum = Produktionsdatum_Origin_01011970 + dmy(origin))
+  datensatz &lt;- select(datensatz, c( ID_Typ, &quot;Fehlerhaft&quot;, &quot;Fehlerhaft_Datum&quot;, &quot;Produktionsdatum&quot;))
+  datensatz &lt;- Anpassung_Datentyp(datensatz, ID_Typ)
+  return(datensatz)
+}
+
+# Function für die mit Fahrzeugen zusammenhängende Auswahl von relevanten Variablen und Anpassung des Datentyps von Variablen, die keine initiale Aufbereitung brauchen 
+
+Aufbereitung_des_Datensatz_ohne_Origin &lt;- function(datensatz, ID_Typ){
+  datensatz &lt;- select(datensatz, c( ID_Typ, &quot;Fehlerhaft&quot;, &quot;Fehlerhaft_Datum&quot;, &quot;Produktionsdatum&quot;))
+  datensatz &lt;- Anpassung_Datentyp(datensatz, ID_Typ)
+  return(datensatz)
+}
+
+# Function für die mit den Bestandteilen der Fahrzeuge zusammenhängende Auswahl von relevanten Variablen und Anpassung des Datentyps von Variablen, die keine initiale Aufbereitung brauchen 
+
+Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulassung &lt;- function(datensatz){
+  datensatz &lt;- select(datensatz, -X1)
+  return(datensatz)
+}</code></pre>
+<p><strong>Einzelteile 01 bis 10</strong></p>
+<p><em>Einzelteil 01</em></p>
+<pre class="r"><code># Blick auf Struktur des Datensatzes  
+
+str(Einzelteil_T01)
+
+# Änderung der Namen der Spalten, sodass die Werte den richtigen Variablennamen entsprechen
+
+Einzelteil_T01 &lt;- Einzelteil_T01 %&gt;% 
+  rename(replace = c(&quot;,\&quot;Produktionsdatum.x\&quot;,&quot; = &quot;ID_T01.x&quot;, &quot;,\&quot;Herstellernummer.x\&quot;,&quot; = &quot;Produktionsdatum.x&quot;, &quot;,\&quot;Werksnummer.x\&quot;,&quot; = &quot;Herstellernummer.x&quot; , &quot;,\&quot;Fehlerhaft.x\&quot;,&quot; = &quot;Werksnummer.x&quot;, &quot;,\&quot;Fehlerhaft_Datum.x\&quot;,&quot; = &quot;Fehlerhaft.x&quot;, &quot;,\&quot;Fehlerhaft_Fahrleistung.x\&quot;,&quot; = &quot;Fehlerhaft_Datum.x&quot;, &quot;,\&quot;ID_T01.y\&quot;,&quot; = &quot;Fehlerhaft_Fahrleistung.x&quot;, &quot;,\&quot;Produktionsdatum.y\&quot;,&quot; = &quot;ID_T01.y&quot;, &quot;,\&quot;Herstellernummer.y\&quot;,&quot; = &quot;Produktionsdatum.y&quot;, &quot;,\&quot;Werksnummer.y\&quot;,&quot; = &quot;Herstellernummer.y&quot; , &quot;,\&quot;Fehlerhaft.y\&quot;,&quot; = &quot;Werksnummer.y&quot;, &quot;,\&quot;Fehlerhaft_Datum.y\&quot;,&quot; = &quot;Fehlerhaft.y&quot;, &quot;,\&quot;Fehlerhaft_Fahrleistung.y\&quot;,&quot; = &quot;Fehlerhaft_Datum.y&quot;, &quot;,\&quot;ID_T01\&quot;,&quot; = &quot;Fehlerhaft_Fahrleistung.y&quot;, &quot;,\&quot;Produktionsdatum\&quot;,&quot; = &quot;ID_T01&quot;, &quot;,\&quot;Herstellernummer\&quot;,&quot; = &quot;Produktionsdatum&quot;, &quot;,\&quot;Werksnummer\&quot;,&quot; = &quot;Herstellernummer&quot; , &quot;,\&quot;Fehlerhaft\&quot;,&quot; = &quot;Werksnummer&quot;, &quot;,\&quot;Fehlerhaft_Datum\&quot;,&quot; = &quot;Fehlerhaft&quot;, &quot;,\&quot;Fehlerhaft_&quot; = &quot;Fehlerhaft_Datum&quot;, &quot;V45&quot; = &quot;Fehlerhaft_Fahrleistung&quot;)) 
+
+# Auswahl der für die Analyse relevanten Variablen.
+ 
+Einzelteil_T01 &lt;- Einzelteil_T01[,c(&quot;ID_T01.x&quot;, &quot;ID_T01.y&quot;, &quot;ID_T01&quot;, &quot;Produktionsdatum.x&quot;, &quot;Produktionsdatum.y&quot;, &quot;Produktionsdatum&quot;, &quot;Fehlerhaft.x&quot;, &quot;Fehlerhaft.y&quot;, &quot;Fehlerhaft&quot;, &quot;Fehlerhaft_Datum.x&quot;, &quot;Fehlerhaft_Datum.y&quot;, &quot;Fehlerhaft_Datum&quot;)]                                                                                                        
+# Union von separaten Variablen, die eigentlich die gleiche Information enthalten, sowie die Entfernung von unnötigen Zeichen innerhalb dieser Variabeln 
+
+Einzelteil_T01 &lt;- Einzelteil_T01 %&gt;%
+  unite(&quot;ID_T01&quot;, ID_T01, ID_T01.x, ID_T01.y) %&gt;% 
+  unite(&quot;Produktionsdatum&quot;, Produktionsdatum, Produktionsdatum.x, Produktionsdatum.y) %&gt;%
+  unite(&quot;Fehlerhaft&quot;, Fehlerhaft, Fehlerhaft.x, Fehlerhaft.y) %&gt;%
+  unite(&quot;Fehlerhaft_Datum&quot;, Fehlerhaft_Datum, Fehlerhaft_Datum.x, Fehlerhaft_Datum.y) %&gt;%
+  sapply(str_remove_all,&quot;[,\&quot;_NA]&quot;) %&gt;%
+  as.data.frame() %&gt;%
+  Anpassung_Datentyp(&quot;ID_T01&quot;)</code></pre>
+<p><em>Einzelteil 02</em></p>
+<pre class="r"><code># Blick auf Struktur des Datensatzes  
+
+str(Einzelteil_T02)
+
+# Auswahl der für die Analyse relevanten Variablen und Union von separaten Variablen, die eigentlich die gleiche Information enthalten, sowie die Entfernung von unnötigen Zeichen innerhalb dieser Variabeln
+
+Einzelteil_T02 &lt;- Einzelteil_T02 %&gt;%
+  select(-c(&quot;V1&quot;, &quot;X1&quot;, &quot;Herstellernummer.x&quot;, &quot;Werksnummer.x&quot;, &quot;Herstellernummer.y&quot;, &quot;Werksnummer.y&quot;, &quot;Fehlerhaft_Fahrleistung.x&quot;, &quot;Fehlerhaft_Fahrleistung.y&quot;)) %&gt;%
+  unite(&quot;ID_T02&quot;, ID_T02.x, ID_T02.y) %&gt;% 
+  unite(&quot;Produktionsdatum&quot;, Produktionsdatum.x, Produktionsdatum.y) %&gt;%
+  unite(&quot;Fehlerhaft&quot;, Fehlerhaft.x, Fehlerhaft.y) %&gt;%
+  unite(&quot;Fehlerhaft_Datum&quot;, Fehlerhaft_Datum.x, Fehlerhaft_Datum.y) %&gt;%
+  sapply(str_remove_all,&quot;[_NA]&quot;) %&gt;%
+  as.data.frame() %&gt;%
+  Anpassung_Datentyp(&quot;ID_T02&quot;)</code></pre>
+<p><em>Einzelteil 03 und 04</em></p>
+<pre class="r"><code># Blick auf Struktur des Datensatzes  
+
+str(Einzelteil_T03)
+str(Einzelteil_T04)
+
+# Anwendung von die Datensätze aufbereitender Funktion für die Einzelteile (Details dieser Funktion liegen bei der Definition der Funktion vor)
+
+Einzelteil_T03 &lt;- Aufbereitung_des_Datensatz_mit_Origin(Einzelteil_T03, &quot;ID_T03&quot;)
+Einzelteil_T04 &lt;- Aufbereitung_des_Datensatz_mit_Origin(Einzelteil_T04, &quot;ID_T04&quot;)</code></pre>
+<p><em>Einzelteil 05</em></p>
+<pre class="r"><code># Blick auf Struktur des Datensatzes  
+
+str(Einzelteil_T05)
+
+# Auswahl der für die Analyse relevanten Variablen und Union von separaten Variablen, die eigentlich die gleiche Information enthalten, sowie die Entfernung von unnötigen Zeichen innerhalb dieser Variabeln
+
+
+Einzelteil_T05 &lt;- Einzelteil_T05 %&gt;%
+  select(-c(&quot;V1&quot;, &quot;X1&quot;, &quot;Herstellernummer.x&quot;, &quot;Werksnummer.x&quot;, &quot;Herstellernummer.y&quot;, &quot;Werksnummer.y&quot;, &quot;Fehlerhaft_Fahrleistung.x&quot;, &quot;Fehlerhaft_Fahrleistung.y&quot;)) %&gt;%
+  unite(&quot;ID_T05&quot;, ID_T05.x, ID_T05.y) %&gt;% 
+  unite(&quot;Produktionsdatum&quot;, Produktionsdatum.x, Produktionsdatum.y) %&gt;%
+  unite(&quot;Fehlerhaft&quot;, Fehlerhaft.x, Fehlerhaft.y) %&gt;%
+  unite(&quot;Fehlerhaft_Datum&quot;, Fehlerhaft_Datum.x, Fehlerhaft_Datum.y) %&gt;%
+  sapply(str_remove_all,&quot;[_NA]&quot;) %&gt;%
+  as.data.frame() %&gt;%
+  Anpassung_Datentyp(&quot;ID_T05&quot;)</code></pre>
+<p><em>Einzelteil 06, 07 und 08</em></p>
+<pre class="r"><code># Blick auf Struktur des Datensatzes  
+
+str(Einzelteil_T06)
+str(Einzelteil_T07)
+str(Einzelteil_T08)
+
+# Anwendung von die Datensätze aufbereitender Funktion für die Einzelteile (Details dieser Funktion liegen bei der Definition der Funktion vor)
+
+Einzelteil_T06 &lt;- Aufbereitung_des_Datensatz_mit_Origin(Einzelteil_T06, &quot;ID_T06&quot;)
+Einzelteil_T07 &lt;- Aufbereitung_des_Datensatz_mit_Origin(Einzelteil_T07, &quot;ID_T07&quot;)
+Einzelteil_T08 &lt;- Aufbereitung_des_Datensatz_mit_Origin(Einzelteil_T08, &quot;ID_T08&quot;)</code></pre>
+<p><em>Einzelteil 09</em></p>
+<pre class="r"><code># Blick auf Struktur des Datensatzes  
+
+str(Einzelteil_T09)
+
+# Auswahl der für die Analyse relevanten Variablen und Union von separaten Variablen, die eigentlich die gleiche Information enthalten, sowie die Entfernung von unnötigen Zeichen innerhalb dieser Variabeln
+
+
+Einzelteil_T09 &lt;- Einzelteil_T09 %&gt;%
+  select(-c(&quot;V1&quot;, &quot;X1&quot;, &quot;Herstellernummer.x&quot;, &quot;Werksnummer.x&quot;, &quot;Herstellernummer.y&quot;, &quot;Werksnummer.y&quot;, &quot;Fehlerhaft_Fahrleistung.x&quot;, &quot;Fehlerhaft_Fahrleistung.y&quot;)) %&gt;%
+  unite(&quot;ID_T09&quot;, ID_T09.x, ID_T09.y) %&gt;% 
+  unite(&quot;Produktionsdatum&quot;, Produktionsdatum.x, Produktionsdatum.y) %&gt;%
+  unite(&quot;Fehlerhaft&quot;, Fehlerhaft.x, Fehlerhaft.y) %&gt;%
+  unite(&quot;Fehlerhaft_Datum&quot;, Fehlerhaft_Datum.x, Fehlerhaft_Datum.y) %&gt;%
+  sapply(str_remove_all,&quot;[_NA]&quot;) %&gt;%
+  as.data.frame() %&gt;%
+  Anpassung_Datentyp(&quot;ID_T09&quot;)</code></pre>
+<p><em>Einzelteil 10</em></p>
+<pre class="r"><code># Blick auf Struktur des Datensatzes  
+
+str(Einzelteil_T10)
+
+# Anwendung von die Datensätze aufbereitender Funktion für die Einzelteile (Details dieser Funktion liegen bei der Definition der Funktion vor)
+
+Einzelteil_T10 &lt;- Aufbereitung_des_Datensatz_mit_Origin(Einzelteil_T10, &quot;ID_T10&quot;)</code></pre>
+<p><strong>Fahrzeuge und ihre Bestandteile</strong></p>
+<p><em>Fahrzeug 11</em></p>
+<pre class="r"><code># Blick auf Struktur des Datensatzes  
+
+str(Fahrzeuge_OEM1_Typ11)
+str(Bestandteile_Fahrzeuge_OEM1_Typ11)
+
+# Anwendung von die Datensätze aufbereitenden Funktionen (Details dieser Funktion liegen bei der Definition der Funktion vor)
+
+Fahrzeuge_OEM1_Typ11 &lt;- Aufbereitung_des_Datensatz_ohne_Origin(Fahrzeuge_OEM1_Typ11, &quot;ID_Fahrzeug&quot;)
+Bestandteile_Fahrzeuge_OEM1_Typ11 &lt;- Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulassung(Bestandteile_Fahrzeuge_OEM1_Typ11)</code></pre>
+<p><em>Fahrzeug 12</em></p>
+<pre class="r"><code># Blick auf Struktur des Datensatzes  
+
+str(Fahrzeuge_OEM1_Typ12)
+str(Bestandteile_Fahrzeuge_OEM1_Typ12)
+
+# Anwendung von die Datensätze aufbereitenden Funktionen (Details dieser Funktion liegen bei der Definition der Funktion vor)
+
+Fahrzeuge_OEM1_Typ12 &lt;- Aufbereitung_des_Datensatz_ohne_Origin(Fahrzeuge_OEM1_Typ12, &quot;ID_Fahrzeug&quot;)
+Bestandteile_Fahrzeuge_OEM1_Typ12 &lt;- Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulassung(Bestandteile_Fahrzeuge_OEM1_Typ12)</code></pre>
+<p><em>Fahrzeug 21</em></p>
+<pre class="r"><code># Blick auf Struktur des Datensatzes  
+
+str(Fahrzeuge_OEM2_Typ21)
+str(Bestandteile_Fahrzeuge_OEM2_Typ21)
+
+# Anwendung von die Datensätze aufbereitenden Funktionen (Details dieser Funktion liegen bei der Definition der Funktion vor)
+
+Fahrzeuge_OEM2_Typ21 &lt;- Aufbereitung_des_Datensatz_mit_Origin(Fahrzeuge_OEM2_Typ21, &quot;ID_Fahrzeug&quot;)
+Bestandteile_Fahrzeuge_OEM2_Typ21 &lt;- Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulassung(Bestandteile_Fahrzeuge_OEM2_Typ21)</code></pre>
+<p><em>Fahrzeug 22</em></p>
+<pre class="r"><code># Blick auf Struktur des Datensatzes  
+
+str(Fahrzeuge_OEM2_Typ22)
+str(Bestandteile_Fahrzeuge_OEM2_Typ22)
+
+# Anwendung von die Datensätze aufbereitenden Funktionen (Details dieser Funktion liegen bei der Definition der Funktion vor)
+
+Fahrzeuge_OEM2_Typ22 &lt;- Aufbereitung_des_Datensatz_mit_Origin(Fahrzeuge_OEM2_Typ22, &quot;ID_Fahrzeug&quot;)
+Bestandteile_Fahrzeuge_OEM2_Typ22 &lt;- Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulassung(Bestandteile_Fahrzeuge_OEM2_Typ22)</code></pre>
+<p><strong>Komponente und ihre Bestandteile</strong></p>
+<p><em>Motor K1BE1</em></p>
+<pre class="r"><code># Blick auf Struktur des Datensatzes  
+
+str(Komponente_K1BE1)
+str(Bestandteile_Komponente_K1BE1)
+
+# Anwendung von die Datensätze aufbereitenden Funktionen (Details dieser Funktion liegen bei der Definition der Funktion vor)
+
+Komponente_K1BE1 &lt;- Aufbereitung_des_Datensatz_mit_Origin(Komponente_K1BE1, &quot;ID_Motor&quot;)
+Bestandteile_Komponente_K1BE1 &lt;- Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulassung(Bestandteile_Komponente_K1BE1)</code></pre>
+<p><em>Motor K1BE2</em></p>
+<pre class="r"><code># Blick auf Struktur des Datensatzes  
+
+str(Komponente_K1BE2)
+str(Bestandteile_Komponente_K1BE2)
+
+# Anwendung von die Datensätze aufbereitenden Funktionen (Details dieser Funktion liegen bei der Definition der Funktion vor)
+
+Komponente_K1BE2 &lt;- Aufbereitung_des_Datensatz_mit_Origin(Komponente_K1BE2, &quot;ID_Motor&quot;)
+Bestandteile_Komponente_K1BE2 &lt;- Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulassung(Bestandteile_Komponente_K1BE2)</code></pre>
+<p><em>Motor K1DI1</em></p>
+<pre class="r"><code># Blick auf Struktur des Datensatzes  
+
+str(Komponente_K1DI1)
+str(Bestandteile_Komponente_K1DI1)
+
+# Auswahl der für die Analyse relevanten Variablen und Union von separaten Variablen, die eigentlich die gleiche Information enthalten, sowie die Entfernung von unnötigen Zeichen innerhalb dieser Variabeln
+
+Komponente_K1DI1 &lt;- Komponente_K1DI1 %&gt;%
+  select(-c(&quot;V1&quot;, &quot;X1&quot;, &quot;Herstellernummer&quot;, &quot;Werksnummer&quot;, &quot;Fehlerhaft_Fahrleistung&quot;, &quot;Herstellernummer.x&quot;, &quot;Werksnummer.x&quot;, &quot;Herstellernummer.y&quot;, &quot;Werksnummer.y&quot;, &quot;Fehlerhaft_Fahrleistung.x&quot;, &quot;Fehlerhaft_Fahrleistung.y&quot;)) %&gt;%
+  unite(&quot;ID_Motor&quot;, ID_Motor, ID_Motor.x, ID_Motor.y) %&gt;% 
+  unite(&quot;Produktionsdatum&quot;, Produktionsdatum, Produktionsdatum.x, Produktionsdatum.y) %&gt;%
+  unite(&quot;Fehlerhaft&quot;, Fehlerhaft, Fehlerhaft.x, Fehlerhaft.y) %&gt;%
+  unite(&quot;Fehlerhaft_Datum&quot;, Fehlerhaft_Datum, Fehlerhaft_Datum.x, Fehlerhaft_Datum.y) %&gt;%
+  sapply(str_remove_all,&quot;[,\&quot;_NA]&quot;) %&gt;%
+  as.data.frame() %&gt;%
+  Anpassung_Datentyp(&quot;ID_Motor&quot;)
+
+# Anwendung von die Datensätze aufbereitender Funktion (Details dieser Funktion liegen bei der Definition der Funktion vor)
+
+Bestandteile_Komponente_K1DI1 &lt;- Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulassung(Bestandteile_Komponente_K1DI1)</code></pre>
+<p><em>Motor K1DI2</em></p>
+<pre class="r"><code># Blick auf Struktur des Datensatzes  
+
+str(Komponente_K1DI2)
+str(Bestandteile_Komponente_K1DI2)
+
+# Anwendung von die Datensätze aufbereitenden Funktionen (Details dieser Funktion liegen bei der Definition der Funktion vor)
+
+Komponente_K1DI2 &lt;- Aufbereitung_des_Datensatz_mit_Origin(Komponente_K1DI2, &quot;ID_Motor&quot;)
+Bestandteile_Komponente_K1DI2 &lt;- Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulassung(Bestandteile_Komponente_K1DI2)</code></pre>
+<p><strong>Zulassungen</strong></p>
+<pre class="r"><code># Blick auf Struktur des Datensatzes  
+
+str(Zulassungen_alle_Fahrzeuge)
+
+# Anwendung von die Datensätze aufbereitender Funktion (Details dieser Funktion liegen bei der Definition der Funktion vor)
+
+Zulassungen_alle_Fahrzeuge &lt;- Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulassung(Zulassungen_alle_Fahrzeuge)</code></pre>
 </div>
 <div id="erstellen-des-finalen-datensatzes" class="section level1">
-<h1>Erstellen des finalen Datensatzes</h1>
+<h1><span class="header-section-number">5</span> Erstellen des finalen Datensatzes</h1>
 </div>
 <div id="auswertung" class="section level1">
-<h1>Auswertung</h1>
+<h1><span class="header-section-number">6</span> Auswertung</h1>
 </div>
 <div id="ergebnis" class="section level1">
-<h1>Ergebnis</h1>
+<h1><span class="header-section-number">7</span> Ergebnis</h1>
 </div>
 
 
