@@ -142,8 +142,7 @@ Einzelteil_T02 <- read_file("Data/Einzelteil/Einzelteil_T02.txt") %>%
 ```{r Einzelteil_T03, message = FALSE, warning = FALSE}
 
 Einzelteil_T03 <- read_file("Data/Einzelteil/Einzelteil_T03.txt") %>%
-  str_replace_all("
-","\n") %>%
+  str_replace_all("","\n") %>%
   fread(sep="|")
 
 ```
@@ -185,8 +184,7 @@ Einzelteil_T08 <- fread("Data/Einzelteil/Einzelteil_T08.csv")
 ```{r Einzelteil_T09, message = FALSE, warning = FALSE}
 
 Einzelteil_T09 <- read_file("Data/Einzelteil/Einzelteil_T09.txt") %>%
-  str_replace_all("
-","\n") %>%
+  str_replace_all("","\n") %>%
   fread(sep="\\")
 
 ```
@@ -359,6 +357,36 @@ Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulassung <- function(datensatz){
   return(datensatz)
 }
 
+# Function für die Anpassung des Datentyps von Variablen des Finalsatzes
+
+Anpassung_Datentyp_Final_Datensatz <- function(datensatz) {
+  datensatz$Produktionsdatum <- as.Date(datensatz$Produktionsdatum, format="%Y-%m-%d")
+  datensatz$Fehlerhaft_Datum <- as.Date(datensatz$Fehlerhaft_Datum, format="%Y-%m-%d")
+  datensatz$Fehlerhaft <- as.integer(as.character(datensatz$Fehlerhaft))
+  return(datensatz)
+}
+
+Anpassung_Datentyp_Final_Datensatz_Fehlerhaft_Datum <- function(datensatz) {
+  datensatz$Fehlerhaft_Datum <- apply(datensatz[c("Fehlerhaft_Datum", "Fehlerhaft_Datum_T01", "Fehlerhaft_Datum_T02", "Fehlerhaft_Datum_T03", "Fehlerhaft_Datum_T04", "Fehlerhaft_Datum_T05", "Fehlerhaft_Datum_T06", "Fehlerhaft_Datum_T07", "Fehlerhaft_Datum_T08", "Fehlerhaft_Datum_T09", "Fehlerhaft_Datum_T10")],1,min,na.rm=TRUE) 
+  datensatz$Fehlerhaft_Datum <- as.Date(datensatz$Fehlerhaft_Datum, format = "%Y-%m-%d")
+  return(datensatz)
+}
+
+Anpassung_Datentyp_Final_Datensatz_Fehlerhaft <- function(datensatz) {
+  datensatz$Fehlerhaft[is.na(datensatz$Fehlerhaft)] = 0
+  datensatz$Fehlerhaft_T01[is.na(datensatz$Fehlerhaft_T01)] = 0
+  datensatz$Fehlerhaft_T02[is.na(datensatz$Fehlerhaft_T02)] = 0
+  datensatz$Fehlerhaft_T03[is.na(datensatz$Fehlerhaft_T03)] = 0
+  datensatz$Fehlerhaft_T04[is.na(datensatz$Fehlerhaft_T04)] = 0
+  datensatz$Fehlerhaft_T05[is.na(datensatz$Fehlerhaft_T05)] = 0
+  datensatz$Fehlerhaft_T06[is.na(datensatz$Fehlerhaft_T06)] = 0
+  datensatz$Fehlerhaft_T07[is.na(datensatz$Fehlerhaft_T07)] = 0
+  datensatz$Fehlerhaft_T08[is.na(datensatz$Fehlerhaft_T08)] = 0
+  datensatz$Fehlerhaft_T09[is.na(datensatz$Fehlerhaft_T09)] = 0
+  datensatz$Fehlerhaft_T10[is.na(datensatz$Fehlerhaft_T10)] = 0
+  return(datensatz)
+}
+
 ```
 
 
@@ -389,7 +417,8 @@ Einzelteil_T01 <- Einzelteil_T01 %>%
   unite("Fehlerhaft_Datum", Fehlerhaft_Datum, Fehlerhaft_Datum.x, Fehlerhaft_Datum.y) %>%
   sapply(str_remove_all,"[,\"_NA]") %>%
   as.data.frame() %>%
-  Anpassung_Datentyp("ID_T01")
+  Anpassung_Datentyp("ID_T01") %>%
+  filter(Fehlerhaft == 1)
 
 ```
 
@@ -411,7 +440,8 @@ Einzelteil_T02 <- Einzelteil_T02 %>%
   unite("Fehlerhaft_Datum", Fehlerhaft_Datum.x, Fehlerhaft_Datum.y) %>%
   sapply(str_remove_all,"[_NA]") %>%
   as.data.frame() %>%
-  Anpassung_Datentyp("ID_T02")
+  Anpassung_Datentyp("ID_T02") %>%
+  filter(Fehlerhaft == 1)
 
 ```
 
@@ -426,8 +456,10 @@ str(Einzelteil_T04)
 
 # Anwendung von die Datensätze aufbereitender Funktion für die Einzelteile (Details dieser Funktion liegen bei der Definition der Funktion vor)
 
-Einzelteil_T03 <- Aufbereitung_des_Datensatz_mit_Origin(Einzelteil_T03, "ID_T03")
-Einzelteil_T04 <- Aufbereitung_des_Datensatz_mit_Origin(Einzelteil_T04, "ID_T04")
+Einzelteil_T03 <- Aufbereitung_des_Datensatz_mit_Origin(Einzelteil_T03, "ID_T03") %>%
+  filter(Fehlerhaft == 1)
+Einzelteil_T04 <- Aufbereitung_des_Datensatz_mit_Origin(Einzelteil_T04, "ID_T04") %>%
+  filter(Fehlerhaft == 1)
 
 
 ```
@@ -451,7 +483,8 @@ Einzelteil_T05 <- Einzelteil_T05 %>%
   unite("Fehlerhaft_Datum", Fehlerhaft_Datum.x, Fehlerhaft_Datum.y) %>%
   sapply(str_remove_all,"[_NA]") %>%
   as.data.frame() %>%
-  Anpassung_Datentyp("ID_T05")
+  Anpassung_Datentyp("ID_T05") %>%
+  filter(Fehlerhaft == 1)
 
 ```
 
@@ -467,9 +500,12 @@ str(Einzelteil_T08)
 
 # Anwendung von die Datensätze aufbereitender Funktion für die Einzelteile (Details dieser Funktion liegen bei der Definition der Funktion vor)
 
-Einzelteil_T06 <- Aufbereitung_des_Datensatz_mit_Origin(Einzelteil_T06, "ID_T06")
-Einzelteil_T07 <- Aufbereitung_des_Datensatz_mit_Origin(Einzelteil_T07, "ID_T07")
-Einzelteil_T08 <- Aufbereitung_des_Datensatz_mit_Origin(Einzelteil_T08, "ID_T08")
+Einzelteil_T06 <- Aufbereitung_des_Datensatz_mit_Origin(Einzelteil_T06, "ID_T06") %>%
+  filter(Fehlerhaft == 1)
+Einzelteil_T07 <- Aufbereitung_des_Datensatz_mit_Origin(Einzelteil_T07, "ID_T07") %>%
+  filter(Fehlerhaft == 1)
+Einzelteil_T08 <- Aufbereitung_des_Datensatz_mit_Origin(Einzelteil_T08, "ID_T08") %>%
+  filter(Fehlerhaft == 1)
 
 ```
 
@@ -492,7 +528,8 @@ Einzelteil_T09 <- Einzelteil_T09 %>%
   unite("Fehlerhaft_Datum", Fehlerhaft_Datum.x, Fehlerhaft_Datum.y) %>%
   sapply(str_remove_all,"[_NA]") %>%
   as.data.frame() %>%
-  Anpassung_Datentyp("ID_T09")
+  Anpassung_Datentyp("ID_T09") %>%
+  filter(Fehlerhaft == 1)
 
 ```
 
@@ -506,7 +543,8 @@ str(Einzelteil_T10)
 
 # Anwendung von die Datensätze aufbereitender Funktion für die Einzelteile (Details dieser Funktion liegen bei der Definition der Funktion vor)
 
-Einzelteil_T10 <- Aufbereitung_des_Datensatz_mit_Origin(Einzelteil_T10, "ID_T10")
+Einzelteil_T10 <- Aufbereitung_des_Datensatz_mit_Origin(Einzelteil_T10, "ID_T10") %>%
+  filter(Fehlerhaft == 1)
 
 ```
 
@@ -672,23 +710,80 @@ Zulassungen_alle_Fahrzeuge <- Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulass
 
 # Erstellen des finalen Datensatzes
 
+Zuerst erstellen wir eine Dataframe, die alle die Identifikationsnummer der Motoren hat. Dann verbinden wir alle die Motoren mit ihren Bestandteilen. 
 
-```{r}
+```{r Dataframe_alle_Motoren, message = FALSE, warning = FALSE}
+
+# 1. Vertikale Verbindung von Dataframes der Komponente(Motoren)
+# 2. Verbindung der Motoren mit ihren Bestandteilen 
+# 3. Verbindung von Variablen, die die gleiche Information bezüglich eines Einzelteils enthalten
+# 4. Verbindung von Einzelteilen mit ihren Fehlermeldung, Produktionsdaten und Fehlerdaten 
+
+  Final_Datensatz <- rbind(Komponente_K1BE1, Komponente_K1BE2, Komponente_K1DI1, Komponente_K1DI2) %>%
+left_join(Bestandteile_Komponente_K1BE1, by = c("ID_Motor" = "ID_K1BE1")) %>%
+left_join(Bestandteile_Komponente_K1BE2, by = c("ID_Motor" = "ID_K1BE2")) %>%
+left_join(Bestandteile_Komponente_K1DI1, by = c("ID_Motor" = "ID_K1DI1")) %>%
+left_join(Bestandteile_Komponente_K1DI2, by = c("ID_Motor" = "ID_K1DI2")) %>%
+unite("ID_T1", ID_T1.x, ID_T1.y, ID_T1.x.x, ID_T1.y.y) %>%
+unite("ID_T2", ID_T2.x, ID_T2.y, ID_T2.x.x, ID_T2.y.y) %>%
+modify(str_remove_all,"[,\"_NA]") %>%
+Anpassung_Datentyp_Final_Datensatz() %>%
+left_join(Einzelteil_T01, by = c("ID_T1" = "ID_T01"), suffix = c("","_T01")) %>%
+left_join(Einzelteil_T02, by = c("ID_T2" = "ID_T02"), suffix = c("","_T02")) %>%
+left_join(Einzelteil_T03, by = c("ID_T3" = "ID_T03"), suffix = c("","_T03")) %>%
+left_join(Einzelteil_T04, by = c("ID_T4" = "ID_T04"), suffix = c("","_T04")) %>%
+left_join(Einzelteil_T05, by = c("ID_T5" = "ID_T05"), suffix = c("","_T05")) %>%
+left_join(Einzelteil_T06, by = c("ID_T6" = "ID_T06"), suffix = c("","_T06")) %>%
+left_join(Einzelteil_T07, by = c("ID_T7" = "ID_T07"), suffix = c("","_T07")) %>%
+left_join(Einzelteil_T08, by = c("ID_T8" = "ID_T08"), suffix = c("","_T08")) %>%
+left_join(Einzelteil_T09, by = c("ID_T9" = "ID_T09"), suffix = c("","_T09")) %>%
+left_join(Einzelteil_T10, by = c("ID_T10"), suffix = c("","_T10")) %>%
+Anpassung_Datentyp_Final_Datensatz_Fehlerhaft() %>% 
+mutate(Fehlerhaft = Fehlerhaft + Fehlerhaft_T01 + Fehlerhaft_T02 + Fehlerhaft_T03 + Fehlerhaft_T04 + Fehlerhaft_T05 + Fehlerhaft_T06 + Fehlerhaft_T07 + Fehlerhaft_T08 + Fehlerhaft_T09 + Fehlerhaft_T10) %>%
+mutate(Fehlerhaft = ifelse(Fehlerhaft >= 1,1,0)) %>%
+  mutate(Fehlerhaft = as.factor(Fehlerhaft)) %>%
+select(-c("Fehlerhaft_T01", "Fehlerhaft_T02", "Fehlerhaft_T03", "Fehlerhaft_T04", "Fehlerhaft_T05", "Fehlerhaft_T06", "Fehlerhaft_T07", "Fehlerhaft_T08", "Fehlerhaft_T09", "Fehlerhaft_T10")) %>%
+select(-c("ID_T1", "ID_T2", "ID_T3", "ID_T4", "ID_T5", "ID_T6", "ID_T7", "ID_T8", "ID_T9", "ID_T10")) %>%
+select(-c("Produktionsdatum_T01", "Produktionsdatum_T02", "Produktionsdatum_T03", "Produktionsdatum_T04", "Produktionsdatum_T05", "Produktionsdatum_T06", "Produktionsdatum_T07", "Produktionsdatum_T08", "Produktionsdatum_T09", "Produktionsdatum_T10")) %>%
+Anpassung_Datentyp_Final_Datensatz_Fehlerhaft_Datum() %>%
+select(-c("Fehlerhaft_Datum_T01", "Fehlerhaft_Datum_T02", "Fehlerhaft_Datum_T03", "Fehlerhaft_Datum_T04", "Fehlerhaft_Datum_T05", "Fehlerhaft_Datum_T06", "Fehlerhaft_Datum_T07", "Fehlerhaft_Datum_T08", "Fehlerhaft_Datum_T09", "Fehlerhaft_Datum_T10")) %>%
+left_join(Bestandteile_Fahrzeuge_OEM1_Typ11, by = c("ID_Motor")) %>%
+  select(-c("ID_Sitze", "ID_Schaltung", "ID_Karosserie")) %>%
+left_join(Bestandteile_Fahrzeuge_OEM1_Typ12, by = c("ID_Motor"), suffix = c("","_OEM1_Typ12")) %>%
+select(-c("ID_Sitze", "ID_Schaltung", "ID_Karosserie")) %>%
+left_join(Bestandteile_Fahrzeuge_OEM2_Typ21, by = c("ID_Motor"), suffix = c("","_OEM2_Typ21")) %>%
+select(-c("ID_Sitze", "ID_Schaltung", "ID_Karosserie")) %>%
+left_join(Bestandteile_Fahrzeuge_OEM2_Typ22, by = c("ID_Motor"), suffix = c("","_OEM2_Typ22")) %>%
+select(-c("ID_Sitze", "ID_Schaltung", "ID_Karosserie")) %>%
+unite("ID_Fahrzeug", ID_Fahrzeug, ID_Fahrzeug_OEM1_Typ12, ID_Fahrzeug_OEM2_Typ21, ID_Fahrzeug_OEM2_Typ22) %>%
+modify(str_remove_all,"[,\"_NA]") %>%
+left_join(Zulassungen_alle_Fahrzeuge, by = c("ID_Fahrzeug" = "IDNummer")) %>%
+select(-c("Gemeinden")) %>%
+  mutate(Fehlerhaft_Datum = as.Date(Fehlerhaft_Datum, format = "%Y-%m-%d")) %>%
+  mutate(Fehlerhaft = as.factor(Fehlerhaft)) %>%
+  mutate(Lebensdauer_in_Days = Fehlerhaft_Datum - Zulassung)
+
+  
+  
+  
+  
+  
+  
+```                     
 
 
-
-
-```
 
 # Auswertung 
 
 ```{r}
 
-```
-
+``` 
 
 # Ergebnis
 
 ```{r}
+a<- data.frame(b=c(1, 2, 3),c=c(1, 2, 3),d=c(1, 2, 3)) %>%
+  mutate(h=apply(a[c("b","d")],1,min))
+  
 
 ```
