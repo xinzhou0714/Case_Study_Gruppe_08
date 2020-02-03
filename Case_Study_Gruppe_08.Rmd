@@ -9,8 +9,6 @@ output:
     number_sections: true
 ---
 
-<!-- git add . ; git commit -m "Next commit3" ; git push origin master -->
-
 ```{r setup, include=FALSE}
 
 knitr::opts_chunk$set(echo = TRUE, eval = TRUE)
@@ -30,7 +28,7 @@ B: Pro Fahrzeugtyp jeweils einen Boxplot für Varianten mit Dieselmotor und eine
 
 # Laden und geg. Installieren notwendiger Bibliotheken
 
-```{r packages, include=TRUE}
+```{r packages, include=TRUE, message = FALSE}
 
 if(!require(data.table)){
   install.packages("data.table")
@@ -154,9 +152,21 @@ Einzelteil_T02 <- read_file("Data/Einzelteil/Einzelteil_T02.txt") %>%
 # das reserviert Zeichen "|" soll interperiert als normaler Zeichen  
 
 Einzelteil_T03 <- read_file("Data/Einzelteil/Einzelteil_T03.txt") %>%
+<<<<<<< HEAD
   str_replace_all("\\|",",") %>%
   str_replace_all("\x0b","\n") %>%
   fread()
+=======
+  str_replace_all("","\n") %>%
+  fread(sep="|")
+
+# Ich weiss nicht, warum dieser Code in meinem Computer nicht läuft. 
+  str_replace_all("[|]",",") %>%
+  str_replace_all("","\n") %>%
+  fread()
+
+
+>>>>>>> 4a206d008fbd48b061a3909959c32dada502b6b6
 ```
  
 *Einzelteil 04 - 06* 
@@ -342,14 +352,16 @@ Die durch die Importierung resultierenden Datensätze enthalten mehrere Variable
 # Function für die Anpassung des Datentyps von Variablen nach initialer Aufbereitung
 
 Anpassung_Datentyp <- function(datensatz, ID_Typ) {
-  # datensatz[[ID_Typ]] <- type.convert(datensatz[[ID_Typ]], as.is = TRUE)
+  # Ich habe bemerkt, dass der nächste LOC als Kommentar gesetzt wurde. Auf einem ersten Blick scheint dieser LOC unnötig und es ist so für fast alle Fälle. Die Sache ist, dass es einen Datensatz gibt, der  nach der Importierung den ID-type als factor setzt. Diese Variabel sollte meiner Meinung nach charachter sein. Deswegen habe ich diesen LOC hinzugefügt. Man könnte das auch in diesen Einzelfällen außerhalb dieser Funktion tun, aber ich möchte einfach eine Funktion für alle Datensätze benutzen.   
+  
+  datensatz[[ID_Typ]] <- type.convert(datensatz[[ID_Typ]], as.is = TRUE)
   datensatz$Produktionsdatum <- as.Date(datensatz$Produktionsdatum)
   datensatz$Fehlerhaft_Datum <- as.Date(datensatz$Fehlerhaft_Datum, format="%Y-%m-%d")
   datensatz$Fehlerhaft <- as.integer(as.character(datensatz$Fehlerhaft))
   return(datensatz)
 }
 
-# Function für die mit Einzelteilen zusammenhängende Auswahl von relevanten Variablen und Anpassung des Datentyps von Variablen, die keine initiale Aufbereitung brauchen 
+# Function für die  Auswahl von relevanten Variablen und Anpassung des Datentyps von Variablen, die keine initiale Aufbereitung brauchen. Außerdem haben die Datensätze, die durch folgende Funktion aufbereitet werden, zwei Variablen bezüglich Origin.
 
 Aufbereitung_des_Datensatz_mit_Origin <- function(datensatz, ID_Typ){
   datensatz <- mutate(datensatz, Produktionsdatum = Produktionsdatum_Origin_01011970 + dmy(origin))
@@ -358,7 +370,7 @@ Aufbereitung_des_Datensatz_mit_Origin <- function(datensatz, ID_Typ){
   return(datensatz)
 }
 
-# Function für die mit Fahrzeugen zusammenhängende Auswahl von relevanten Variablen und Anpassung des Datentyps von Variablen, die keine initiale Aufbereitung brauchen 
+# Function für die Auswahl von relevanten Variablen und Anpassung des Datentyps von Variablen, die keine initiale Aufbereitung brauchen. Außerdem haben die Datensätze, die durch folgende Funktion aufbereitet werden, nur eine Variabel bezüglich Origin. 
 
 Aufbereitung_des_Datensatz_ohne_Origin <- function(datensatz, ID_Typ){
   datensatz <- select(datensatz, c( ID_Typ, "Fehlerhaft", "Fehlerhaft_Datum", "Produktionsdatum"))
@@ -373,7 +385,9 @@ Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulassung <- function(datensatz){
   return(datensatz)
 }
 
-# Function für die Anpassung des Datentyps von Variablen des Finalsatzes
+# Funktionen für die Anpassung des Datentyps von Variablen des Finalsatzes
+
+## Folgende Funktion stellt sicher, dass die Variablen im Finaldatensatz den richtigen Datentyp haben. 
 
 Anpassung_Datentyp_Final_Datensatz <- function(datensatz) {
   datensatz$Produktionsdatum <- as.Date(datensatz$Produktionsdatum, format="%Y-%m-%d")
@@ -382,11 +396,15 @@ Anpassung_Datentyp_Final_Datensatz <- function(datensatz) {
   return(datensatz)
 }
 
+## Folgende Funktion findet das früheste Datum, an dem ein Einzelteil einer einzelnen Komponente bzw. die einzelne Komponente(Motor)  als fehlerhaft angemeldet wurde. Diese Funktion wird verwendet, weil es einige Komponenten gibt, die mehr als ein Einzelteil haben, die als Fehlerhaft angemeldet wurden. Somit soll das Fehlerhaftdatum das früheste Datum der Daten, an dem ein Fehler angemeldet wurde.      
+
 Anpassung_Datentyp_Final_Datensatz_Fehlerhaft_Datum <- function(datensatz) {
   datensatz$Fehlerhaft_Datum <- apply(datensatz[c("Fehlerhaft_Datum", "Fehlerhaft_Datum_T01", "Fehlerhaft_Datum_T02", "Fehlerhaft_Datum_T03", "Fehlerhaft_Datum_T04", "Fehlerhaft_Datum_T05", "Fehlerhaft_Datum_T06", "Fehlerhaft_Datum_T07", "Fehlerhaft_Datum_T08", "Fehlerhaft_Datum_T09", "Fehlerhaft_Datum_T10")],1,min,na.rm=TRUE) 
   datensatz$Fehlerhaft_Datum <- as.Date(datensatz$Fehlerhaft_Datum, format = "%Y-%m-%d")
   return(datensatz)
 }
+
+## Folgende Funktion ersetzt die NAs dieser Variablen, sodass man die Anzahlt von Fehlermeldungen einer einzelnen Komponente addieren kann, um es sicherzustellen, dass man richtig bestimmt, ob eine Komponente fehlerhaft ist.  
 
 Anpassung_Datentyp_Final_Datensatz_Fehlerhaft <- function(datensatz) {
   datensatz$Fehlerhaft[is.na(datensatz$Fehlerhaft)] = 0
@@ -424,7 +442,7 @@ Einzelteil_T01 <- Einzelteil_T01 %>%
 # Auswahl der für die Analyse relevanten Variablen.
  
 Einzelteil_T01 <- Einzelteil_T01[,c("ID_T01.x", "ID_T01.y", "ID_T01", "Produktionsdatum.x", "Produktionsdatum.y", "Produktionsdatum", "Fehlerhaft.x", "Fehlerhaft.y", "Fehlerhaft", "Fehlerhaft_Datum.x", "Fehlerhaft_Datum.y", "Fehlerhaft_Datum")]                                                                                                        
-# Union von separaten Variablen, die eigentlich die gleiche Information enthalten, sowie die Entfernung von unnötigen Zeichen innerhalb dieser Variabeln 
+# Union von separaten Variablen, die eigentlich die gleiche Information enthalten, sowie die Entfernung von unnötigen Zeichen innerhalb dieser Variabeln. Der Datensatz wird so gefiltert, weil die Informationen von nur fehlerhaften Einzelteilen relevant sind. 
 
 Einzelteil_T01 <- Einzelteil_T01 %>%
   unite("ID_T01", ID_T01, ID_T01.x, ID_T01.y) %>% 
@@ -446,7 +464,7 @@ Einzelteil_T01 <- Einzelteil_T01 %>%
 
 str(Einzelteil_T02)
 
-# Auswahl der für die Analyse relevanten Variablen und Union von separaten Variablen, die eigentlich die gleiche Information enthalten, sowie die Entfernung von unnötigen Zeichen innerhalb dieser Variabeln
+# Auswahl der für die Analyse relevanten Variablen und Union von separaten Variablen, die eigentlich die gleiche Information enthalten, sowie die Entfernung von unnötigen Zeichen innerhalb dieser Variabeln. Der Datensatz wird so gefiltert, weil die Informationen von nur fehlerhaften Einzelteilen relevant sind.
 
 Einzelteil_T02 <- Einzelteil_T02 %>%
   select(-c("V1", "X1", "Herstellernummer.x", "Werksnummer.x", "Herstellernummer.y", "Werksnummer.y", "Fehlerhaft_Fahrleistung.x", "Fehlerhaft_Fahrleistung.y")) %>%
@@ -470,7 +488,7 @@ Einzelteil_T02 <- Einzelteil_T02 %>%
 str(Einzelteil_T03)
 str(Einzelteil_T04)
 
-# Anwendung von die Datensätze aufbereitender Funktion für die Einzelteile (Details dieser Funktion liegen bei der Definition der Funktion vor)
+# Anwendung von die Datensätze aufbereitender Funktion für die Einzelteile (Details dieser Funktion liegen bei der Definition der Funktion vor). Die Datensätze werden so gefiltert, weil die Informationen von nur fehlerhaften Einzelteilen relevant sind.
 
 Einzelteil_T03 <- Aufbereitung_des_Datensatz_mit_Origin(Einzelteil_T03, "ID_T03") %>%
   filter(Fehlerhaft == 1)
@@ -488,7 +506,7 @@ Einzelteil_T04 <- Aufbereitung_des_Datensatz_mit_Origin(Einzelteil_T04, "ID_T04"
 
 str(Einzelteil_T05)
 
-# Auswahl der für die Analyse relevanten Variablen und Union von separaten Variablen, die eigentlich die gleiche Information enthalten, sowie die Entfernung von unnötigen Zeichen innerhalb dieser Variabeln
+# Auswahl der für die Analyse relevanten Variablen und Union von separaten Variablen, die eigentlich die gleiche Information enthalten, sowie die Entfernung von unnötigen Zeichen innerhalb dieser Variabeln. Der Datensatz wird so gefiltert, weil die Informationen von nur fehlerhaften Einzelteilen relevant sind.
 
 
 Einzelteil_T05 <- Einzelteil_T05 %>%
@@ -514,7 +532,7 @@ str(Einzelteil_T06)
 str(Einzelteil_T07)
 str(Einzelteil_T08)
 
-# Anwendung von die Datensätze aufbereitender Funktion für die Einzelteile (Details dieser Funktion liegen bei der Definition der Funktion vor)
+# Anwendung von die Datensätze aufbereitender Funktion für die Einzelteile (Details dieser Funktion liegen bei der Definition der Funktion vor). Die Datensätze werden so gefiltert, weil die Informationen von nur fehlerhaften Einzelteilen relevant sind.
 
 Einzelteil_T06 <- Aufbereitung_des_Datensatz_mit_Origin(Einzelteil_T06, "ID_T06") %>%
   filter(Fehlerhaft == 1)
@@ -533,7 +551,7 @@ Einzelteil_T08 <- Aufbereitung_des_Datensatz_mit_Origin(Einzelteil_T08, "ID_T08"
 
 str(Einzelteil_T09)
 
-# Auswahl der für die Analyse relevanten Variablen und Union von separaten Variablen, die eigentlich die gleiche Information enthalten, sowie die Entfernung von unnötigen Zeichen innerhalb dieser Variabeln
+# Auswahl der für die Analyse relevanten Variablen und Union von separaten Variablen, die eigentlich die gleiche Information enthalten, sowie die Entfernung von unnötigen Zeichen innerhalb dieser Variabeln. Der Datensatz wird so gefiltert, weil die Informationen von nur fehlerhaften Einzelteilen relevant sind.
 
 
 Einzelteil_T09 <- Einzelteil_T09 %>%
@@ -557,7 +575,7 @@ Einzelteil_T09 <- Einzelteil_T09 %>%
 
 str(Einzelteil_T10)
 
-# Anwendung von die Datensätze aufbereitender Funktion für die Einzelteile (Details dieser Funktion liegen bei der Definition der Funktion vor)
+# Anwendung von die Datensätze aufbereitender Funktion für die Einzelteile (Details dieser Funktion liegen bei der Definition der Funktion vor). Der Datensatz wird so gefiltert, weil die Informationen von nur fehlerhaften Einzelteilen relevant sind.
 
 Einzelteil_T10 <- Aufbereitung_des_Datensatz_mit_Origin(Einzelteil_T10, "ID_T10") %>%
   filter(Fehlerhaft == 1)
@@ -579,7 +597,8 @@ str(Bestandteile_Fahrzeuge_OEM1_Typ11)
 # Anwendung von die Datensätze aufbereitenden Funktionen (Details dieser Funktion liegen bei der Definition der Funktion vor)
 
 Fahrzeuge_OEM1_Typ11 <- Aufbereitung_des_Datensatz_ohne_Origin(Fahrzeuge_OEM1_Typ11, "ID_Fahrzeug")
-Bestandteile_Fahrzeuge_OEM1_Typ11 <- Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulassung(Bestandteile_Fahrzeuge_OEM1_Typ11)
+Bestandteile_Fahrzeuge_OEM1_Typ11 <- Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulassung(Bestandteile_Fahrzeuge_OEM1_Typ11) %>%
+  select(-c("ID_Sitze", "ID_Schaltung", "ID_Karosserie"))
 
 ```
 
@@ -595,7 +614,8 @@ str(Bestandteile_Fahrzeuge_OEM1_Typ12)
 # Anwendung von die Datensätze aufbereitenden Funktionen (Details dieser Funktion liegen bei der Definition der Funktion vor)
 
 Fahrzeuge_OEM1_Typ12 <- Aufbereitung_des_Datensatz_ohne_Origin(Fahrzeuge_OEM1_Typ12, "ID_Fahrzeug")
-Bestandteile_Fahrzeuge_OEM1_Typ12 <- Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulassung(Bestandteile_Fahrzeuge_OEM1_Typ12)
+Bestandteile_Fahrzeuge_OEM1_Typ12 <- Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulassung(Bestandteile_Fahrzeuge_OEM1_Typ12) %>%
+  select(-c("ID_Sitze", "ID_Schaltung", "ID_Karosserie"))
 
 ```
 
@@ -611,7 +631,8 @@ str(Bestandteile_Fahrzeuge_OEM2_Typ21)
 # Anwendung von die Datensätze aufbereitenden Funktionen (Details dieser Funktion liegen bei der Definition der Funktion vor)
 
 Fahrzeuge_OEM2_Typ21 <- Aufbereitung_des_Datensatz_mit_Origin(Fahrzeuge_OEM2_Typ21, "ID_Fahrzeug")
-Bestandteile_Fahrzeuge_OEM2_Typ21 <- Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulassung(Bestandteile_Fahrzeuge_OEM2_Typ21)
+Bestandteile_Fahrzeuge_OEM2_Typ21 <- Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulassung(Bestandteile_Fahrzeuge_OEM2_Typ21) %>%
+  select(-c("ID_Sitze", "ID_Schaltung", "ID_Karosserie"))
 
 ```
 
@@ -627,7 +648,8 @@ str(Bestandteile_Fahrzeuge_OEM2_Typ22)
 # Anwendung von die Datensätze aufbereitenden Funktionen (Details dieser Funktion liegen bei der Definition der Funktion vor)
 
 Fahrzeuge_OEM2_Typ22 <- Aufbereitung_des_Datensatz_mit_Origin(Fahrzeuge_OEM2_Typ22, "ID_Fahrzeug")
-Bestandteile_Fahrzeuge_OEM2_Typ22 <- Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulassung(Bestandteile_Fahrzeuge_OEM2_Typ22)
+Bestandteile_Fahrzeuge_OEM2_Typ22 <- Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulassung(Bestandteile_Fahrzeuge_OEM2_Typ22) %>%
+  select(-c("ID_Sitze", "ID_Schaltung", "ID_Karosserie"))
 
 ```
 
@@ -726,65 +748,80 @@ Zulassungen_alle_Fahrzeuge <- Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulass
 
 # Erstellen des finalen Datensatzes
 
-Zuerst erstellen wir eine Dataframe, die alle die Identifikationsnummer der Motoren hat. Dann verbinden wir alle die Motoren mit ihren Bestandteilen. 
+Zuerst erstellen wir eine Dataframe, die alle die Identifikationsnummer der Motoren hat. Dann verbinden wir alle die Motoren mit ihren Bestandteilen. Die anderen Schritte werden nach jedem LOC erklärt, um den Code übersichtlicher zu machen.   
 
 ```{r Dataframe_alle_Motoren, message = FALSE, warning = FALSE}
 
-# 1. Vertikale Verbindung von Dataframes der Komponente(Motoren)
-# 2. Verbindung der Motoren mit ihren Bestandteilen 
-# 3. Verbindung von Variablen, die die gleiche Information bezüglich eines Einzelteils enthalten
-# 4. Verbindung von Einzelteilen mit ihren Fehlermeldung, Produktionsdaten und Fehlerdaten 
+# Vertikale Verbindung von Dataframes der Komponente(Motoren)
 
-  Final_Datensatz <- rbind(Komponente_K1BE1, Komponente_K1BE2, Komponente_K1DI1, Komponente_K1DI2) %>%
-left_join(Bestandteile_Komponente_K1BE1, by = c("ID_Motor" = "ID_K1BE1")) %>%
-left_join(Bestandteile_Komponente_K1BE2, by = c("ID_Motor" = "ID_K1BE2")) %>%
-left_join(Bestandteile_Komponente_K1DI1, by = c("ID_Motor" = "ID_K1DI1")) %>%
-left_join(Bestandteile_Komponente_K1DI2, by = c("ID_Motor" = "ID_K1DI2")) %>%
-unite("ID_T1", ID_T1.x, ID_T1.y, ID_T1.x.x, ID_T1.y.y) %>%
-unite("ID_T2", ID_T2.x, ID_T2.y, ID_T2.x.x, ID_T2.y.y) %>%
-modify(str_remove_all,"[,\"_NA]") %>%
-Anpassung_Datentyp_Final_Datensatz() %>%
-left_join(Einzelteil_T01, by = c("ID_T1" = "ID_T01"), suffix = c("","_T01")) %>%
-left_join(Einzelteil_T02, by = c("ID_T2" = "ID_T02"), suffix = c("","_T02")) %>%
-left_join(Einzelteil_T03, by = c("ID_T3" = "ID_T03"), suffix = c("","_T03")) %>%
-left_join(Einzelteil_T04, by = c("ID_T4" = "ID_T04"), suffix = c("","_T04")) %>%
-left_join(Einzelteil_T05, by = c("ID_T5" = "ID_T05"), suffix = c("","_T05")) %>%
-left_join(Einzelteil_T06, by = c("ID_T6" = "ID_T06"), suffix = c("","_T06")) %>%
-left_join(Einzelteil_T07, by = c("ID_T7" = "ID_T07"), suffix = c("","_T07")) %>%
-left_join(Einzelteil_T08, by = c("ID_T8" = "ID_T08"), suffix = c("","_T08")) %>%
-left_join(Einzelteil_T09, by = c("ID_T9" = "ID_T09"), suffix = c("","_T09")) %>%
-left_join(Einzelteil_T10, by = c("ID_T10"), suffix = c("","_T10")) %>%
-Anpassung_Datentyp_Final_Datensatz_Fehlerhaft() %>% 
-mutate(Fehlerhaft = Fehlerhaft + Fehlerhaft_T01 + Fehlerhaft_T02 + Fehlerhaft_T03 + Fehlerhaft_T04 + Fehlerhaft_T05 + Fehlerhaft_T06 + Fehlerhaft_T07 + Fehlerhaft_T08 + Fehlerhaft_T09 + Fehlerhaft_T10) %>%
-mutate(Fehlerhaft = ifelse(Fehlerhaft >= 1,1,0)) %>%
+Final_Datensatz <- rbind(Komponente_K1BE1, Komponente_K1BE2, Komponente_K1DI1, Komponente_K1DI2) %>%
+
+  # Verbindung der Motoren mit ihren Bestandteilen
+
+  left_join(Bestandteile_Komponente_K1BE1, by = c("ID_Motor" = "ID_K1BE1")) %>%
+  left_join(Bestandteile_Komponente_K1BE2, by = c("ID_Motor" = "ID_K1BE2")) %>%
+  left_join(Bestandteile_Komponente_K1DI1, by = c("ID_Motor" = "ID_K1DI1")) %>%
+  left_join(Bestandteile_Komponente_K1DI2, by = c("ID_Motor" = "ID_K1DI2")) %>%
+  
+  # Verbindung von Variablen, die die gleiche Information bezüglich eines Einzelteiles enthalten, sowie   # die Entfernung von unnötigen Zeichen innerhalb dieser Variablen. (Details der verwendeten Funktion    # liegen bei der Definition der Funktion vor)   
+    
+  unite("ID_T1", ID_T1.x, ID_T1.y, ID_T1.x.x, ID_T1.y.y) %>%
+  unite("ID_T2", ID_T2.x, ID_T2.y, ID_T2.x.x, ID_T2.y.y) %>%
+  modify(str_remove_all,"[,\"_NA]") %>%
+  Anpassung_Datentyp_Final_Datensatz() %>%
+
+  # Verbindung von Einzelteilen mit ihren Fehlermeldungs- und Produktionsdaten. (Details der verwendeten   # Funktion liegen bei der Definition der Funktion vor) 
+  
+  left_join(Einzelteil_T01, by = c("ID_T1" = "ID_T01"), suffix = c("","_T01")) %>%
+  left_join(Einzelteil_T02, by = c("ID_T2" = "ID_T02"), suffix = c("","_T02")) %>%
+  left_join(Einzelteil_T03, by = c("ID_T3" = "ID_T03"), suffix = c("","_T03")) %>%
+  left_join(Einzelteil_T04, by = c("ID_T4" = "ID_T04"), suffix = c("","_T04")) %>%
+  left_join(Einzelteil_T05, by = c("ID_T5" = "ID_T05"), suffix = c("","_T05")) %>%
+  left_join(Einzelteil_T06, by = c("ID_T6" = "ID_T06"), suffix = c("","_T06")) %>%
+  left_join(Einzelteil_T07, by = c("ID_T7" = "ID_T07"), suffix = c("","_T07")) %>%
+  left_join(Einzelteil_T08, by = c("ID_T8" = "ID_T08"), suffix = c("","_T08")) %>%
+  left_join(Einzelteil_T09, by = c("ID_T9" = "ID_T09"), suffix = c("","_T09")) %>%
+  left_join(Einzelteil_T10, by = c("ID_T10"), suffix = c("","_T10")) %>%
+  Anpassung_Datentyp_Final_Datensatz_Fehlerhaft() %>% 
+
+  # Zählung der Anzahl von Fehlermeldungen aller einzelnen Komponente und ihrer Bestandteile/Einzelteile   # zur Gewährleistung dessen, dass man richtig bestimmt, ob eine Komponente fehlerhaft ist.  
+  
+  mutate(Fehlerhaft = Fehlerhaft + Fehlerhaft_T01 + Fehlerhaft_T02 + Fehlerhaft_T03 + Fehlerhaft_T04 + Fehlerhaft_T05 + Fehlerhaft_T06 + Fehlerhaft_T07 + Fehlerhaft_T08 + Fehlerhaft_T09 + Fehlerhaft_T10) %>%
+  mutate(Fehlerhaft = ifelse(Fehlerhaft >= 1,1,0)) %>%
   mutate(Fehlerhaft = as.factor(Fehlerhaft)) %>%
-select(-c("Fehlerhaft_T01", "Fehlerhaft_T02", "Fehlerhaft_T03", "Fehlerhaft_T04", "Fehlerhaft_T05", "Fehlerhaft_T06", "Fehlerhaft_T07", "Fehlerhaft_T08", "Fehlerhaft_T09", "Fehlerhaft_T10")) %>%
-select(-c("ID_T1", "ID_T2", "ID_T3", "ID_T4", "ID_T5", "ID_T6", "ID_T7", "ID_T8", "ID_T9", "ID_T10")) %>%
-select(-c("Produktionsdatum_T01", "Produktionsdatum_T02", "Produktionsdatum_T03", "Produktionsdatum_T04", "Produktionsdatum_T05", "Produktionsdatum_T06", "Produktionsdatum_T07", "Produktionsdatum_T08", "Produktionsdatum_T09", "Produktionsdatum_T10")) %>%
-Anpassung_Datentyp_Final_Datensatz_Fehlerhaft_Datum() %>%
-select(-c("Fehlerhaft_Datum_T01", "Fehlerhaft_Datum_T02", "Fehlerhaft_Datum_T03", "Fehlerhaft_Datum_T04", "Fehlerhaft_Datum_T05", "Fehlerhaft_Datum_T06", "Fehlerhaft_Datum_T07", "Fehlerhaft_Datum_T08", "Fehlerhaft_Datum_T09", "Fehlerhaft_Datum_T10")) %>%
-left_join(Bestandteile_Fahrzeuge_OEM1_Typ11, by = c("ID_Motor")) %>%
-  select(-c("ID_Sitze", "ID_Schaltung", "ID_Karosserie")) %>%
-left_join(Bestandteile_Fahrzeuge_OEM1_Typ12, by = c("ID_Motor"), suffix = c("","_OEM1_Typ12")) %>%
-select(-c("ID_Sitze", "ID_Schaltung", "ID_Karosserie")) %>%
-left_join(Bestandteile_Fahrzeuge_OEM2_Typ21, by = c("ID_Motor"), suffix = c("","_OEM2_Typ21")) %>%
-select(-c("ID_Sitze", "ID_Schaltung", "ID_Karosserie")) %>%
-left_join(Bestandteile_Fahrzeuge_OEM2_Typ22, by = c("ID_Motor"), suffix = c("","_OEM2_Typ22")) %>%
-select(-c("ID_Sitze", "ID_Schaltung", "ID_Karosserie")) %>%
-unite("ID_Fahrzeug", ID_Fahrzeug, ID_Fahrzeug_OEM1_Typ12, ID_Fahrzeug_OEM2_Typ21, ID_Fahrzeug_OEM2_Typ22) %>%
-modify(str_remove_all,"[,\"_NA]") %>%
-left_join(Zulassungen_alle_Fahrzeuge, by = c("ID_Fahrzeug" = "IDNummer")) %>%
-select(-c("Gemeinden")) %>%
+
+  # Entfernung von Variablen, die nicht relevant für die Fortsetzung des Erstellens des Finaldatensatzes
+  # sind.(Details der verwendeten   # Funktion liegen bei der Definition der Funktion vor) 
+  
+  select(-c("Fehlerhaft_T01", "Fehlerhaft_T02", "Fehlerhaft_T03", "Fehlerhaft_T04", "Fehlerhaft_T05", "Fehlerhaft_T06", "Fehlerhaft_T07", "Fehlerhaft_T08", "Fehlerhaft_T09", "Fehlerhaft_T10")) %>%
+  select(-c("ID_T1", "ID_T2", "ID_T3", "ID_T4", "ID_T5", "ID_T6", "ID_T7", "ID_T8", "ID_T9", "ID_T10")) %>%
+  select(-c("Produktionsdatum_T01", "Produktionsdatum_T02", "Produktionsdatum_T03", "Produktionsdatum_T04", "Produktionsdatum_T05", "Produktionsdatum_T06", "Produktionsdatum_T07", "Produktionsdatum_T08", "Produktionsdatum_T09", "Produktionsdatum_T10")) %>%
+  Anpassung_Datentyp_Final_Datensatz_Fehlerhaft_Datum() %>%
+  select(-c("Fehlerhaft_Datum_T01", "Fehlerhaft_Datum_T02", "Fehlerhaft_Datum_T03", "Fehlerhaft_Datum_T04", "Fehlerhaft_Datum_T05", "Fehlerhaft_Datum_T06", "Fehlerhaft_Datum_T07", "Fehlerhaft_Datum_T08", "Fehlerhaft_Datum_T09", "Fehlerhaft_Datum_T10")) %>%
+  
+  # Verbindung der Motoren mit Informationen über das Fahrzeug (z.B. die Identifikationsnummer des        # Fahrzeuges), in dem sie implementiert sind. 
+  
+  left_join(Bestandteile_Fahrzeuge_OEM1_Typ11, by = c("ID_Motor")) %>%
+  left_join(Bestandteile_Fahrzeuge_OEM1_Typ12, by = c("ID_Motor"), suffix = c("","_OEM1_Typ12")) %>%
+  left_join(Bestandteile_Fahrzeuge_OEM2_Typ21, by = c("ID_Motor"), suffix = c("","_OEM2_Typ21")) %>%
+  left_join(Bestandteile_Fahrzeuge_OEM2_Typ22, by = c("ID_Motor"), suffix = c("","_OEM2_Typ22")) %>%
+  
+  # Verbindung von Variablen, die die gleiche Information bezüglich einer Identifikationsnummer eines     # Fahrzeuges enthalten, sowie die Entfernung von unnötigen Zeichen innerhalb dieser Variablen. 
+  
+  unite("ID_Fahrzeug", ID_Fahrzeug, ID_Fahrzeug_OEM1_Typ12, ID_Fahrzeug_OEM2_Typ21, ID_Fahrzeug_OEM2_Typ22) %>%
+  modify(str_remove_all,"[,\"_NA]") %>%
+
+  # Verbindung der Identifikationsnummer der Fahrzeugen mit ihrem Zulassungsdatum und Entfernung von      # irrelevante Variablen 
+  
+  left_join(Zulassungen_alle_Fahrzeuge, by = c("ID_Fahrzeug" = "IDNummer")) %>%
+  select(-c("Gemeinden")) %>%
+  
+  # Berechnung des Lebensdauers jedes Fahrzeuges 
+  
   mutate(Fehlerhaft_Datum = as.Date(Fehlerhaft_Datum, format = "%Y-%m-%d")) %>%
   mutate(Fehlerhaft = as.factor(Fehlerhaft)) %>%
   mutate(Lebensdauer_in_Days = Fehlerhaft_Datum - Zulassung)
 
-  
-  
-  
-  
-  
-  
 ```                     
 
 
