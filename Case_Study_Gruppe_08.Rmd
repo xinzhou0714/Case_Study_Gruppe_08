@@ -142,6 +142,7 @@ Einzelteil_T01 <- read_file("Data/Einzelteil/Einzelteil_T01.txt") %>%
 Einzelteil_T02 <- read_file("Data/Einzelteil/Einzelteil_T02.txt") %>%
   str_replace_all("\t","\n") %>%
   str_replace_all("  ",",") %>%
+  str_replace_all(regex(",\\d{1,},\""), ",\"" )%>%    #eliminieren überschüssige Spalte(2. Spalte)
   fread()
 
 ```
@@ -149,17 +150,13 @@ Einzelteil_T02 <- read_file("Data/Einzelteil/Einzelteil_T02.txt") %>%
 *Einzelteil 03*
 
 ```{r Einzelteil_T03, message = FALSE, warning = FALSE}
+# die unsichtbare Zeichen hat ASCII-Code \x0b  ,ist vertical tab
+# das reserviert Zeichen "|" soll interperiert als normaler Zeichen  
 
 Einzelteil_T03 <- read_file("Data/Einzelteil/Einzelteil_T03.txt") %>%
-<<<<<<< HEAD
-  str_replace_all("","\n") %>%
-  fread(sep="|")
-=======
-  str_replace_all("[|]",",") %>%
-  str_replace_all("","\n") %>%
+  str_replace_all("\\|",",") %>%
+  str_replace_all("\x0b","\n") %>%
   fread()
->>>>>>> c1404a10849f65604585d24282a8de2a4d47a085
-
 ```
  
 *Einzelteil 04 - 06* 
@@ -178,8 +175,10 @@ Einzelteil_T06 <- fread("Data/Einzelteil/Einzelteil_T06.csv")
 
 ```{r Einzelteil_T07, message = FALSE, warning = FALSE}
 
+# Trennzeich zwischen Zeilen korrigiert werden
 Einzelteil_T07 <- read_file("Data/Einzelteil/Einzelteil_T07.txt") %>%
-  str_replace_all("\"\"","\"\n") %>%
+  str_replace_all("\"\"","\"\n\"") %>%
+  #write_file("test6.txt")
   fread(sep="\t")
 
 ```
@@ -197,9 +196,9 @@ Einzelteil_T08 <- fread("Data/Einzelteil/Einzelteil_T08.csv")
 *Einzelteil 09*
 
 ```{r Einzelteil_T09, message = FALSE, warning = FALSE}
-
+#\v für ASCII-Code \x0b
 Einzelteil_T09 <- read_file("Data/Einzelteil/Einzelteil_T09.txt") %>%
-  str_replace_all("","\n") %>%
+  str_replace_all("\v","\n") %>%
   fread(sep="\\")
   # write_file(Einzelteil_T09, path ="Data/Einzelteil/D.txt")
 
@@ -304,6 +303,7 @@ Folgende Datei wird so modifiziert, dass eine einlesbare Struktur generiert wird
 
 ```{r Motor_K1DI2_1, message = FALSE, warning = FALSE}
 
+#Spalte V1 ist wiederholend zu X1
 Komponente_K1DI2 <- read_file("Data/Komponente/Komponente_K1DI2.txt") %>%
   str_replace_all("\t","\n") %>%
   fread(sep="\\")
