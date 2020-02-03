@@ -9,9 +9,11 @@ output:
     number_sections: true
 ---
 
+<!-- git add . ; git commit -m "Next commit3" ; git push origin master -->
+
 ```{r setup, include=FALSE}
 
-knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE)
 
 ```
 
@@ -142,8 +144,14 @@ Einzelteil_T02 <- read_file("Data/Einzelteil/Einzelteil_T02.txt") %>%
 ```{r Einzelteil_T03, message = FALSE, warning = FALSE}
 
 Einzelteil_T03 <- read_file("Data/Einzelteil/Einzelteil_T03.txt") %>%
+<<<<<<< HEAD
   str_replace_all("","\n") %>%
   fread(sep="|")
+=======
+  str_replace_all("[|]",",") %>%
+  str_replace_all("","\n") %>%
+  fread()
+>>>>>>> c1404a10849f65604585d24282a8de2a4d47a085
 
 ```
  
@@ -186,6 +194,7 @@ Einzelteil_T08 <- fread("Data/Einzelteil/Einzelteil_T08.csv")
 Einzelteil_T09 <- read_file("Data/Einzelteil/Einzelteil_T09.txt") %>%
   str_replace_all("","\n") %>%
   fread(sep="\\")
+  # write_file(Einzelteil_T09, path ="Data/Einzelteil/D.txt")
 
 ```
 
@@ -326,7 +335,7 @@ Die durch die Importierung resultierenden Datensätze enthalten mehrere Variable
 # Function für die Anpassung des Datentyps von Variablen nach initialer Aufbereitung
 
 Anpassung_Datentyp <- function(datensatz, ID_Typ) {
-  datensatz[[ID_Typ]] <- type.convert(datensatz[[ID_Typ]],as.is = T)
+  # datensatz[[ID_Typ]] <- type.convert(datensatz[[ID_Typ]], as.is = TRUE)
   datensatz$Produktionsdatum <- as.Date(datensatz$Produktionsdatum)
   datensatz$Fehlerhaft_Datum <- as.Date(datensatz$Fehlerhaft_Datum, format="%Y-%m-%d")
   datensatz$Fehlerhaft <- as.integer(as.character(datensatz$Fehlerhaft))
