@@ -118,12 +118,19 @@ Obwohl es 38 Einzelteile gibt, werden nur die Dateien mit Data zu den Einzelteil
 *Einzelteil 01*
 
 ```{r Einzelteil_01, message = FALSE, warning = FALSE}
+# die Daten im Einzelteil_T01.txt habe fogende Merkmal:
+#   -die 2. Spalt von Oberservation ist überschüssig , 3. Spalt ist  die echte ID_T01
+#   -Trennzeichen zwischen Spalten ist  " | | " , und in  ASCII(hex) ist \x20\x7c\x20\x7c\x20 
+#   -Trennzeichen zwischen Zeilen ist " "(einzel Leerzeichen) und in  ASCII(hex) ist \x20
+#
+#Fehler :
+#   -Zeichen "Fahrleistung" und  "A" ist Bestandteil von Datensatz (NA), bitte vermeiden sie als Pattern zu nutzen 
+#   -bei ersetzen durch "str_replace_all" hast du falsch Pattern genutzt. einstellige Pipeline "|" bedeutet logische operation "Oder", das Zeichen "\" kann wörtliche Bedeutung einer Stelle nutzen. deswegen die richtige Format von " | | "ist  " \\| \\| "
 
 Einzelteil_T01 <- read_file("Data/Einzelteil/Einzelteil_T01.txt") %>%
-  str_replace_all("Fahrleistung\"","\n") %>%
-  str_replace_all("A \"","\n") %>%
-  str_replace_all("[0-9] \"","\n") %>%
-  str_replace_all(" | | ",",") %>%
+  str_replace_all(" \\| \\| " , ",") %>%
+  str_replace_all(" ", "\n")%>%
+  str_replace_all(regex(",\\d{3,},\""), ",\"" )%>%    #eliminieren überschüssige Spalte(2. Spalte)
   fread()
 
 ```
