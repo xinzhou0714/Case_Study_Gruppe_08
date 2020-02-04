@@ -799,13 +799,30 @@ Final_Datensatz <- rbind(Komponente_K1BE1, Komponente_K1BE2, Komponente_K1DI1, K
   unite("ID_Fahrzeug", ID_Fahrzeug, ID_Fahrzeug_OEM1_Typ12, ID_Fahrzeug_OEM2_Typ21, ID_Fahrzeug_OEM2_Typ22) %>%
   modify(str_remove_all,"[,\"_NA]") %>%
 
+  # Verbindung der Identifikationsnummer der Fahrzeugen mit ihrem Produktionsdatum und Fehlermeldungen
+  
+  left_join(Fahrzeuge_OEM1_Typ11, by = c("ID_Fahrzeug"), suffix = c("", "_Fahrzeug_OEM1_Typ11")) %>%
+  left_join(Fahrzeuge_OEM1_Typ12, by = c("ID_Fahrzeug"), suffix = c("", "_Fahrzeug_OEM1_Typ12")) %>%
+  left_join(Fahrzeuge_OEM2_Typ21, by = c("ID_Fahrzeug"), suffix = c("", "_Fahrzeug_OEM2_Typ21")) %>%
+  left_join(Fahrzeuge_OEM2_Typ22, by = c("ID_Fahrzeug"), suffix = c("", "_Fahrzeug_OEM2_Typ22")) %>%
+  
+  # Verbindung von Variablen, die die gleiche Information bezüglich einer Identifikationsnummer eines     # Fahrzeuges enthalten, sowie die Entfernung von unnötigen Zeichen innerhalb dieser Variablen.
+  
+  unite("Fehlerhaft_Fahrzeug", Fehlerhaft_Fahrzeug_OEM1_Typ11, Fehlerhaft_Fahrzeug_OEM1_Typ12, Fehlerhaft_Fahrzeug_OEM2_Typ21, Fehlerhaft_Fahrzeug_OEM2_Typ22) %>%
+  unite("Fehlerhaft_Datum_Fahrzeug", Fehlerhaft_Datum_Fahrzeug_OEM1_Typ11, Fehlerhaft_Datum_Fahrzeug_OEM1_Typ12, Fehlerhaft_Datum_Fahrzeug_OEM2_Typ21, Fehlerhaft_Datum_Fahrzeug_OEM2_Typ22) %>%
+  unite("Produktionsdatum_Fahrzeug", Produktionsdatum_Fahrzeug_OEM1_Typ11, Produktionsdatum_Fahrzeug_OEM1_Typ12, Produktionsdatum_Fahrzeug_OEM2_Typ21, Produktionsdatum_Fahrzeug_OEM2_Typ22) %>%
+  modify(str_remove_all,"[,\"_NA]") %>%
+  
   # Verbindung der Identifikationsnummer der Fahrzeugen mit ihrem Zulassungsdatum und Entfernung von      # irrelevante Variablen 
   
   left_join(Zulassungen_alle_Fahrzeuge, by = c("ID_Fahrzeug" = "IDNummer")) %>%
   select(-c("Gemeinden")) %>%
   
-  # Berechnung des Lebensdauers jedes Fahrzeuges 
+  # Berechnung des Lebensdauers jedes Fahrzeuges und Anpassung des Datentyps einiger Variablen
   
+  mutate(Fehlerhaft_Datum_Fahrzeug = as.Date(Fehlerhaft_Datum_Fahrzeug, format = "%Y-%m-%d")) %>%
+  mutate(Fehlerhaft_Fahrzeug = as.factor(Fehlerhaft_Fahrzeug)) %>%
+  mutate(Produktionsdatum_Fahrzeug = as.Date(Produktionsdatum_Fahrzeug, format = "%Y-%m-%d")) %>%
   mutate(Fehlerhaft_Datum = as.Date(Fehlerhaft_Datum, format = "%Y-%m-%d")) %>%
   mutate(Fehlerhaft = as.factor(Fehlerhaft)) %>%
   mutate(Lebensdauer_in_Days = Fehlerhaft_Datum - Zulassung)
@@ -813,18 +830,19 @@ Final_Datensatz <- rbind(Komponente_K1BE1, Komponente_K1BE2, Komponente_K1DI1, K
 ```                     
 
 
-
 # Auswertung 
 
 ```{r}
+
+
+
+
 
 ``` 
 
 # Ergebnis
 
 ```{r}
-a<- data.frame(b=c(1, 2, 3),c=c(1, 2, 3),d=c(1, 2, 3)) %>%
-  mutate(h=apply(a[c("b","d")],1,min))
   
 
 ```
