@@ -128,7 +128,7 @@ Obwohl es 38 Einzelteile gibt, werden nur die Dateien mit Data zu den Einzelteil
 Einzelteil_T01 <- read_file("Data/Einzelteil/Einzelteil_T01.txt") %>%
   str_replace_all(" \\| \\| " , ",") %>%
   str_replace_all(" ", "\n")%>%
-  str_replace_all(regex(",\\d{3,},\""), ",\"" )%>%    #eliminieren überschüssige Spalte(2. Spalte)
+  # str_replace_all(regex(",\\d{3,},\""), ",\"" )%>%    #eliminieren überschüssige Spalte(2. Spalte)
   fread()
 
 ```
@@ -140,7 +140,7 @@ Einzelteil_T01 <- read_file("Data/Einzelteil/Einzelteil_T01.txt") %>%
 Einzelteil_T02 <- read_file("Data/Einzelteil/Einzelteil_T02.txt") %>%
   str_replace_all("\t","\n") %>%
   str_replace_all("  ",",") %>%
-  str_replace_all(regex(",\\d{1,},\""), ",\"" )%>%    #eliminieren überschüssige Spalte(2. Spalte)
+  # str_replace_all(regex(",\\d{1,},\""), ",\"" )%>%    #eliminieren überschüssige Spalte(2. Spalte)
   fread()
 
 ```
@@ -152,21 +152,18 @@ Einzelteil_T02 <- read_file("Data/Einzelteil/Einzelteil_T02.txt") %>%
 # das reserviert Zeichen "|" soll interperiert als normaler Zeichen  
 
 Einzelteil_T03 <- read_file("Data/Einzelteil/Einzelteil_T03.txt") %>%
-<<<<<<< HEAD
   str_replace_all("\\|",",") %>%
   str_replace_all("\x0b","\n") %>%
   fread()
-=======
-  str_replace_all("","\n") %>%
-  fread(sep="|")
 
-# Ich weiss nicht, warum dieser Code in meinem Computer nicht läuft. 
-  str_replace_all("[|]",",") %>%
-  str_replace_all("","\n") %>%
-  fread()
+#   str_replace_all("","\n") %>%
+#   fread(sep="|")
+# 
+# # Ich weiss nicht, warum dieser Code in meinem Computer nicht läuft. 
+#   str_replace_all("[|]",",") %>%
+#   str_replace_all("","\n") %>%
+#   fread()
 
-
->>>>>>> 4a206d008fbd48b061a3909959c32dada502b6b6
 ```
  
 *Einzelteil 04 - 06* 
@@ -354,7 +351,11 @@ Die durch die Importierung resultierenden Datensätze enthalten mehrere Variable
 Anpassung_Datentyp <- function(datensatz, ID_Typ) {
   # Ich habe bemerkt, dass der nächste LOC als Kommentar gesetzt wurde. Auf einem ersten Blick scheint dieser LOC unnötig und es ist so für fast alle Fälle. Die Sache ist, dass es einen Datensatz gibt, der  nach der Importierung den ID-type als factor setzt. Diese Variabel sollte meiner Meinung nach charachter sein. Deswegen habe ich diesen LOC hinzugefügt. Man könnte das auch in diesen Einzelfällen außerhalb dieser Funktion tun, aber ich möchte einfach eine Funktion für alle Datensätze benutzen.   
   
-  datensatz[[ID_Typ]] <- type.convert(datensatz[[ID_Typ]], as.is = TRUE)
+  # datensatz[[ID_Typ]] <- type.convert(datensatz[[ID_Typ]])
+  
+  # datensatz[[ID_Typ]] <- lapply(datensatz[[ID_Typ]], as.character)
+  
+  # datensatz[[ID_Typ]] <- type.convert(datensatz[[ID_Typ]], as.is = TRUE)
   datensatz$Produktionsdatum <- as.Date(datensatz$Produktionsdatum)
   datensatz$Fehlerhaft_Datum <- as.Date(datensatz$Fehlerhaft_Datum, format="%Y-%m-%d")
   datensatz$Fehlerhaft <- as.integer(as.character(datensatz$Fehlerhaft))
@@ -835,8 +836,8 @@ Final_Datensatz <- rbind(Komponente_K1BE1, Komponente_K1BE2, Komponente_K1DI1, K
 # Ergebnis
 
 ```{r}
-a<- data.frame(b=c(1, 2, 3),c=c(1, 2, 3),d=c(1, 2, 3)) %>%
-  mutate(h=apply(a[c("b","d")],1,min))
+# a<- data.frame(b=c(1, 2, 3),c=c(1, 2, 3),d=c(1, 2, 3)) %>%
+#   mutate(h=apply(a[c("b","d")],1,min))
   
 
 ```
