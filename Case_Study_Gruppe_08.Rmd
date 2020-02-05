@@ -128,7 +128,7 @@ Obwohl es 38 Einzelteile gibt, werden nur die Dateien mit Data zu den Einzelteil
 Einzelteil_T01 <- read_file("Data/Einzelteil/Einzelteil_T01.txt") %>%
   str_replace_all(" \\| \\| " , ",") %>%
   str_replace_all(" ", "\n")%>%
-  str_replace_all(regex(",\\d{3,},\""), ",\"" )%>%    #eliminieren überschüssige Spalte(2. Spalte)
+  # str_replace_all(regex(",\\d{3,},\""), ",\"" )%>%    #eliminieren überschüssige Spalte(2. Spalte)
   fread()
 
 ```
@@ -140,6 +140,7 @@ Einzelteil_T01 <- read_file("Data/Einzelteil/Einzelteil_T01.txt") %>%
 Einzelteil_T02 <- read_file("Data/Einzelteil/Einzelteil_T02.txt") %>%
   str_replace_all("\t","\n") %>%
   str_replace_all("  ",",") %>%
+  # str_replace_all(regex(",\\d{1,},\""), ",\"" )%>%    #eliminieren überschüssige Spalte(2. Spalte)
   fread()
 
 ```
@@ -147,16 +148,21 @@ Einzelteil_T02 <- read_file("Data/Einzelteil/Einzelteil_T02.txt") %>%
 *Einzelteil 03*
 
 ```{r Einzelteil_T03, message = FALSE, warning = FALSE}
+# die unsichtbare Zeichen hat ASCII-Code \x0b  ,ist vertical tab
+# das reserviert Zeichen "|" soll interperiert als normaler Zeichen  
 
 Einzelteil_T03 <- read_file("Data/Einzelteil/Einzelteil_T03.txt") %>%
-  str_replace_all("","\n") %>%
-  fread(sep="|")
-
-# Ich weiss nicht, warum dieser Code in meinem Computer nicht läuft. 
-  str_replace_all("[|]",",") %>%
-  str_replace_all("","\n") %>%
+  str_replace_all("\\|",",") %>%
+  str_replace_all("\x0b","\n") %>%
   fread()
 
+#   str_replace_all("","\n") %>%
+#   fread(sep="|")
+# 
+# # Ich weiss nicht, warum dieser Code in meinem Computer nicht läuft. 
+#   str_replace_all("[|]",",") %>%
+#   str_replace_all("","\n") %>%
+#   fread()
 
 ```
  
@@ -176,8 +182,10 @@ Einzelteil_T06 <- fread("Data/Einzelteil/Einzelteil_T06.csv")
 
 ```{r Einzelteil_T07, message = FALSE, warning = FALSE}
 
+# Trennzeich zwischen Zeilen korrigiert werden
 Einzelteil_T07 <- read_file("Data/Einzelteil/Einzelteil_T07.txt") %>%
-  str_replace_all("\"\"","\"\n") %>%
+  str_replace_all("\"\"","\"\n\"") %>%
+  #write_file("test6.txt")
   fread(sep="\t")
 
 ```
@@ -195,9 +203,9 @@ Einzelteil_T08 <- fread("Data/Einzelteil/Einzelteil_T08.csv")
 *Einzelteil 09*
 
 ```{r Einzelteil_T09, message = FALSE, warning = FALSE}
-
+#\v für ASCII-Code \x0b
 Einzelteil_T09 <- read_file("Data/Einzelteil/Einzelteil_T09.txt") %>%
-  str_replace_all("","\n") %>%
+  str_replace_all("\v","\n") %>%
   fread(sep="\\")
   # write_file(Einzelteil_T09, path ="Data/Einzelteil/D.txt")
 
@@ -302,6 +310,7 @@ Folgende Datei wird so modifiziert, dass eine einlesbare Struktur generiert wird
 
 ```{r Motor_K1DI2_1, message = FALSE, warning = FALSE}
 
+#Spalte V1 ist wiederholend zu X1
 Komponente_K1DI2 <- read_file("Data/Komponente/Komponente_K1DI2.txt") %>%
   str_replace_all("\t","\n") %>%
   fread(sep="\\")
@@ -342,7 +351,11 @@ Die durch die Importierung resultierenden Datensätze enthalten mehrere Variable
 Anpassung_Datentyp <- function(datensatz, ID_Typ) {
   # Ich habe bemerkt, dass der nächste LOC als Kommentar gesetzt wurde. Auf einem ersten Blick scheint dieser LOC unnötig und es ist so für fast alle Fälle. Die Sache ist, dass es einen Datensatz gibt, der  nach der Importierung den ID-type als factor setzt. Diese Variabel sollte meiner Meinung nach charachter sein. Deswegen habe ich diesen LOC hinzugefügt. Man könnte das auch in diesen Einzelfällen außerhalb dieser Funktion tun, aber ich möchte einfach eine Funktion für alle Datensätze benutzen.   
   
-  datensatz[[ID_Typ]] <- type.convert(datensatz[[ID_Typ]], as.is = TRUE)
+  # datensatz[[ID_Typ]] <- type.convert(datensatz[[ID_Typ]])
+  
+  # datensatz[[ID_Typ]] <- lapply(datensatz[[ID_Typ]], as.character)
+  
+  # datensatz[[ID_Typ]] <- type.convert(datensatz[[ID_Typ]], as.is = TRUE)
   datensatz$Produktionsdatum <- as.Date(datensatz$Produktionsdatum)
   datensatz$Fehlerhaft_Datum <- as.Date(datensatz$Fehlerhaft_Datum, format="%Y-%m-%d")
   datensatz$Fehlerhaft <- as.integer(as.character(datensatz$Fehlerhaft))
@@ -408,6 +421,38 @@ Anpassung_Datentyp_Final_Datensatz_Fehlerhaft <- function(datensatz) {
   datensatz$Fehlerhaft_T10[is.na(datensatz$Fehlerhaft_T10)] = 0
   return(datensatz)
 }
+
+## Folgende Funktion findet das früheste Datum, an dem der Motor eines Fahrzeuges bzw. das Fahrzeug als fehlerhaft gemeldet wurde. Diese Funktion wird verwendet, weil es einige Fahrzeuge gibt, die als nicht Fehlerhaft gemeldet wurden, obwohl ihre Motor als fehlerhaft gemeldet wurde. Somit soll das Fehlerhaftdatum des Fahrzeuges entweder das Fehlerhaftdatum des gesamten Fahrzeuges oder das Fehlerdatum des Motors dieses Fahrzeuges sein, wobei das früheste Datum ausgewählt wird, im Fall, es gibt Fehlermeldungen für beide (Das gesamte Fahrzeug und den Motoren) 
+
+Anpassung_Datentyp_Final_Datensatz_Fehlerhaft_Fahrzeug<- function(datensatz) {
+  
+  datensatz$Fehlerhaft_Datum_Fahrzeug <- apply(datensatz[c("Fehlerhaft_Datum", "Fehlerhaft_Datum_Fahrzeug")],1,min,na.rm=TRUE)
+  return(datensatz)
+}
+
+## Die Marke und der Typ jedes Fahrzeuges wird durch die Identifikationsnummer der Fahrzeuge bestimmt und neue Variablen mit diesen Information werden erstellt. Das ist möglich, weil die ersten zwei Ziffern der ID_Fahrzeug den Fahrzeugtyp repräsentieren und dann wird die Marke entsprechend aus dem Fahrzeugtyp bestimmt.
+
+Typ_und_Marke_Fahrzeug <- function (datensatz){
+  
+  mutate(datensatz, Fahrzeug_Typ = 1:nrow(datensatz)) 
+  mutate(datensatz, Fahrzeugsmarke = 1:nrow(datensatz))
+  
+  datensatz$Fahrzeug_Typ[grepl("^11", datensatz$ID_Fahrzeug)] <- "11"
+  datensatz$Fahrzeugsmarke[grepl("^11", datensatz$ID_Fahrzeug)] <- "OEM1"
+  
+  datensatz$Fahrzeug_Typ[grepl("^12", datensatz$ID_Fahrzeug)] <- "12"
+  datensatz$Fahrzeugsmarke[grepl("^12", datensatz$ID_Fahrzeug)] <- "OEM1"
+  
+  datensatz$Fahrzeug_Typ[grepl("^21", datensatz$ID_Fahrzeug)] <- "21"
+  datensatz$Fahrzeugsmarke[grepl("^21", datensatz$ID_Fahrzeug)] <-  "OEM2"
+  
+  datensatz$Fahrzeug_Typ[grepl("^22", datensatz$ID_Fahrzeug)] <- "22"
+  datensatz$Fahrzeugsmarke[grepl("^22", datensatz$ID_Fahrzeug)] <-  "OEM2"
+  
+  return(datensatz)
+  
+}
+
 
 ```
 
@@ -800,20 +845,34 @@ Final_Datensatz <- rbind(Komponente_K1BE1, Komponente_K1BE2, Komponente_K1DI1, K
   modify(str_remove_all,"[,\"_NA]") %>%
 
   # Verbindung der Identifikationsnummer der Fahrzeugen mit ihrem Produktionsdatum und Fehlermeldungen
-  
+
   left_join(Fahrzeuge_OEM1_Typ11, by = c("ID_Fahrzeug"), suffix = c("", "_Fahrzeug_OEM1_Typ11")) %>%
   left_join(Fahrzeuge_OEM1_Typ12, by = c("ID_Fahrzeug"), suffix = c("", "_Fahrzeug_OEM1_Typ12")) %>%
   left_join(Fahrzeuge_OEM2_Typ21, by = c("ID_Fahrzeug"), suffix = c("", "_Fahrzeug_OEM2_Typ21")) %>%
   left_join(Fahrzeuge_OEM2_Typ22, by = c("ID_Fahrzeug"), suffix = c("", "_Fahrzeug_OEM2_Typ22")) %>%
   
-  # Verbindung von Variablen, die die gleiche Information bezüglich einer Identifikationsnummer eines     # Fahrzeuges enthalten, sowie die Entfernung von unnötigen Zeichen innerhalb dieser Variablen.
+  # Verbindung von Variablen, die die gleiche Information bezüglich einer Identifikationsnummer eines     # Fahrzeuges enthalten, sowie die Entfernung von unnötigen Zeichen innerhalb dieser Variablen. (Details der verwendeten   # Funktion liegen bei der Definition der Funktion vor)
   
   unite("Fehlerhaft_Fahrzeug", Fehlerhaft_Fahrzeug_OEM1_Typ11, Fehlerhaft_Fahrzeug_OEM1_Typ12, Fehlerhaft_Fahrzeug_OEM2_Typ21, Fehlerhaft_Fahrzeug_OEM2_Typ22) %>%
   unite("Fehlerhaft_Datum_Fahrzeug", Fehlerhaft_Datum_Fahrzeug_OEM1_Typ11, Fehlerhaft_Datum_Fahrzeug_OEM1_Typ12, Fehlerhaft_Datum_Fahrzeug_OEM2_Typ21, Fehlerhaft_Datum_Fahrzeug_OEM2_Typ22) %>%
   unite("Produktionsdatum_Fahrzeug", Produktionsdatum_Fahrzeug_OEM1_Typ11, Produktionsdatum_Fahrzeug_OEM1_Typ12, Produktionsdatum_Fahrzeug_OEM2_Typ21, Produktionsdatum_Fahrzeug_OEM2_Typ22) %>%
   modify(str_remove_all,"[,\"_NA]") %>%
   
-  # Verbindung der Identifikationsnummer der Fahrzeugen mit ihrem Zulassungsdatum und Entfernung von      # irrelevante Variablen 
+  # Anpassung des Datentyps folgender Variablen und Bestimmen davon, ob ein Fahrzeug fehlerhaft ist. (Details der verwendeten Funktion liegen bei der Definition der Funktion vor)
+  
+  mutate(Fehlerhaft_Datum_Fahrzeug = as.Date(Fehlerhaft_Datum_Fahrzeug, format = "%Y-%m-%d")) %>%
+  mutate(Fehlerhaft_Datum = as.Date(Fehlerhaft_Datum, format = "%Y-%m-%d")) %>%
+  mutate(Fehlerhaft_Fahrzeug = as.numeric(as.character(Fehlerhaft_Fahrzeug))) %>%
+  mutate(Fehlerhaft = as.numeric(as.character(Fehlerhaft))) %>%
+  mutate(Fehlerhaft_Fahrzeug = Fehlerhaft + Fehlerhaft_Fahrzeug) %>%
+  mutate(Fehlerhaft_Fahrzeug = ifelse(Fehlerhaft_Fahrzeug >= 1,1,0)) %>%
+  Anpassung_Datentyp_Final_Datensatz_Fehlerhaft_Fahrzeug() %>%
+  
+  # Erstellen der Variablen bezüglich der Marke und des Typs jedes Farhzeuges (Details der verwendeten Funktion liegen bei der Definition der Funktion vor)
+  
+  Typ_und_Marke_Fahrzeug () %>%
+ 
+  # Verbindung der Identifikationsnummer der Fahrzeugen mit ihrem Zulassungsdatum und Entfernung von irrelevanten Variablen 
   
   left_join(Zulassungen_alle_Fahrzeuge, by = c("ID_Fahrzeug" = "IDNummer")) %>%
   select(-c("Gemeinden")) %>%
@@ -823,9 +882,12 @@ Final_Datensatz <- rbind(Komponente_K1BE1, Komponente_K1BE2, Komponente_K1DI1, K
   mutate(Fehlerhaft_Datum_Fahrzeug = as.Date(Fehlerhaft_Datum_Fahrzeug, format = "%Y-%m-%d")) %>%
   mutate(Fehlerhaft_Fahrzeug = as.factor(Fehlerhaft_Fahrzeug)) %>%
   mutate(Produktionsdatum_Fahrzeug = as.Date(Produktionsdatum_Fahrzeug, format = "%Y-%m-%d")) %>%
-  mutate(Fehlerhaft_Datum = as.Date(Fehlerhaft_Datum, format = "%Y-%m-%d")) %>%
+  mutate(Produktionsdatum = as.Date(Produktionsdatum, format = "%Y-%m-%d")) %>%
   mutate(Fehlerhaft = as.factor(Fehlerhaft)) %>%
+  mutate(Fahrzeug_Typ = as.factor(Fahrzeug_Typ)) %>%
+  mutate(Fahrzeugsmarke = as.factor(Fahrzeugsmarke)) %>%
   mutate(Lebensdauer_in_Days = Fehlerhaft_Datum - Zulassung)
+  
 
 ```                     
 
@@ -843,6 +905,7 @@ Final_Datensatz <- rbind(Komponente_K1BE1, Komponente_K1BE2, Komponente_K1DI1, K
 # Ergebnis
 
 ```{r}
+
   
 
 ```
