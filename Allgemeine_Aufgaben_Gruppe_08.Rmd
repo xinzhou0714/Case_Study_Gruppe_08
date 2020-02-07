@@ -9,5 +9,245 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ## Allgemeine_Aufgaben_Gruppe_08
+Logistik spielt in der Produktentwicklung der Automobilindustrie eine immer größer werdende Rolle. So müssen vom Lieferanten produzierte Teile zunächst zum OEM geliefert werden, bevor sie eingebaut werden können. Was auf den ersten Blick logisch erscheint, sollte für eine professionelle Organisation unbedingt näher analysiert werden. Erstellen Sie deshalb eine Verteilung für den Logistikverzug von Komponente „K7“. Nutzen Sie hierfür das Produktionsdatum aus dem Datensatz “Komponente_K7.csv” und das Wareneingangsdatum aus “Logistikverzug_K7.csv”. Sie können davon ausgehen, dass der Hersteller das Teil am Produktionstag in den Warenausgang übergibt. Erstellen Sie für die Modellbildung in R einen neuen Datensatz “Logistikverzug”, der die benötigten Informationen aus beiden Datensätzen enthält Erstellen Sie für die Modellbildung in R einen neuen Datensatz “Logistikverzug”, der die benötigten Informationen aus beiden Datensätzen enthält.
+
+
+##00 Bereitstellung der Daten
+
+### Packages einbinden
+
+```{r Packages}
+
+if(!require(pacman)) {
+  install.packages("pacman")
+  require(pacman)
+}
+
+p_load(tidyverse,data.table,janitor)
+
+
+if(!require(tidyverse)) {
+  install.packages("tidyverse")
+  require(tidyverse)
+}
+# 
+# 
+# if(!require(data.table)) {
+#   install.packages("data.table")
+#   require(data.table)
+# }
+
+
+```
+
+
+### benutzterdefinierte Funktionen 
+```{r  Funktionen}
+#manchle Häufig verwendet Code werden zuerst in selbstdefinierte Funktionen zusammengepackt.
+
+Spalten_umbenennen<-function(dat,...){
+  dat<-dplyr::rename(dat,...)
+  
+}
+
+NA_weglassen<-function(dat){
+  dat<-stats::na.omit(dat)
+  
+}
+
+Ist_vollstaendig<-function(dat){
+   anyNA(dat)
+}
+
+
+Ist_dupliziert<-function(dat,...){
+  dat2<-dplyr::group_by(dat,...)%>%
+       dplyr::count()%>%
+       dplyr::mutate(is_duplicated=(if (n>1) TRUE else FALSE))
+  if(nrow(dat2)==nrow(dat)){
+    print(paste0("Variable \x22",deparse(substitute(...)), "\x22 besitzt keine duplizierte Eintraege ")
+
+    )
+  }else{
+    warning( paste0("Variable(n) ", "besitzt(en)  duplizierte Eintraege ")    )
+    print((dat2))
+
+  }
+  invisible(dat2)
+
+}
+
+
+```
+
+
+
+
+### rohe Datensätze
+
+#### Allgemeine : saubere Datensätze
+
+[Prinzipien eines „sauberen“ Datensatzes](https://www.digitalbusiness-cloud.de/sieben-kriterien-fuer-datenqualitaet/)
+-Lesbarkeit (column name)
+-Vollständigkeit (Daten)
+-Konformität (Datentyp)
+-Einzigartigkeit (Einträge)
+-Konsistenz   (Daten)
+-Genauigkeit (Daten)
+-Relevanz  (Thema zutreffend)
+
+
+
+#### Komponente_K7
+
+
+**Einlesen roher Daten**
+
+```{r Einlesen }
+
+
+Komponente_K7 <- fread("./Data/Logistikverzug/Komponente_K7.csv")
+
+
+```
+**Einsicht roher Daten:  Komponente_K7**
+
+Anmerkungen:
+
+- Name die 1. Spalte "V1" unlesbar, kann als Index der Einträge angesehen werden
+
+- Variable "Produktionsdatum" soll Type `Date` anstatt  `Character` besitzen
+
+- Variable "Fehlerhaft" soll Type `Logic`  anstatt  `Integer`  besitzen
+
+- Primärschlüssel `IDNummber` besitzt keine duplizierte Einträge
+
+```{r  }
+
+glimpse(Komponente_K7)
+summary(Komponente_K7)
+Ist_vollstaendig(Komponente_K7)
+Ist_dupliziert(Komponente_K7,IDNummer)
+```
+**Anpassung roher Daten:  Komponente_K7**
+
+```{r  }
+
+Komponente_K7_cleaned<-Komponente_K7%>%
+  rename(Index=V1)%>%
+  mutate(Produktionsdatum =as.Date(Produktionsdatum))%>%
+  mutate(Fehlerhaft =as.logical(Fehlerhaft))
+
+glimpse(Komponente_K7_cleaned)
+
+```
+
+
+
+#### Logistikverzug_K7
+
+**Einlesen roher Daten**
+```{r  }
+
+
+
+Logistikverzug_K7 <- fread("./Data/Logistikverzug/Logistikverzug_K7.csv")
+
+
+```
+
+
+
+
+##01 Logistikverzug
+
+-a.Wie ist der Logistikverzug verteilt? Begründen Sie Ihre Auswahl und stellen Sie Ihre Vorgehensweise kurz dar.
+-b.Wie viel Zeit vergeht mindestens/höchstens zwischen Warenausgang und Wareneingang? 
+-c.Bestimmen Sie den Mittelwert des Logistikverzugs
+-d.Stellen Sie die Verteilung in geeigneter Weise dar.
+
+
+
+
+
+
+
+
+**Struktur roher Daten:  Logistikverzug_K7**
+```{r  Einlesen2}
+
+glimpse(Logistikverzug_K7)
+```
+
+
+```{r  Komponente_K7}
+
+
+```
+
+
+```{r  Logistikverzug_K7}
+
+
+Logistikverzug_K7_cleaned<-Logistikverzug_K7%>%
+   rename(Index=V1)%>%
+   mutate(Wareneingang =as.Date(Wareneingang))%>%
+   mutate(Fehlerhaft =as.logical(Fehlerhaft))
+ 
+ 
+ writeLines("Nach der Bearbeitung:\n
+            Daten Struktur  Logistikverzug_K7_cleaned\n")
+ glimpse(Logistikverzug_K7_cleaned)
+```
+Bildung neuer Datensatz :Logistikverzug
+
+```{r }
+table(Logistikverzug_K7_cleaned$IDNummer) 
+
+
+```
+
+
+##02
+
+```{r }
+
+
+
+```
+
+##03
+```{r }
+
+
+
+```
+
+##04
+
+```{r }
+
+
+
+```
+
+
+##05
+
+```{r }
+
+
+
+```
+##06
+
+
+```{r }
+
+
+
+```
+
+
 
 
