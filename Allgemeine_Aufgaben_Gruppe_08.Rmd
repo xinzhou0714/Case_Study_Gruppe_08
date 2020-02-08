@@ -12,36 +12,34 @@ knitr::opts_chunk$set(echo = TRUE)
 Logistik spielt in der Produktentwicklung der Automobilindustrie eine immer größer werdende Rolle. So müssen vom Lieferanten produzierte Teile zunächst zum OEM geliefert werden, bevor sie eingebaut werden können. Was auf den ersten Blick logisch erscheint, sollte für eine professionelle Organisation unbedingt näher analysiert werden. Erstellen Sie deshalb eine Verteilung für den Logistikverzug von Komponente „K7“. Nutzen Sie hierfür das Produktionsdatum aus dem Datensatz “Komponente_K7.csv” und das Wareneingangsdatum aus “Logistikverzug_K7.csv”. Sie können davon ausgehen, dass der Hersteller das Teil am Produktionstag in den Warenausgang übergibt. Erstellen Sie für die Modellbildung in R einen neuen Datensatz “Logistikverzug”, der die benötigten Informationen aus beiden Datensätzen enthält Erstellen Sie für die Modellbildung in R einen neuen Datensatz “Logistikverzug”, der die benötigten Informationen aus beiden Datensätzen enthält.
 
 
-##00 Bereitstellung der Daten
+## Vorbearbeitung
+
+Bevor wir die allgmeine Aufgaben zu können, ist vorher die Behandung der roher Datensätz nötig.
+
+Mit diesem [link](#aufgabe1) können Sie direkt zur Lösung gehen.
+
 
 ### Packages einbinden
 
-```{r Packages}
+```{r Packages, message=FALSE, warning=FALSE}
 
 if(!require(pacman)) {
   install.packages("pacman")
   require(pacman)
 }
 
-p_load(tidyverse,data.table,janitor)
+p_load(tidyverse,  
+       data.table,   
+       janitor,
+       lubridate   # für  Bearbeitung von  Zeit und  Datum
+       )
 
-
-if(!require(tidyverse)) {
-  install.packages("tidyverse")
-  require(tidyverse)
-}
-# 
-# 
-# if(!require(data.table)) {
-#   install.packages("data.table")
-#   require(data.table)
-# }
 
 
 ```
 
 
-### benutzterdefinierte Funktionen 
+### Benutzterdefinierte Funktionen 
 ```{r  Funktionen}
 #manchle Häufig verwendet Code werden zuerst in selbstdefinierte Funktionen zusammengepackt.
 
@@ -56,7 +54,7 @@ NA_weglassen<-function(dat){
 }
 
 Ist_vollstaendig<-function(dat){
-   anyNA(dat)
+   !anyNA(dat)
 }
 
 
@@ -83,165 +81,320 @@ Ist_dupliziert<-function(dat,...){
 
 
 
-### rohe Datensätze
 
-#### Allgemeine : saubere Datensätze
+### Importieren des Rohdatensatzes
 
-[Prinzipien eines „sauberen“ Datensatzes](https://www.digitalbusiness-cloud.de/sieben-kriterien-fuer-datenqualitaet/)
--Lesbarkeit (column name)
--Vollständigkeit (Daten)
--Konformität (Datentyp)
--Einzigartigkeit (Einträge)
--Konsistenz   (Daten)
--Genauigkeit (Daten)
--Relevanz  (Thema zutreffend)
+Wir gehen davon  aus, dass der Hersteller das Teil am Produktionstag in den Warenausgang übergibt. Deswegen gilt für bestimmter Komponente die Formel:
 
+$$
+L=W -P
+$$
 
+davon:
 
-#### Komponente_K7
+$L$: Logistikverzug (In Tag)
 
+$W$: Wareneingangsdatum bei OEM (In Tag),aus Datei `Logistikverzug_K7.csv`
 
-**Einlesen roher Daten**
-
-```{r Einlesen }
+$P$: Produktionsdatum(Auslieferung) bei Komponentenlieferant(In Tag),aus Datei `Komponente_K7.csv`
 
 
-Komponente_K7 <- fread("./Data/Logistikverzug/Komponente_K7.csv")
 
+
+
+```{r EinlesenCSV, message=FALSE, warning=FALSE}
+
+# Datensätze aus Datei "Komponente_K7.csv" einlesen  
+# eingelesener Datensätze in Variable  "Ausliefergung_K7_roh" Speichern  
+Ausliefergung_K7_roh <- fread("./Data/Logistikverzug/Komponente_K7.csv")
+
+# Datensätze aus Datei "Logistikverzug_K7.csv" einlesen  
+# eingelesener Datensätze in Variable  "Eingang_K7_roh" Speichern
+Eingang_K7_roh<- fread("./Data/Logistikverzug/Logistikverzug_K7.csv")
 
 ```
-**Einsicht roher Daten:  Komponente_K7**
 
-Anmerkungen:
+
+
+
+### Analyse der Rohdatenqualität
+
+
+
+#### Datenqualitätsbewertung
+
+Nach Einlesen der CSV Dateien wird direkt  die  Qualität der Rohdaten analysiert. Folgende Faktoren wären für `saubere Daten` berücksichtigt:
+
+- Lesbarkeit der Variablenname
+
+- Vollständigkeit der Daten
+
+- Konformität der Datentype
+
+- Einzigartigkeit der Primärschlüsse
+
+- Konsistenz der Daten
+
+- Genauigkeit der Daten
+
+- Relevanz  zum Thema
+
+
+#### Einblick in die Rohdatensätze
+
+Bevor Anpassung der Rohdaten ,sollen wir makroskopische Verständnis der Rohdaten haben.
+
+Zurest Einblick in die  Daten über Warenauslieferung aus Datei `Komponente_K7.csv`
+
+```{r Datentype1, message=FALSE, warning=FALSE}
+# Datenstruktur nachsehen
+glimpse(Ausliefergung_K7_roh)
+```
+
+
+
+
+
+```{r Datentype1, message=FALSE, warning=FALSE}
+head(Komponente_K7)
+tail(Komponente_K7)
+summary(Komponente_K7)
+
+```
+
+
+
+
+Danach Einblick in die  Daten aus Datei `Logistikverzug_K7.csv`
+
+```{r DatenQualitaetBewertung2, message=FALSE, warning=FALSE}
+glimpse(Logistikverzug_K7)
+head(Logistikverzug_K7)
+tail(Logistikverzug_K7)
+summary(Logistikverzug_K7)
+
+```
+
+
+
+Für Daten in `Komponente_K7.csv` sind folgende Anmerkung auffällig:
+
+- Lesbarkeit der Variablenname
+
+  - Name die 1. Spalte "V1" unlesbar, kann als Index der Einträge angesehen werden
+  
+  - Es wäre besser, Variable `Produktionsdatum` in `Auslieferungstag` zu umbenennen. 
+
+- Vollständigkeit der Daten
+
+  - [ ] Vollständigkeit der Daten in  `Komponente_K7.csv` soll weiter betrachtet werden.
+
+- Konformität der Datentype
+
+  - Variable `Produktionsdatum` soll Type `Date`  besitzen
+
+  - Variable `Fehlerhaft` soll Type `Logic`    besitzen
+
+- Einzigartigkeit der Primärschlüsse
+
+  - Primärschlüssel `IDNummber` soll  keine duplizierte Einträge besitzen
+
+- Konsistenz der Daten
+
+  - Die Herstellernummer in Variable  `IDNummer` und `Herstellernummer` sollen identisch sein
+  
+  - Die Werksnummer in Variable  `IDNummer` und `Werksnummer` sollen identisch sein
+
+- Genauigkeit der Daten
+
+  - Datum in  Variable `Produktionsdatum` sollen sich  mindestens in Vergangenheit verteilen
+  
+  - Werte in  Variable `Fehlerhaft` besitzen nur 2 Werte `True` und `False`
+
+- Relevanz  zum Thema
+
+  - Zur Ermitterung des Logistikverzug sind in `Komponente_K7.csv` nur `IDNummer` und `Produktionsdatum`
+  
+  
+  
+
+```{r DatenQualitaetBewertung, message=FALSE, warning=FALSE}
+
+
+# Ausgabe 1: TRUE ,wenn kein NA in Daten existieren
+# Ausgabe 2: FALSE, wenn NA in Daten existieren
+Ist_vollstaendig(Komponente_K7)
+
+# Ausgabe,ob diese Variable duplizierte Einträge besitzt
+Ist_dupliziert(Komponente_K7,IDNummer)
+
+```
+
+
+
+Ähnlicherweise analysieren wir auch Daten in Datei `Logistikverzug_K7.csv`
+
+Für Daten in  `Logistikverzug_K7.csv` sind folgende Anmerkung auffällig:
 
 - Name die 1. Spalte "V1" unlesbar, kann als Index der Einträge angesehen werden
 
-- Variable "Produktionsdatum" soll Type `Date` anstatt  `Character` besitzen
+- Variable "Wareneingang" soll Type `Date` anstatt  `Character` besitzen,
 
 - Variable "Fehlerhaft" soll Type `Logic`  anstatt  `Integer`  besitzen
 
+- die Herstellerinfomation in Variablen `IDNummer` und 
+
+- Dateneinträge in  `Logistikverzug_K7.csv` sind vollständig
+
 - Primärschlüssel `IDNummber` besitzt keine duplizierte Einträge
 
-```{r  }
-
-glimpse(Komponente_K7)
-summary(Komponente_K7)
-Ist_vollstaendig(Komponente_K7)
-Ist_dupliziert(Komponente_K7,IDNummer)
-```
-**Anpassung roher Daten:  Komponente_K7**
-
-```{r  }
-
-Komponente_K7_cleaned<-Komponente_K7%>%
-  rename(Index=V1)%>%
-  mutate(Produktionsdatum =as.Date(Produktionsdatum))%>%
-  mutate(Fehlerhaft =as.logical(Fehlerhaft))
-
-glimpse(Komponente_K7_cleaned)
-
-```
 
 
 
-#### Logistikverzug_K7
-
-**Einlesen roher Daten**
-```{r  }
+### Aufbereitung beides Rohdatensätzes
 
 
+jetzt bereiten wir die rohe Datensätze, zur Problemlösung kümmern wir nur die Variabe:
 
-Logistikverzug_K7 <- fread("./Data/Logistikverzug/Logistikverzug_K7.csv")
+- `IDNummer`: als Primärschlüssel(Prime Key) zur Kombiniern zweier Tabelle
 
+- 'Warenausgang':Warenausgangsdatum bei Lieferanten (identisch wie Produktionsdatum)
 
-```
+- 'Wareneingang':Wareneingangsdatum bei OEM
 
+```{r Anpassung1, warning=FALSE, paged.print=FALSE}
 
-
-
-##01 Logistikverzug
-
--a.Wie ist der Logistikverzug verteilt? Begründen Sie Ihre Auswahl und stellen Sie Ihre Vorgehensweise kurz dar.
--b.Wie viel Zeit vergeht mindestens/höchstens zwischen Warenausgang und Wareneingang? 
--c.Bestimmen Sie den Mittelwert des Logistikverzugs
--d.Stellen Sie die Verteilung in geeigneter Weise dar.
+Komponente_K7_cleaner<-Komponente_K7%>%
+  mutate(Produktionsdatum =as_date(Produktionsdatum))%>%
+  select(IDNummer,Produktionsdatum)%>%
+  rename(Warenausgang=Produktionsdatum)
+glimpse(Komponente_K7_cleaner)
 
 
 
+Logistikverzug_K7_cleaner<-Logistikverzug_K7%>%
+  mutate(Wareneingang =as_date(Wareneingang))%>%
+  select(IDNummer,Wareneingang)%>%
+  arrange(Wareneingang)
 
-
-
-
-
-**Struktur roher Daten:  Logistikverzug_K7**
-```{r  Einlesen2}
-
-glimpse(Logistikverzug_K7)
-```
-
-
-```{r  Komponente_K7}
+glimpse(Logistikverzug_K7_cleaner)
 
 
 ```
 
+Anhand die Ausgabe von `summary()` können wir so annehmen, dass die Datumswert kein Ausreisser besitzen.
+Die Begründung:
 
-```{r  Logistikverzug_K7}
+- Alle Daten sind in Vergangenheit
+- Warenausgangsdatum sind ganzheitlich ?? frühen als Wareneingang 
 
-
-Logistikverzug_K7_cleaned<-Logistikverzug_K7%>%
-   rename(Index=V1)%>%
-   mutate(Wareneingang =as.Date(Wareneingang))%>%
-   mutate(Fehlerhaft =as.logical(Fehlerhaft))
- 
- 
- writeLines("Nach der Bearbeitung:\n
-            Daten Struktur  Logistikverzug_K7_cleaned\n")
- glimpse(Logistikverzug_K7_cleaned)
-```
-Bildung neuer Datensatz :Logistikverzug
-
-```{r }
-table(Logistikverzug_K7_cleaned$IDNummer) 
-
+```{r Ausreisser  }
+summary(Komponente_K7_cleaner)
+summary(Logistikverzug_K7_cleaner)
 
 ```
-
-
-##02
-
-```{r }
+um es zu Entscheiden, welche `Join()` funktion zu nutzen,müssen wir untersuhen wie viele 
 
 
 
-```
 
-##03
-```{r }
+## Aufgabe1<a name="Loesung"></a>
+
+>Logistik spielt in der Produktentwicklung der Automobilindustrie eine immer größer werdende Rolle. So müssen vom Lieferanten produzierte Teile zunächst zum OEM geliefert werden, bevor sie eingebaut werden können. Was auf den ersten Blick logisch erscheint, sollte für eine professionelle Organisation unbedingt näher analysiert werden. Erstellen Sie deshalb eine Verteilung für den Logistikverzug von Komponente „K7“. Nutzen Sie hierfür das Produktionsdatum aus dem Datensatz “Komponente_K7.csv” und das Wareneingangsdatum aus “Logistikverzug_K7.csv”. Sie können davon ausgehen, dass der Hersteller das Teil am Produktionstag in den Warenausgang übergibt. Erstellen Sie für die Modellbildung in R einen neuen Datensatz “Logistikverzug”, der die benötigten Informationen aus beiden Datensätzen enthält Erstellen Sie für die Modellbildung in R einen neuen Datensatz “Logistikverzug”, der die benötigten Informationen aus beiden Datensätzen enthält.
+>
+>- a.Wie ist der Logistikverzug verteilt? Begründen Sie Ihre Auswahl und stellen Sie Ihre Vorgehensweise kurz dar.
+
+Lösung a): Norrmalverteilung
+
+Begründung:
+
+Vorgehensweise:
+
+1. Importieren des Rohdatensatzes aus Datei `Komponente_K7.csv` und `Logistikverzug_K7.csv`
+
+2. Analyse der Rohdatenqualität
+
+3. Aufbereitung beides Rohdatensätzes
+
+4. Bildung neuer Datensatz aus aufbereiteter Daten
+
+5. Ermittelung Logistikverzug 
+
+6. Plotierung realer Verteilung der Logistikverzug
+
+7. Annäherung an typischer Verteilungsmodel
+
+
+>- b.Wie viel Zeit vergeht mindestens/höchstens zwischen Warenausgang und Wareneingang? 
+
+Lösung b)
 
 
 
-```
+>- c.Bestimmen Sie den Mittelwert des Logistikverzugs
 
-##04
-
-```{r }
+Lösung c)
 
 
 
-```
+
+>- d.Stellen Sie die Verteilung in geeigneter Weise dar.
+
+Lösung d)
 
 
-##05
+
+
+
+
+
+## Aufgabe2
+>Warum ist es sinnvoll, die Ihnen bereitgestellten Daten in separaten Dateien abzulegen und nicht alles in einer riesigen Tabelle abzuspeichern? Wie nennt sich das zugrunde liegende Datenbankkonzept? Wie nennt sich das zugrunde liegende Datenbankkonzept?
+
+Lösung Aufgabe 2 
 
 ```{r }
 
 
 
 ```
-##06
+
+## Aufgabe3
+>Wie viele der Komponenten K7 landeten in Fahrzeugen, die in Köln zugelassen wurden?
+```{r }
 
 
+
+```
+
+Lösung Aufgabe 3
+
+
+## Aufgabe4
+>Welche Datentypen haben die Attribute der Zulassungstabelle „Zulassungen_aller_Fahrzeuge“?
+```{r }
+
+
+
+```
+
+Lösung Aufgabe 4
+
+
+## Aufgabe5
+>Sie wollen Ihre Applikation veröffentlichen. Warum ist es gerade dann sinnvoll die Datensätze auf der Datenbank eines Servers abzulegen? Warum können Sie die Datensätze nicht auf Ihrem persönlichen Computer ablegen? Nennen Sie eine einfache Möglichkeit Ihre Applikation ihrem Kundenkreis zugänglich zu machen?
+
+Lösung Aufgabe 5
+
+```{r }
+
+
+
+```
+## Aufgabe6
+>Am 11.08.2010 hat es einen Unfall mit Fahrerflucht gegeben. Von dem Kennzeichen des Unfallwagens fehlt jede Spur. Die Polizei bittet Sie um Hilfe, da Sie für das Kraftfahrtbundesamt arbeiten und fragt, wo das Fahrzeug mit der Karosseriebauteilnummer „K4-112-1121-23“ zugelassen wurde
+
+Lösung Aufgabe 6
 ```{r }
 
 
