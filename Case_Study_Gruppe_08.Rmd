@@ -30,6 +30,26 @@ B: Pro Fahrzeugtyp jeweils einen Boxplot für Varianten mit Dieselmotor und eine
 
 ```{r packages, include=TRUE, message = FALSE}
 
+if(!require(plotly)){
+  install.packages("plotly")
+}
+library(plotly)
+
+if(!require(shinyWidgets)){
+  install.packages("shinyWidgets")
+}
+library(shinyWidgets)
+
+if(!require(shinythemes)){
+  install.packages("shinythemes")
+}
+library(shinythemes)
+
+if(!require(DT)){
+  install.packages("DT")
+}
+library(DT)
+
 if(!require(data.table)){
   install.packages("data.table")
 }
@@ -430,7 +450,7 @@ Anpassung_Datentyp_Final_Datensatz_Fehlerhaft_Fahrzeug<- function(datensatz) {
   return(datensatz)
 }
 
-## Die Marke und der Typ jedes Fahrzeuges wird durch die Identifikationsnummer der Fahrzeuge bestimmt und neue Variablen mit diesen Information werden erstellt. Das ist möglich, weil die ersten zwei Ziffern der ID_Fahrzeug den Fahrzeugtyp repräsentieren und dann wird die Marke entsprechend aus dem Fahrzeugtyp bestimmt.
+## Die Marke und der Typ jedes Fahrzeuges wird durch die Identifikationsnummer der Fahrzeuge bestimmt und neue Variablen mit dieser Information werden erstellt. Das ist möglich, weil die ersten zwei Ziffern der ID_Fahrzeug den Fahrzeugtyp repräsentieren und dann wird die Marke entsprechend aus dem Fahrzeugtyp bestimmt.
 
 Typ_und_Marke_Fahrzeug <- function (datensatz){
   
@@ -453,6 +473,18 @@ Typ_und_Marke_Fahrzeug <- function (datensatz){
   
 }
 
+## Der Typ jedes Motors wird durch die Identifikationsnummer der Motoren bestimmt und eine neue Variabel mit dieser Information werden erstellt. Das ist möglich, weil die Buchstaben nach dem K1 in der Identifikationsnummer den Motortypen repräsentieren.
+
+Motor_Typen <- function (datensatz){
+  
+  mutate(datensatz, Motor_Typ = 1:nrow(datensatz)) 
+  
+  datensatz$Motor_Typ[grepl("^K1BE", datensatz$ID_Motor)] <- "Benzinmotor"
+  datensatz$Motor_Typ[grepl("^K1DI", datensatz$ID_Motor)] <- "Dieselmotor"
+  
+  return(datensatz)
+  
+}
 
 ```
 
@@ -872,6 +904,10 @@ Final_Datensatz <- rbind(Komponente_K1BE1, Komponente_K1BE2, Komponente_K1DI1, K
   
   Typ_und_Marke_Fahrzeug () %>%
  
+  # Erstellen der Variabel, die zeigt, ob ein Motor Benzin- oder Dieselmotor ist (Details der verwendeten Funktion liegen bei der Definition der Funktion vor)
+  
+  Motor_Typen () %>%
+  
   # Verbindung der Identifikationsnummer der Fahrzeugen mit ihrem Zulassungsdatum und Entfernung von irrelevanten Variablen 
   
   left_join(Zulassungen_alle_Fahrzeuge, by = c("ID_Fahrzeug" = "IDNummer")) %>%
@@ -886,26 +922,273 @@ Final_Datensatz <- rbind(Komponente_K1BE1, Komponente_K1BE2, Komponente_K1DI1, K
   mutate(Fehlerhaft = as.factor(Fehlerhaft)) %>%
   mutate(Fahrzeug_Typ = as.factor(Fahrzeug_Typ)) %>%
   mutate(Fahrzeugsmarke = as.factor(Fahrzeugsmarke)) %>%
-  mutate(Lebensdauer_in_Days = Fehlerhaft_Datum - Zulassung)
-  
+  mutate(Motor_Typ = as.factor(Motor_Typ)) %>%
+  mutate(Lebensdauer_in_Days = Fehlerhaft_Datum - Zulassung) %>%
+  mutate(Lebensdauer_in_Days = as.numeric(Lebensdauer_in_Days))
+
+
+
+
+
+
+
+
+
+
+
+
 
 ```                     
 
 
 # Auswertung 
 
-```{r}
+Die Analyse der Casestudy fokusiert sich auf die Spezifikationen der zu erstellenden Shiny-Applikation. Die Spezifikationen beziehen sich auf drei Hauptanforderungen, die die Applikation erfüllen soll. Diese Anforderungen beschreiben die Graphiken und entsprechende Eigenschaften, die in der Applikation abgebildet werden sollen. 
 
 
+Zuerst soll die Applikation ein Balkendiagramm, das die relativen Fehlerhäufigkeiten aller Motoren, getrennt in Benzin- und Dieselantrieb, darstellen. Das Diagramm muss interaktive Elemente enthalten und der Produktionszeitraum der Fahrzeuge muss durch den Nutzer variabel eingrenzbar sein. Basierend auf den Anforderungen wird zunächst das Verhältnis zwischen dem Anteil der fehlerhaften und defektlosen Motoren. Natürlich wird das separat je nach Antrieb durchgeführt. Dieses Verfahren kann dadurch einfach vervollständigen werden,      
 
 
-
-``` 
 
 # Ergebnis
 
 ```{r}
+# Erstellen der Applikation 
+
+## Erstellen der Benutzerschnittstelle
+
+ui <- fluidPage(
+  
+  fluidRow (
+    
+    column(width = 10, h1(id="title", "Vergleich von Diesel- und Benzinmotoren"),
+tags$style(HTML("#title{color: white; font-style: bold; font-family: Bookman; font-size: 35px;}"))), 
+    
+    column(width = 2, img(src='https://www.berlin-brandenburg.de/wirtschaft-und-verkehr/qualitaetsinitiative/qw_gross.png', align = "left"))),
+  
+  theme = shinytheme("journal"),
+
+  setBackgroundColor(color = "DarkRed"),
+  
+# Inputs (erste Aufgabe der Visualisierung)
+  
+  sidebarLayout(
+     
+    sidebarPanel(
+      
+      dateRangeInput("Produktionszeitraum","Wählen Sie den Produktionszeitraum der Fahrzeuge aus", min = min(Final_Datensatz$Produktionsdatum_Fahrzeug), max = max(Final_Datensatz$Produktionsdatum_Fahrzeug), start = "2008-12-02", end = "2015-02-03"),
+
+# Inputs (Zweite Aufgabe der Visualisierung)
+
+      checkboxGroupInput("Fahrzeugtyp","Wählen Sie einen Fahrzeugtyp aus", choices = levels(Final_Datensatz$Fahrzeug_Typ), selected = "11"),
+  
+      checkboxGroupInput("Fahrzeugsmarke","Wählen Sie einen Fahrzeugsmarke aus", choices = levels(Final_Datensatz$Fahrzeugsmarke), selected = "OEM1")),
+    
+    mainPanel(
+ 
+# Outputs (Erste Aufgabe der Visualisierung)
+
+       tabsetPanel(
+         
+         tabPanel("Motorentyp", plotly::plotlyOutput("Balkendiagramm")),
+
+# Outputs (Zweite Aufgabe der Visualisierung)
+
+         tabPanel("Fahrzeugtyp", plotly::plotlyOutput("Boxplot_Fahreugtyp")),
+
+         tabPanel("Fahrzeugsmarke", plotly::plotlyOutput("Boxplot_Fahreugsmarke")),
+
+# Outputs (Dritte Aufgabe der Visualisierung)
+
+         tabPanel("Datensatz", DT::DTOutput("Datensatz"))))
+
+)
+
+)
+
+## Erstellen des Servers
+
+server <- function (input, output, session){
+  
+# Angepasster Datensatz für den Balkendiagramm als Reactive Expression (Erste Aufgabe der Visualisierung)
+  
+  Data_frame_Balkendiagramm <- reactive({
+    Final_Datensatz %>%
+      dplyr::filter(Produktionsdatum >= input$Produktionszeitraum[1], Produktionsdatum <= input$Produktionszeitraum[2]) %>%
+      dplyr::group_by(Motor_Typ) %>%
+      dplyr::summarize(Relative_Fehlerhaufigkeit = sum(as.numeric(as.character(Fehlerhaft)))/length(Fehlerhaft)) 
+  })
+  
+# Angepasster Datensatz für den Boxplot der Fahrzeugtyp als Reactive Expression (Zweite Aufgabe der Visualisierung)
+  
+  Data_frame_Boxplot_Fahrzeugtyp <- reactive({
+    Final_Datensatz %>%
+      dplyr::filter(Produktionsdatum >= input$Produktionszeitraum[1], Produktionsdatum <= input$Produktionszeitraum[2]) %>%
+      dplyr::filter( Fahrzeug_Typ %in% input$Fahrzeugtyp) %>%
+      dplyr::filter(!is.na(Lebensdauer_in_Days)) %>%
+      dplyr::select(c("Motor_Typ","Lebensdauer_in_Days")) 
+  })
+  
+# Angepasster Datensatz für den Boxplot der Fahrzeugsmarke als Reactive Expression (Zweite Aufgabe der Visualisierung)
+  
+  Data_frame_Boxplot_Fahrzeugsmarke <- reactive({
+    Final_Datensatz %>%
+      filter(Produktionsdatum >= input$Produktionszeitraum[1], Produktionsdatum <= input$Produktionszeitraum[2]) %>%
+      filter( Fahrzeugsmarke %in% input$Fahrzeugsmarke) %>%
+      dplyr::filter(!is.na(Lebensdauer_in_Days)) %>%
+      select(c("Motor_Typ","Lebensdauer_in_Days")) 
+  })
+  
+  
+# Erstellen der Reactive Endpoint (Erste Aufgabe der Visualisierung)  
+  
+  output$Balkendiagramm <- plotly::renderPlotly({
+    ggplot(Data_frame_Balkendiagramm(), aes(x = Motor_Typ, y = Relative_Fehlerhaufigkeit)) + geom_bar(stat = "identity", fill = "DarkRed") + labs(x ="Motorentyp", y ="Fehlerhaufigkeit", title = "Relative Fehlerhäufigkeit der Benzin- und Dieselmotoren") + theme_minimal() + theme(text = element_text(family = "Bookman"),
+    title = element_text(color = "gray25"), plot.background = element_rect(fill = "gray95"), plot.margin = unit(c(5, 10, 5, 10), units = "mm"))
+  })
+  
+# Erstellen der Reactive Endpoint für den Fahrzeugtyp(Zweite Aufgabe der Visualisierung)  
+  
+  output$Boxplot_Fahreugtyp <- plotly::renderPlotly({
+    ggplot(Data_frame_Boxplot_Fahrzeugtyp(), aes(x = Motor_Typ, y = Lebensdauer_in_Days)) + geom_boxplot(fill = "DarkRed") + labs(x ="Motorentyp", y ="Zeitintervall zwischen Zulassung und Fehlerdatum der Fahrzeuge (Tage)", title = "Lebensdauer der Fahrzeuge") + theme_minimal() + theme(text = element_text(family = "Bookman"), title = element_text(color = "gray25"), plot.background = element_rect(fill = "gray95"), plot.margin = unit(c(5, 10, 5, 10), units = "mm"))
+  })
+  
+# Erstellen der Reactive Endpoint für die Fahrzeugsmarke (Zweite Aufgabe der Visualisierung)  
+  
+  output$Boxplot_Fahreugsmarke <- plotly::renderPlotly({
+    ggplot(Data_frame_Boxplot_Fahrzeugsmarke(), aes(x = Motor_Typ, y = Lebensdauer_in_Days)) + geom_boxplot(fill = "DarkRed") + labs(x ="Motorentyp", y ="Zeitintervall zwischen Zulassung und Fehlerdatum der Fahrzeuge (Tage)", title = "Lebensdauer der Fahrzeuge") + theme_minimal() + theme(text = element_text(family = "Bookman"), title = element_text(color = "gray25"), plot.background = element_rect(fill = "gray95"), plot.margin = unit(c(5, 10, 5, 10), units = "mm"))
+  })
+
+# Erstellen der Reactive Endpoint für die Datensatz (Dritte Aufgabe der Visualisierung)    
+  
+  output$Datensatz <- DT::renderDT({
+    Final_Datensatz
+  })
+  
+  }
+
+## Ausführung der Web-Applikation
+
+shinyApp(ui = ui, server = server)
+```
+
+
+```{r}
+
+if(!require(shinyWidgets)){
+  install.packages("shinyWidgets")
+}
+library(shinyWidgets)
+
+if(!require(shinythemes)){
+  install.packages("shinythemes")
+}
+library(shinythemes)
+ui <- fluidPage(
+
+  theme = shinytheme("readable"),
+  
+  titlePanel("Die Langlebigkeit von Dieselmotoren"),
+ # titlePanel("Vergleich von Diesel- und Benzinmotoren"),
+  
+# Inputs (erste Aufgabe der Visualisierung)
+  
+img(src='https://www.berlin-brandenburg.de/wirtschaft-und-verkehr/qualitaetsinitiative/qw_gross.png', align = "left"),
+  
+setBackgroundColor(
+  color = "DarkRed"),
+ 
+dateRangeInput("Produktionszeitraum","Wählen Sie den Produktionszeitraum der Fahrzeuge aus", min = min(Final_Datensatz$Produktionsdatum_Fahrzeug), max = max(Final_Datensatz$Produktionsdatum_Fahrzeug), start = "2008-12-02", end = "2015-02-03"),
+
+plotly::plotlyOutput("Balkendiagramm"),
+
+checkboxGroupInput("Fahrzeugtyp","Wählen Sie einen Fahrzeugtyp aus", choices = levels(Final_Datensatz$Fahrzeug_Typ), selected = "11"),
+
+checkboxGroupInput("Fahrzeugsmarke","Wählen Sie einen Fahrzeugsmarke aus", choices = levels(Final_Datensatz$Fahrzeugsmarke), selected = "OEM1"),
+
+plotly::plotlyOutput("Boxplot_Fahreugtyp"),
+
+plotly::plotlyOutput("Boxplot_Fahreugsmarke")
+
+
+)
+
+## Erstellen des Servers
+
+server <- function (input, output, session){
+  
+# Angepasster Datensatz für den Balkendiagramm als Reactive Expression (Erste Aufgabe der Visualisierung)
+  # Angepasster Datensatz für den Boxplot der Fahrzeugtyp als Reactive Expression (Zweite Aufgabe der Visualisierung)
+  Data_frame_Balkendiagramm <- reactive({
+    Final_Datensatz %>%
+      dplyr::filter(Produktionsdatum >= input$Produktionszeitraum[1], Produktionsdatum <= input$Produktionszeitraum[2]) %>%
+      dplyr::group_by(Motor_Typ) %>%
+      dplyr::summarize(Relative_Fehlerhaufigkeit = sum(as.numeric(as.character(Fehlerhaft)))/length(Fehlerhaft)) 
+  })
+  
+  Data_frame_Boxplot_Fahrzeugtyp <- reactive({
+    Final_Datensatz %>%
+      dplyr::filter(Produktionsdatum >= input$Produktionszeitraum[1], Produktionsdatum <= input$Produktionszeitraum[2]) %>%
+      dplyr::filter( Fahrzeug_Typ %in% input$Fahrzeugtyp) %>%
+      dplyr::filter(!is.na(Lebensdauer_in_Days)) %>%
+      dplyr::select(c("Motor_Typ","Lebensdauer_in_Days")) 
+  })
+  
+  Data_frame_Boxplot_Fahrzeugsmarke <- reactive({
+    Final_Datensatz %>%
+      filter(Produktionsdatum >= input$Produktionszeitraum[1], Produktionsdatum <= input$Produktionszeitraum[2]) %>%
+      filter( Fahrzeugsmarke %in% input$Fahrzeugsmarke) %>%
+      dplyr::filter(!is.na(Lebensdauer_in_Days)) %>%
+      select(c("Motor_Typ","Lebensdauer_in_Days")) 
+  })
+  
+   output$Boxplot_Fahreugsmarke <- plotly::renderPlotly({
+    ggplot(Data_frame_Boxplot_Fahrzeugsmarke(), aes(x = Motor_Typ, y = Lebensdauer_in_Days)) + geom_boxplot() + labs(x ="Motorentyp", y ="Lebensdauer des Fahrzeugs")
+  })
+  
+  
+  output$Boxplot_Fahreugtyp <- plotly::renderPlotly({
+    ggplot(Data_frame_Boxplot_Fahrzeugtyp(), aes(x = Motor_Typ, y = Lebensdauer_in_Days)) + geom_boxplot() + labs(x ="Motorentyp", y ="Lebensdauer des Fahrzeugs")
+  })
+  
+  
+ output$Balkendiagramm <- plotly::renderPlotly({
+    ggplot(Data_frame_Balkendiagramm(), aes(x = Motor_Typ, y = Relative_Fehlerhaufigkeit)) + geom_bar(stat = "identity") + labs(x ="Motorentyp", y ="Fehlerhaufigkeiten")
+  })
+  
+# Angepasster Datensatz für den Boxplot der Fahrzeugsmarke als Reactive Expression (Zweite Aufgabe der Visualisierung)
+  
+ 
+  
+  
+# Erstellen der Reactive Endpoint (Erste Aufgabe der Visualisierung)  
+  
+  
+  
+# Erstellen der Reactive Endpoint für den Fahrzeugtyp(Zweite Aufgabe der Visualisierung)  
+  
+  
+  
+# Erstellen der Reactive Endpoint für die Fahrzeugsmarke (Zweite Aufgabe der Visualisierung)  
+  
+ 
 
   
+  }
+
+## Ausführung der Web-Applikation
+
+shinyApp(ui = ui, server = server)
+
+
+
+
+
+
+
+
+
+
+
 
 ```
