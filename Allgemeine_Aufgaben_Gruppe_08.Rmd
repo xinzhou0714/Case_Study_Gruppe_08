@@ -9,5 +9,497 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ## Allgemeine_Aufgaben_Gruppe_08
+Logistik spielt in der Produktentwicklung der Automobilindustrie eine immer größer werdende Rolle. So müssen vom Lieferanten produzierte Teile zunächst zum OEM geliefert werden, bevor sie eingebaut werden können. Was auf den ersten Blick logisch erscheint, sollte für eine professionelle Organisation unbedingt näher analysiert werden. Erstellen Sie deshalb eine Verteilung für den Logistikverzug von Komponente „K7“. Nutzen Sie hierfür das Produktionsdatum aus dem Datensatz “Komponente_K7.csv” und das Wareneingangsdatum aus “Logistikverzug_K7.csv”. Sie können davon ausgehen, dass der Hersteller das Teil am Produktionstag in den Warenausgang übergibt. Erstellen Sie für die Modellbildung in R einen neuen Datensatz “Logistikverzug”, der die benötigten Informationen aus beiden Datensätzen enthält Erstellen Sie für die Modellbildung in R einen neuen Datensatz “Logistikverzug”, der die benötigten Informationen aus beiden Datensätzen enthält.
+
+
+## Vorbearbeitung
+
+Bevor wir die allgmeine Aufgaben zu können, ist vorher die Behandung der roher Datensätz nötig.
+
+Mit diesem [link](#aufgabe1) können Sie direkt zur Lösung gehen.
+
+
+### Packages einbinden
+
+```{r Packages, message=FALSE, warning=FALSE}
+
+if(!require(pacman)) {
+  install.packages("pacman")
+  require(pacman)
+}
+
+if(!require(janitor)) {
+  install.packages("janitor")
+  require(janitor)
+}
+
+p_load(tidyverse,  
+       data.table,   
+       janitor,
+       lubridate   # für  Bearbeitung von  Zeit und  Datum
+       )
+
+
+
+```
+
+
+### Benutzterdefinierte Funktionen 
+```{r  Funktionen}
+#manchle Häufig verwendet Code werden zuerst in selbstdefinierte Funktionen zusammengepackt.
+
+
+
+Ist_dupliziert<-function(dat,...){
+  dat2<-dplyr::group_by(dat,...)%>%
+       dplyr::count()%>%
+       dplyr::mutate(is_duplicated=(if (n>1) TRUE else FALSE))
+  if(nrow(dat2)==nrow(dat)){
+    print(paste0("Variable \x22",deparse(substitute(...)), "\x22 besitzt keine duplizierte Eintraege ")
+
+    )
+  }else{
+    warning( paste0("Variable(n) ", "besitzt(en)  duplizierte Eintraege ")    )
+    print((dat2))
+
+  }
+  invisible(dat2)
+
+}
+
+
+```
+
+
+
+
+
+### Importieren des Rohdatensatzes
+
+Wir gehen davon  aus, dass der Hersteller das Teil am Produktionstag in den Warenausgang übergibt. Deswegen gilt für bestimmter Komponente die Formel:
+
+$$
+L=W -P
+$$
+
+davon:
+
+$L$: Logistikverzug (In Tag)
+
+$W$: Wareneingangsdatum bei OEM (In Tag),aus Datei `Logistikverzug_K7.csv`
+
+$P$: Produktionsdatum(Auslieferung) bei Komponentenlieferant(In Tag),aus Datei `Komponente_K7.csv`
+
+
+
+
+
+```{r EinlesenCSV, message=FALSE, warning=FALSE}
+
+# Datensätze aus Datei "Komponente_K7.csv" einlesen  
+# eingelesener Datensätze in Variable  "Ausliefergung_K7_roh" Speichern  
+Ausliefergung_K7_roh <- fread("./Data/Logistikverzug/Komponente_K7.csv")
+
+# Datensätze aus Datei "Logistikverzug_K7.csv" einlesen  
+# eingelesener Datensätze in Variable  "Eingang_K7_roh" Speichern
+Eingang_K7_roh<- fread("./Data/Logistikverzug/Logistikverzug_K7.csv")
+
+```
+
+
+
+
+### Analyse der Rohdatenqualität
+
+
+
+#### Datenqualitätsbewertung
+
+Nach Einlesen der CSV Dateien wird direkt  die  Qualität der Rohdaten analysiert. Folgende Faktoren wären für `saubere Daten` berücksichtigt:
+
+- Lesbarkeit der Variablenname
+
+- Vollständigkeit der Daten
+
+- Konformität der Datentype
+
+- Einzigartigkeit der Primärschlüsse
+
+- Konsistenz der Daten
+
+- Vernünftigkeit der Daten
+
+- Relevanz  zum Thema
+
+
+#### Einblick in die Rohdatensätze
+
+Bevor Anpassung der Rohdaten ,sollen wir makroskopische Verständnis der Rohdaten haben.
+
+Zurest Einblick in die  Daten über Warenauslieferung aus Datei `Komponente_K7.csv`
+
+```{r Datentype1, message=FALSE, warning=FALSE}
+# Datenstruktur nachsehen
+glimpse(Ausliefergung_K7_roh)
+```
+
+
+
+Makroskopische Eindrüke über die Daten über Auslieferung
+
+| Variable         | Anmerkung                                                    |
+| ---------------- | ------------------------------------------------------------ |
+| V1               | Werte sind  anschaulich zunehmend Ganzahl, vielleicht ist die Index -Nummer der  Dateneinträge,aber diese Variable zu Thema Logistikverzug unrelevant. |
+| IDNummer         | kann  eine Komponent einzigartig vertretenn, deren Format ist  `Komponentnummer`-`Herstellernummer`-`Werksnummer`-`Seriennummer` |
+| Produktionsdatum | Werte  ist als Auslieferungsdatum angenommen, aber deren Datentype soll in `Date`  umgewandelt werden |
+| Herstellernummer | Herstellernummer,hat Zusammenhang mit `IDNUmmer`,zweite Quelle von Hersterllersinfomation |
+| Werksnummer      | Werksnummer, hat Zusammenhang mit `IDNUmmer`,zweite Quelle von Werkinfomation |
+| Fehlerhaft       | ob der  K7-Komponente fehlerhaft ist,  gibt nur zwei vernünftige Werte: `1` für logische `Wahr` ,und 0 für logische `Falsch`, aber diese Variable zu Thema Logistikverzug unrelevant. |
+
+Also relevante  Variable sind nur `IDNummer` und `Produktionsdatum`(später wird als `Auslieferungstag` umbenennt)
+
+Desweiteren untersuchen wir noch die Vollständigkeit Datenkonsistenz und Vernünftigkeit der relevanter Variable
+
+Vollständigkeit der Daten wird untersucht:
+
+Daten über Auslieferung sind vollständig
+```{r , message=FALSE, warning=FALSE}
+
+# Negaton von Auftreten von NA 
+!anyNA(Ausliefergung_K7_roh)
+
+```
+Einzigartigkeit der `IDNummer` wird untersucht:
+
+ keine duplizierte Eintraege
+```{r , message=FALSE, warning=FALSE}
+Ist_dupliziert(Ausliefergung_K7_roh,IDNummer)
+```
+
+
+
+Die Datenkonsistenz von `Herstellernummer` ,`Werksnummer` mit `IDNummer` wird untersucht
+
+Die Auslieferung erfolgt nur aus zwei Hersteller mit Kennnummer `112` und `114`
+```{r , message=FALSE, warning=FALSE}
+tabyl(Ausliefergung_K7_roh$Herstellernummer)
+```
+Die Auslieferung erfolgt nur aus zwei Werke mit Kennnummer `1132` und `1142`
+
+```{r , message=FALSE, warning=FALSE}
+tabyl(Ausliefergung_K7_roh$Werksnummer)
+```
+Wir betrachten noch die Hersteller- und Werkinfomation in `IDNummer`
+
+Es gibt nur zwei Hersteller `113` und `114, und nur zwei Werke `1132` und `1142`
+
+Und bei Kombination von Hersteller und Werk nur 2 Variante (`113`,`1132`),  (`114`,`1142`) jeder besitzt 50%(153245) von Gesamteinträge(306490). und Werksnummer besitzt denselben Anfang wie  Herstellernummer bei `IDNummer`. Wir können beschließen, dass die Hersteller- und Werkinformation in `IDNummer` ist vernünftig,trotzdem sie widersprechen mit der in Variablen `Herstellernummer` und `Werksnummer`
+
+```{r , message=FALSE, warning=FALSE}
+#Ermittelung  aller Herstellernummer anhand IDNummer
+Ausliefergung_K7_roh%>%
+  select(IDNummer)%>%
+  separate(IDNummer,into = c("K7_ID","Herstellnummer_from_ID","Werksnummer_from_ID","Seriennummer_form_ID"),sep = "-")%>%
+  tabyl(Herstellnummer_from_ID)
+
+#Ermittelung  aller Werksnummer anhand IDNummer
+Ausliefergung_K7_roh%>%
+  select(IDNummer)%>%
+  separate(IDNummer,into = c("K7_ID","Herstellnummer_from_ID","Werksnummer_from_ID","Seriennummer_form_ID"),sep = "-")%>%
+  tabyl(Werksnummer_from_ID)
+
+#Ermittelung  aller Kombination von Herstellernummer und Werksnummer anhand IDNummer
+Ausliefergung_K7_roh%>%
+  select(IDNummer)%>%
+  separate(IDNummer,into = c("K7_ID","Herstellnummer_from_ID","Werksnummer_from_ID","Seriennummer_form_ID"),sep = "-")%>%
+  tabyl(Herstellnummer_from_ID,Werksnummer_from_ID)
+
+
+```
+
+
+
+
+
+
+
+
+
+Danach Einblick in die  Daten über Wareneingang bei OEM aus Datei `Logistikverzug_K7.csv`
+
+```{r Datentype2, message=FALSE, warning=FALSE}
+
+glimpse(Eingang_K7_roh)
+```
+
+Makroskopische Eindrüke über die Daten über Wareneingang bei OEM
+
+| Variable         | Anmerkung                                                    |
+| ---------------- | ------------------------------------------------------------ |
+| V1               | Werte sind  anschaulich zunehmend Ganzahl, vielleicht ist die Index -Nummer der  Dateneinträge,aber diese Variable zu Thema Logistikverzug unrelevant. |
+| IDNummer         | kann  eine Komponent einzigartig vertretenn, deren Format ist  `Komponentnummer`-`Herstellernummer`-`Werksnummer`-`Seriennummer` |
+| Wareneingang     | Wareneingangsdatum bei OEM,aber deren Datentype soll in `Date`  umgewandelt werden |
+| Herstellernummer | Herstellernummer,hat Zusammenhang mit `IDNUmmer`,zweite Quelle von Hersterllersinfomation |
+| Werksnummer      | Werksnummer, hat Zusammenhang mit `IDNUmmer`,zweite Quelle von Werkinfomation |
+| Fehlerhaft       | ob der  K7-Komponente fehlerhaft ist,  gibt nur zwei vernünftige Werte: `1` für logische `Wahr` ,und 0 für logische `Falsch`, aber diese Variable zu Thema Logistikverzug unrelevant. |
+
+Also relevante Variable sind nur `IDNummer` und `Wareneingang`(später wird als `Eingangstag` umbenennt)
+
+Desweiteren untersuchen wir noch die Vollständigkeit Datenkonsistenz und Vernünftigkeit der relevanter Variable
+
+Vollständigkeit der Daten wird untersucht:
+
+Daten über Wareneingang sind vollständig
+
+```{r , message=FALSE, warning=FALSE}
+
+# Negaton von Auftreten von NA 
+!anyNA(Eingang_K7_roh)
+
+```
+
+
+Einzigartigkeit der `IDNummer` wird untersucht:
+
+ keine duplizierte Eintraege
+```{r , message=FALSE, warning=FALSE}
+Ist_dupliziert(Eingang_K7_roh,IDNummer)
+```
+
+Die Datenkonsistenz von `Herstellernummer` ,`Werksnummer` mit `IDNummer` wird untersucht
+
+Die Waren Kommen nur aus zwei Hersteller mit Kennnummer `112` und `114`
+```{r , message=FALSE, warning=FALSE}
+tabyl(Eingang_K7_roh$Herstellernummer)
+```
+Die Waren kommen nur aus zwei Werke mit Kennnummer `1132` und `1142`
+```{r , message=FALSE, warning=FALSE}
+tabyl(Eingang_K7_roh$Werksnummer)
+```
+
+
+Wir betrachten noch die Hersteller- und Werkinfomation in `IDNummer`
+
+Es gibt nur zwei Hersteller `113` und `114, und nur zwei Werke `1132` und `1142`
+
+Und bei Kombination von Hersteller und Werk nur 2 Variante (`113`,`1132`),  (`114`,`1142`) jeder besitzt 50%(153245) von Gesamteinträge(306490). und Werksnummer besitzt denselben Anfang wie  Herstellernummer bei `IDNummer`. Wir können beschließen, dass die Hersteller- und Werkinformation in `IDNummer` ist vernünftig,trotzdem sie widersprechen mit der in Variablen `Herstellernummer` und `Werksnummer`
+
+```{r , message=FALSE, warning=FALSE}
+#Ermittelung  aller Herstellernummer anhand IDNummer
+Eingang_K7_roh%>%
+  select(IDNummer)%>%
+  separate(IDNummer,into = c("K7_ID","Herstellnummer_from_ID","Werksnummer_from_ID","Seriennummer_form_ID"),sep = "-")%>%
+  tabyl(Herstellnummer_from_ID)
+
+#Ermittelung  aller Werksnummer anhand IDNummer
+Eingang_K7_roh%>%
+  select(IDNummer)%>%
+  separate(IDNummer,into = c("K7_ID","Herstellnummer_from_ID","Werksnummer_from_ID","Seriennummer_form_ID"),sep = "-")%>%
+  tabyl(Werksnummer_from_ID)
+
+#Ermittelung  aller Kombination von Herstellernummer und Werksnummer anhand IDNummer
+Eingang_K7_roh%>%
+  select(IDNummer)%>%
+  separate(IDNummer,into = c("K7_ID","Herstellnummer_from_ID","Werksnummer_from_ID","Seriennummer_form_ID"),sep = "-")%>%
+  tabyl(Herstellnummer_from_ID,Werksnummer_from_ID)
+
+
+```
+
+
+
+
+
+
+
+
+
+
+### Aufbereitung beides Rohdatensätzes
+
+
+jetzt bereiten wir die rohe Datensätze, zur Problemlösung kümmern wir nur die Variabe:
+
+- `IDNummer`: als Primärschlüssel(Prime Key) zur Kombiniern zweier Tabelle
+
+- 'Auslieferungstag':Warenausgangsdatum bei Lieferanten (identisch wie Produktionsdatum bei Hersteller)
+
+- 'Wareneingangstag':Wareneingangsdatum bei OEM(identisch wie Wareneingang bei OEM)
+
+Zwei Datum werden von `Character` in `Date` umgewandet.
+
+```{r Anpassung1, warning=FALSE, paged.print=FALSE}
+
+Ausliefergung_K7_sauberer<-Ausliefergung_K7_roh%>%
+  select(IDNummer,Produktionsdatum)%>%                     #nur relevante Variaben Wählen
+  rename(Auslieferungstag=Produktionsdatum)%>%             #Umbenennen
+  mutate(Auslieferungstag=ymd(Auslieferungstag))       #Typumwandlung : Character->Date
+
+
+Eingang_K7_sauberer<-Eingang_K7_roh%>%
+  select(IDNummer,Wareneingang)%>%                    #nur relevante Variaben Wählen
+  rename(Wareneingangstag=Wareneingang) %>%               #Umbenennen
+  mutate(Wareneingangstag=ymd(Wareneingangstag))  #Typumwandlung : Character->Date
+
+glimpse(Ausliefergung_K7_sauberer)
+glimpse(Eingang_K7_sauberer)
+
+
+```
+
+Anhand die Ausgabe von `summary()` können wir so annehmen, dass die Datumswert kein Ausreisser besitzen.
+Die Begründung:
+
+- Alle Daten sind in Vergangenheit
+- Warenausgangsdatum sind ganzheitlich ?? frühen als Wareneingang 
+
+```{r Ausreisser, message=TRUE, warning=TRUE}
+summary(Ausliefergung_K7_sauberer)
+summary(Eingang_K7_sauberer)
+
+
+a<-Eingang_K7_sauberer[,"IDNummer"]
+a[2]
+str(a)
+length(a)
+```
+### Bildung neuer Datensatz aus aufbereiteter Daten
+
+`Full_Join()` vermehrt sich die Einträgenanzahl nicht,Das bedeutet die `IDNummer` aus beider aufbereiteter Datensätze sind identisch.
+
+```{r , message=TRUE, warning=TRUE}
+
+Logistikverzug_ohne_Verzugsdauer<-full_join(Ausliefergung_K7_sauberer,Eingang_K7_sauberer,by="IDNummer")
+glimpse(Logistikverzug_ohne_Verzugsdauer)
+dim(Ausliefergung_K7_sauberer)
+dim(Eingang_K7_sauberer)
+dim(Logistikverzug_ohne_Verzugsdauer)
+
+
+```
+
+### Ermittelung Logistikverzug 
+```{r , message=TRUE, warning=TRUE}
+
+Logistikverzug<-Logistikverzug_ohne_Verzugsdauer%>%
+  mutate(Verzugsdauer=time_length(interval(Auslieferungstag,Wareneingangstag),unit = "day") )%>%
+  mutate(Verzugsdauer=as.integer(Verzugsdauer))
+
+
+glimpse(Logistikverzug)
+summary(Logistikverzug)
+tabyl(Logistikverzug,Verzugsdauer)
+
+```
+
+
+### Plotierung realer Verteilung der Logistikverzug
+
+
+
+## Aufgabe1<a name="Loesung"></a>
+
+>Logistik spielt in der Produktentwicklung der Automobilindustrie eine immer größer werdende Rolle. So müssen vom Lieferanten produzierte Teile zunächst zum OEM geliefert werden, bevor sie eingebaut werden können. Was auf den ersten Blick logisch erscheint, sollte für eine professionelle Organisation unbedingt näher analysiert werden. Erstellen Sie deshalb eine Verteilung für den Logistikverzug von Komponente „K7“. Nutzen Sie hierfür das Produktionsdatum aus dem Datensatz “Komponente_K7.csv” und das Wareneingangsdatum aus “Logistikverzug_K7.csv”. Sie können davon ausgehen, dass der Hersteller das Teil am Produktionstag in den Warenausgang übergibt. Erstellen Sie für die Modellbildung in R einen neuen Datensatz “Logistikverzug”, der die benötigten Informationen aus beiden Datensätzen enthält Erstellen Sie für die Modellbildung in R einen neuen Datensatz “Logistikverzug”, der die benötigten Informationen aus beiden Datensätzen enthält.
+>
+>- a.Wie ist der Logistikverzug verteilt? Begründen Sie Ihre Auswahl und stellen Sie Ihre Vorgehensweise kurz dar.
+
+Lösung a): Norrmalverteilung
+
+Begründung:
+
+Vorgehensweise:
+
+1. Importieren des Rohdatensatzes aus Datei `Komponente_K7.csv` und `Logistikverzug_K7.csv`
+
+2. Analyse der Rohdatenqualität
+
+3. Aufbereitung beides Rohdatensätzes
+
+4. Bildung neuer Datensatz aus aufbereiteter Daten
+
+5. Ermittelung Logistikverzug 
+
+6. Plotierung realer Verteilung der Logistikverzug
+
+7. Annäherung an typischer Verteilungsmodel
+
+
+>- b.Wie viel Zeit vergeht mindestens/höchstens zwischen Warenausgang und Wareneingang? 
+
+Lösung b)
+
+
+
+>- c.Bestimmen Sie den Mittelwert des Logistikverzugs
+
+Lösung c)
+
+
+
+
+>- d.Stellen Sie die Verteilung in geeigneter Weise dar.
+
+Lösung d)
+
+
+
+
+
+
+
+## Aufgabe2
+>Warum ist es sinnvoll, die Ihnen bereitgestellten Daten in separaten Dateien abzulegen und nicht alles in einer riesigen Tabelle abzuspeichern? Wie nennt sich das zugrunde liegende Datenbankkonzept? Wie nennt sich das zugrunde liegende Datenbankkonzept?
+
+Lösung Aufgabe 2 
+
+```{r }
+
+
+
+```
+
+## Aufgabe3
+>Wie viele der Komponenten K7 landeten in Fahrzeugen, die in Köln zugelassen wurden?
+```{r }
+
+
+
+```
+
+Lösung Aufgabe 3
+
+
+## Aufgabe4
+>Welche Datentypen haben die Attribute der Zulassungstabelle „Zulassungen_aller_Fahrzeuge“?
+```{r }
+
+
+
+```
+
+Lösung Aufgabe 4
+
+
+## Aufgabe5
+>Sie wollen Ihre Applikation veröffentlichen. Warum ist es gerade dann sinnvoll die Datensätze auf der Datenbank eines Servers abzulegen? Warum können Sie die Datensätze nicht auf Ihrem persönlichen Computer ablegen? Nennen Sie eine einfache Möglichkeit Ihre Applikation ihrem Kundenkreis zugänglich zu machen?
+
+Lösung Aufgabe 5
+
+```{r }
+
+
+
+```
+## Aufgabe6
+>Am 11.08.2010 hat es einen Unfall mit Fahrerflucht gegeben. Von dem Kennzeichen des Unfallwagens fehlt jede Spur. Die Polizei bittet Sie um Hilfe, da Sie für das Kraftfahrtbundesamt arbeiten und fragt, wo das Fahrzeug mit der Karosseriebauteilnummer „K4-112-1121-23“ zugelassen wurde
+
+Lösung Aufgabe 6
+```{r }
+
+
+
+```
+
+
 
 
