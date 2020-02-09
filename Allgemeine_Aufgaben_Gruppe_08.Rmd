@@ -397,6 +397,10 @@ tabyl(Logistikverzug,Verzugsdauer)
 
 
 
+
+
+
+
 ## Aufgabe1<a name="Loesung"></a>
 
 >Logistik spielt in der Produktentwicklung der Automobilindustrie eine immer größer werdende Rolle. So müssen vom Lieferanten produzierte Teile zunächst zum OEM geliefert werden, bevor sie eingebaut werden können. Was auf den ersten Blick logisch erscheint, sollte für eine professionelle Organisation unbedingt näher analysiert werden. Erstellen Sie deshalb eine Verteilung für den Logistikverzug von Komponente „K7“. Nutzen Sie hierfür das Produktionsdatum aus dem Datensatz “Komponente_K7.csv” und das Wareneingangsdatum aus “Logistikverzug_K7.csv”. Sie können davon ausgehen, dass der Hersteller das Teil am Produktionstag in den Warenausgang übergibt. Erstellen Sie für die Modellbildung in R einen neuen Datensatz “Logistikverzug”, der die benötigten Informationen aus beiden Datensätzen enthält Erstellen Sie für die Modellbildung in R einen neuen Datensatz “Logistikverzug”, der die benötigten Informationen aus beiden Datensätzen enthält.
