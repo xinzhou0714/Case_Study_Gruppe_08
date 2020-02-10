@@ -388,12 +388,59 @@ Logistikverzug<-Logistikverzug_ohne_Verzugsdauer%>%
 
 glimpse(Logistikverzug)
 summary(Logistikverzug)
+#alle Verzugsdauer sind positive 
 tabyl(Logistikverzug,Verzugsdauer)
 
 ```
 
+aber Verzugsdauer bezieht sich 50 perzent auf Werk  1132 und 50 perzent auf Werk  1142
+die Verteilung von Verzugsdauer soll separate betrachtet werden.
 
+```{r , message=TRUE, warning=TRUE}
+Logistikverzug_Werk_1132<-Logistikverzug%>%
+  separate(IDNummer,
+           into=c("Komponentebezeichnung_aus_ID","Herstellernummer_aus_ID","Werksnummer_aus_ID","Seriennummer_aus_ID"),
+           sep="-",
+           remove=FALSE)%>%
+  filter(Werksnummer_aus_ID=="1132")
+
+head(Logistikverzug_Werk_1132)
+
+tabyl(Logistikverzug_Werk_1132$Werksnummer_aus_ID)
+tabyl(Logistikverzug_Werk_1132$Verzugsdauer)
+
+```
+
+
+
+
+```{r , message=TRUE, warning=TRUE}
+Logistikverzug_Werk_1142<-Logistikverzug%>%
+  separate(IDNummer,
+           into=c("Komponentebezeichnung_aus_ID","Herstellernummer_aus_ID","Werksnummer_aus_ID","Seriennummer_aus_ID"),
+           sep="-",
+           remove=FALSE)%>%
+  filter(Werksnummer_aus_ID=="1142")
+
+head(Logistikverzug_Werk_1142)
+
+tabyl(Logistikverzug_Werk_1142$Werksnummer_aus_ID)
+tabyl(Logistikverzug_Werk_1142$Verzugsdauer)
+
+
+```
 ### Plotierung realer Verteilung der Logistikverzug
+
+```{r , message=TRUE, warning=TRUE}
+
+ggplot(Logistikverzug_Werk_1132, aes(Verzugsdauer)) +
+  geom_histogram()
+
+
+ggplot(Logistikverzug_Werk_1142, aes(Verzugsdauer)) +
+  geom_histogram()
+```
+
 
 
 
