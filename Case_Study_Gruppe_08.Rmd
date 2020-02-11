@@ -145,10 +145,10 @@ Obwohl es 38 Einzelteile gibt, werden nur die Dateien mit Data zu den Einzelteil
 #   -Zeichen "Fahrleistung" und  "A" ist Bestandteil von Datensatz (NA), bitte vermeiden sie als Pattern zu nutzen 
 #   -bei ersetzen durch "str_replace_all" hast du falsch Pattern genutzt. einstellige Pipeline "|" bedeutet logische operation "Oder", das Zeichen "\" kann wörtliche Bedeutung einer Stelle nutzen. deswegen die richtige Format von " | | "ist  " \\| \\| "
 
-Einzelteil_T01 <- read_file("Data/Einzelteil/Einzelteil_T01.txt") %>%
+Einzelteil_T01_roh <- read_file("Data/Einzelteil/Einzelteil_T01.txt") %>%
   str_replace_all(" \\| \\| " , ",") %>%
   str_replace_all(" ", "\n")%>%
-  # str_replace_all(regex(",\\d{3,},\""), ",\"" )%>%    #eliminieren überschüssige Spalte(2. Spalte)
+  
   fread()
 
 ```
@@ -157,10 +157,10 @@ Einzelteil_T01 <- read_file("Data/Einzelteil/Einzelteil_T01.txt") %>%
 
 ```{r Einzelteil_T02, message = FALSE, warning = FALSE}
 
-Einzelteil_T02 <- read_file("Data/Einzelteil/Einzelteil_T02.txt") %>%
+Einzelteil_T02_roh <- read_file("Data/Einzelteil/Einzelteil_T02.txt") %>%
   str_replace_all("\t","\n") %>%
   str_replace_all("  ",",") %>%
-  # str_replace_all(regex(",\\d{1,},\""), ",\"" )%>%    #eliminieren überschüssige Spalte(2. Spalte)
+
   fread()
 
 ```
@@ -171,18 +171,11 @@ Einzelteil_T02 <- read_file("Data/Einzelteil/Einzelteil_T02.txt") %>%
 # die unsichtbare Zeichen hat ASCII-Code \x0b  ,ist vertical tab
 # das reserviert Zeichen "|" soll interperiert als normaler Zeichen  
 
-Einzelteil_T03 <- read_file("Data/Einzelteil/Einzelteil_T03.txt") %>%
+Einzelteil_T03_roh <- read_file("Data/Einzelteil/Einzelteil_T03.txt") %>%
   str_replace_all("\\|",",") %>%
   str_replace_all("\x0b","\n") %>%
+  
   fread()
-
-#   str_replace_all("","\n") %>%
-#   fread(sep="|")
-# 
-# # Ich weiss nicht, warum dieser Code in meinem Computer nicht läuft. 
-#   str_replace_all("[|]",",") %>%
-#   str_replace_all("","\n") %>%
-#   fread()
 
 ```
  
@@ -192,9 +185,9 @@ Dank des Formats dieser Dateien können sie einfach durch fread eingelesen werde
 
 ```{r Einzelteil_T04_5_6, message = FALSE, warning = FALSE}
 
-Einzelteil_T04 <- fread("Data/Einzelteil/Einzelteil_T04.csv")
-Einzelteil_T05 <- fread("Data/Einzelteil/Einzelteil_T05.csv")
-Einzelteil_T06 <- fread("Data/Einzelteil/Einzelteil_T06.csv")
+Einzelteil_T04_roh <- fread("Data/Einzelteil/Einzelteil_T04.csv")
+Einzelteil_T05_roh <- fread("Data/Einzelteil/Einzelteil_T05.csv")
+Einzelteil_T06_roh <- fread("Data/Einzelteil/Einzelteil_T06.csv")
 
 ```
 
@@ -203,9 +196,9 @@ Einzelteil_T06 <- fread("Data/Einzelteil/Einzelteil_T06.csv")
 ```{r Einzelteil_T07, message = FALSE, warning = FALSE}
 
 # Trennzeich zwischen Zeilen korrigiert werden
-Einzelteil_T07 <- read_file("Data/Einzelteil/Einzelteil_T07.txt") %>%
+Einzelteil_T07_roh <- read_file("Data/Einzelteil/Einzelteil_T07.txt") %>%
   str_replace_all("\"\"","\"\n\"") %>%
-  #write_file("test6.txt")
+
   fread(sep="\t")
 
 ```
@@ -216,7 +209,7 @@ Dank des Formats dieser Datei kann sie einfach durch fread eingelesen werden.
 
 ```{r Einzelteil_T08, message = FALSE, warning = FALSE}
 
-Einzelteil_T08 <- fread("Data/Einzelteil/Einzelteil_T08.csv")
+Einzelteil_T08_roh <- fread("Data/Einzelteil/Einzelteil_T08.csv")
 
 ```
 
@@ -224,10 +217,10 @@ Einzelteil_T08 <- fread("Data/Einzelteil/Einzelteil_T08.csv")
 
 ```{r Einzelteil_T09, message = FALSE, warning = FALSE}
 #\v für ASCII-Code \x0b
-Einzelteil_T09 <- read_file("Data/Einzelteil/Einzelteil_T09.txt") %>%
+Einzelteil_T09_roh <- read_file("Data/Einzelteil/Einzelteil_T09.txt") %>%
   str_replace_all("\v","\n") %>%
+  
   fread(sep="\\")
-  # write_file(Einzelteil_T09, path ="Data/Einzelteil/D.txt")
 
 ```
 
@@ -237,7 +230,7 @@ Dank des Formats dieser Datei kann sie einfach durch fread eingelesen werden.
 
 ```{r Einzelteil_T10, message = FALSE, warning = FALSE}
 
-Einzelteil_T10 <- fread("Data/Einzelteil/Einzelteil_T10.csv")
+Einzelteil_T10_roh <- fread("Data/Einzelteil/Einzelteil_T10.csv")
 
 ```
 
@@ -250,8 +243,8 @@ Dank des Formats dieser Dateien können sie einfach durch fread eingelesen werde
 
 ```{r Fahrzeug_11, message = FALSE, warning = FALSE}
 
-Fahrzeuge_OEM1_Typ11 <- fread("Data/Fahrzeug/Fahrzeuge_OEM1_Typ11.csv")
-Bestandteile_Fahrzeuge_OEM1_Typ11 <- read_csv2("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM1_Typ11.csv")
+Fahrzeuge_OEM1_Typ11_roh <- fread("Data/Fahrzeug/Fahrzeuge_OEM1_Typ11.csv")
+Bestandteile_Fahrzeuge_OEM1_Typ11_roh <- read_csv2("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM1_Typ11.csv")
 
 ```
 
@@ -261,8 +254,8 @@ Dank des Formats dieser Dateien können sie einfach durch fread eingelesen werde
 
 ```{r Fahrzeug_12, message = FALSE, warning = FALSE}
 
-Fahrzeuge_OEM1_Typ12 <- fread("Data/Fahrzeug/Fahrzeuge_OEM1_Typ12.csv")
-Bestandteile_Fahrzeuge_OEM1_Typ12 <- read_csv2("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM1_Typ12.csv")
+Fahrzeuge_OEM1_Typ12_roh <- fread("Data/Fahrzeug/Fahrzeuge_OEM1_Typ12.csv")
+Bestandteile_Fahrzeuge_OEM1_Typ12_roh <- read_csv2("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM1_Typ12.csv")
 
 ```
 
@@ -272,8 +265,8 @@ Dank des Formats dieser Dateien können sie einfach durch fread eingelesen werde
 
 ```{r Fahrzeug_21, message = FALSE, warning = FALSE}
 
-Fahrzeuge_OEM2_Typ21 <- fread("Data/Fahrzeug/Fahrzeuge_OEM2_Typ21.csv")
-Bestandteile_Fahrzeuge_OEM2_Typ21 <- read_csv2("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM2_Typ21.csv")
+Fahrzeuge_OEM2_Typ21_roh <- fread("Data/Fahrzeug/Fahrzeuge_OEM2_Typ21.csv")
+Bestandteile_Fahrzeuge_OEM2_Typ21_roh <- read_csv2("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM2_Typ21.csv")
 
 ```
 
@@ -283,8 +276,8 @@ Dank des Formats dieser Dateien können sie einfach durch fread eingelesen werde
 
 ```{r Fahrzeug_22, message = FALSE, warning = FALSE}
 
-Fahrzeuge_OEM2_Typ22 <- fread("Data/Fahrzeug/Fahrzeuge_OEM2_Typ22.csv")
-Bestandteile_Fahrzeuge_OEM2_Typ22 <- fread("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM2_Typ22.csv")
+Fahrzeuge_OEM2_Typ22_roh <- fread("Data/Fahrzeug/Fahrzeuge_OEM2_Typ22.csv")
+Bestandteile_Fahrzeuge_OEM2_Typ22_roh <- fread("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM2_Typ22.csv")
 
 ```
 
@@ -297,8 +290,8 @@ Dank des Formats dieser Dateien können sie einfach durch fread eingelesen werde
 
 ```{r Motor_K1BE1, message = FALSE, warning = FALSE}
 
-Komponente_K1BE1 <- fread("Data/Komponente/Komponente_K1BE1.csv")
-Bestandteile_Komponente_K1BE1 <- read_csv2("Data/Komponente/Bestandteile_Komponente_K1BE1.csv")
+Komponente_K1BE1_roh <- fread("Data/Komponente/Komponente_K1BE1.csv")
+Bestandteile_Komponente_K1BE1_roh <- read_csv2("Data/Komponente/Bestandteile_Komponente_K1BE1.csv")
 
 ```
 
@@ -308,8 +301,8 @@ Dank des Formats dieser Dateien können sie einfach durch fread eingelesen werde
 
 ```{r Motor_K1BE2, message = FALSE, warning = FALSE}
 
-Komponente_K1BE2 <- fread("Data/Komponente/Komponente_K1BE2.csv")
-Bestandteile_Komponente_K1BE2 <- read_csv2("Data/Komponente/Bestandteile_Komponente_K1BE2.csv")
+Komponente_K1BE2_roh <- fread("Data/Komponente/Komponente_K1BE2.csv")
+Bestandteile_Komponente_K1BE2_roh <- read_csv2("Data/Komponente/Bestandteile_Komponente_K1BE2.csv")
 
 ```
 
@@ -319,8 +312,8 @@ Dank des Formats dieser Dateien können sie einfach durch fread eingelesen werde
 
 ```{r Motor_K1DI1, message = FALSE, warning = FALSE}
 
-Komponente_K1DI1 <- fread("Data/Komponente/Komponente_K1DI1.csv")
-Bestandteile_Komponente_K1DI1 <- read_csv2("Data/Komponente/Bestandteile_Komponente_K1DI1.csv")
+Komponente_K1DI1_roh <- fread("Data/Komponente/Komponente_K1DI1.csv")
+Bestandteile_Komponente_K1DI1_roh <- read_csv2("Data/Komponente/Bestandteile_Komponente_K1DI1.csv")
 
 ```
 
@@ -331,8 +324,9 @@ Folgende Datei wird so modifiziert, dass eine einlesbare Struktur generiert wird
 ```{r Motor_K1DI2_1, message = FALSE, warning = FALSE}
 
 #Spalte V1 ist wiederholend zu X1
-Komponente_K1DI2 <- read_file("Data/Komponente/Komponente_K1DI2.txt") %>%
+Komponente_K1DI2_roh <- read_file("Data/Komponente/Komponente_K1DI2.txt") %>%
   str_replace_all("\t","\n") %>%
+  
   fread(sep="\\")
 
 ```
@@ -341,7 +335,7 @@ Dank des Formats folgender Datei kann sie einfach durch fread eingelesen werden.
 
 ```{r Motor_K1DI2_2, message = FALSE, warning = FALSE}
 
-Bestandteile_Komponente_K1DI2 <- read_csv2("Data/Komponente/Bestandteile_Komponente_K1DI2.csv")
+Bestandteile_Komponente_K1DI2_roh <- read_csv2("Data/Komponente/Bestandteile_Komponente_K1DI2.csv")
 
 ```
 
@@ -352,7 +346,7 @@ Dank des Formats dieser Datei kann sie einfach durch fread eingelesen werden.
 
 ```{r Zulassungen, message = FALSE, warning = FALSE}
 
-Zulassungen_alle_Fahrzeuge <- read_csv2("Data/Zulassungen/Zulassungen_alle_Fahrzeuge.csv")
+Zulassungen_alle_Fahrzeuge_roh <- read_csv2("Data/Zulassungen/Zulassungen_alle_Fahrzeuge.csv")
 
 ```
 
@@ -371,11 +365,6 @@ Die durch die Importierung resultierenden Datensätze enthalten mehrere Variable
 Anpassung_Datentyp <- function(datensatz, ID_Typ) {
   # Ich habe bemerkt, dass der nächste LOC als Kommentar gesetzt wurde. Auf einem ersten Blick scheint dieser LOC unnötig und es ist so für fast alle Fälle. Die Sache ist, dass es einen Datensatz gibt, der  nach der Importierung den ID-type als factor setzt. Diese Variabel sollte meiner Meinung nach charachter sein. Deswegen habe ich diesen LOC hinzugefügt. Man könnte das auch in diesen Einzelfällen außerhalb dieser Funktion tun, aber ich möchte einfach eine Funktion für alle Datensätze benutzen.   
   
-  # datensatz[[ID_Typ]] <- type.convert(datensatz[[ID_Typ]])
-  
-  # datensatz[[ID_Typ]] <- lapply(datensatz[[ID_Typ]], as.character)
-  
-  # datensatz[[ID_Typ]] <- type.convert(datensatz[[ID_Typ]], as.is = TRUE)
   datensatz$Produktionsdatum <- as.Date(datensatz$Produktionsdatum)
   datensatz$Fehlerhaft_Datum <- as.Date(datensatz$Fehlerhaft_Datum, format="%Y-%m-%d")
   datensatz$Fehlerhaft <- as.integer(as.character(datensatz$Fehlerhaft))
@@ -385,6 +374,7 @@ Anpassung_Datentyp <- function(datensatz, ID_Typ) {
 # Function für die  Auswahl von relevanten Variablen und Anpassung des Datentyps von Variablen, die keine initiale Aufbereitung brauchen. Außerdem haben die Datensätze, die durch folgende Funktion aufbereitet werden, zwei Variablen bezüglich Origin.
 
 Aufbereitung_des_Datensatz_mit_Origin <- function(datensatz, ID_Typ){
+  
   datensatz <- mutate(datensatz, Produktionsdatum = Produktionsdatum_Origin_01011970 + dmy(origin))
   datensatz <- select(datensatz, c( ID_Typ, "Fehlerhaft", "Fehlerhaft_Datum", "Produktionsdatum"))
   datensatz <- Anpassung_Datentyp(datensatz, ID_Typ)
@@ -394,6 +384,7 @@ Aufbereitung_des_Datensatz_mit_Origin <- function(datensatz, ID_Typ){
 # Function für die Auswahl von relevanten Variablen und Anpassung des Datentyps von Variablen, die keine initiale Aufbereitung brauchen. Außerdem haben die Datensätze, die durch folgende Funktion aufbereitet werden, nur eine Variabel bezüglich Origin. 
 
 Aufbereitung_des_Datensatz_ohne_Origin <- function(datensatz, ID_Typ){
+  
   datensatz <- select(datensatz, c( ID_Typ, "Fehlerhaft", "Fehlerhaft_Datum", "Produktionsdatum"))
   datensatz <- Anpassung_Datentyp(datensatz, ID_Typ)
   return(datensatz)
@@ -402,6 +393,7 @@ Aufbereitung_des_Datensatz_ohne_Origin <- function(datensatz, ID_Typ){
 # Function für die mit den Bestandteilen der Fahrzeuge zusammenhängende Auswahl von relevanten Variablen und Anpassung des Datentyps von Variablen, die keine initiale Aufbereitung brauchen 
 
 Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulassung <- function(datensatz){
+  
   datensatz <- select(datensatz, -X1)
   return(datensatz)
 }
@@ -411,6 +403,7 @@ Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulassung <- function(datensatz){
 ## Folgende Funktion stellt sicher, dass die Variablen im Finaldatensatz den richtigen Datentyp haben. 
 
 Anpassung_Datentyp_Final_Datensatz <- function(datensatz) {
+  
   datensatz$Produktionsdatum <- as.Date(datensatz$Produktionsdatum, format="%Y-%m-%d")
   datensatz$Fehlerhaft_Datum <- as.Date(datensatz$Fehlerhaft_Datum, format="%Y-%m-%d")
   datensatz$Fehlerhaft <- as.integer(as.character(datensatz$Fehlerhaft))
@@ -420,6 +413,7 @@ Anpassung_Datentyp_Final_Datensatz <- function(datensatz) {
 ## Folgende Funktion findet das früheste Datum, an dem ein Einzelteil einer einzelnen Komponente bzw. die einzelne Komponente(Motor)  als fehlerhaft angemeldet wurde. Diese Funktion wird verwendet, weil es einige Komponenten gibt, die mehr als ein Einzelteil haben, die als Fehlerhaft angemeldet wurden. Somit soll das Fehlerhaftdatum das früheste Datum der Daten, an dem ein Fehler angemeldet wurde.      
 
 Anpassung_Datentyp_Final_Datensatz_Fehlerhaft_Datum <- function(datensatz) {
+  
   datensatz$Fehlerhaft_Datum <- apply(datensatz[c("Fehlerhaft_Datum", "Fehlerhaft_Datum_T01", "Fehlerhaft_Datum_T02", "Fehlerhaft_Datum_T03", "Fehlerhaft_Datum_T04", "Fehlerhaft_Datum_T05", "Fehlerhaft_Datum_T06", "Fehlerhaft_Datum_T07", "Fehlerhaft_Datum_T08", "Fehlerhaft_Datum_T09", "Fehlerhaft_Datum_T10")],1,min,na.rm=TRUE) 
   datensatz$Fehlerhaft_Datum <- as.Date(datensatz$Fehlerhaft_Datum, format = "%Y-%m-%d")
   return(datensatz)
@@ -428,6 +422,7 @@ Anpassung_Datentyp_Final_Datensatz_Fehlerhaft_Datum <- function(datensatz) {
 ## Folgende Funktion ersetzt die NAs dieser Variablen, sodass man die Anzahlt von Fehlermeldungen einer einzelnen Komponente addieren kann, um es sicherzustellen, dass man richtig bestimmt, ob eine Komponente fehlerhaft ist.  
 
 Anpassung_Datentyp_Final_Datensatz_Fehlerhaft <- function(datensatz) {
+  
   datensatz$Fehlerhaft[is.na(datensatz$Fehlerhaft)] = 0
   datensatz$Fehlerhaft_T01[is.na(datensatz$Fehlerhaft_T01)] = 0
   datensatz$Fehlerhaft_T02[is.na(datensatz$Fehlerhaft_T02)] = 0
@@ -497,19 +492,18 @@ Motor_Typen <- function (datensatz){
 
 # Blick auf Struktur des Datensatzes  
 
-str(Einzelteil_T01)
+str(Einzelteil_T01_roh)
 
 # Änderung der Namen der Spalten, sodass die Werte den richtigen Variablennamen entsprechen
 
-Einzelteil_T01 <- Einzelteil_T01 %>% 
-  rename(replace = c(",\"Produktionsdatum.x\"," = "ID_T01.x", ",\"Herstellernummer.x\"," = "Produktionsdatum.x", ",\"Werksnummer.x\"," = "Herstellernummer.x" , ",\"Fehlerhaft.x\"," = "Werksnummer.x", ",\"Fehlerhaft_Datum.x\"," = "Fehlerhaft.x", ",\"Fehlerhaft_Fahrleistung.x\"," = "Fehlerhaft_Datum.x", ",\"ID_T01.y\"," = "Fehlerhaft_Fahrleistung.x", ",\"Produktionsdatum.y\"," = "ID_T01.y", ",\"Herstellernummer.y\"," = "Produktionsdatum.y", ",\"Werksnummer.y\"," = "Herstellernummer.y" , ",\"Fehlerhaft.y\"," = "Werksnummer.y", ",\"Fehlerhaft_Datum.y\"," = "Fehlerhaft.y", ",\"Fehlerhaft_Fahrleistung.y\"," = "Fehlerhaft_Datum.y", ",\"ID_T01\"," = "Fehlerhaft_Fahrleistung.y", ",\"Produktionsdatum\"," = "ID_T01", ",\"Herstellernummer\"," = "Produktionsdatum", ",\"Werksnummer\"," = "Herstellernummer" , ",\"Fehlerhaft\"," = "Werksnummer", ",\"Fehlerhaft_Datum\"," = "Fehlerhaft", ",\"Fehlerhaft_" = "Fehlerhaft_Datum", "V45" = "Fehlerhaft_Fahrleistung")) 
+# Einzelteil_T01 <- Einzelteil_T01 %>% 
+#   rename(replace = c(",\"Produktionsdatum.x\"," = "ID_T01.x", ",\"Herstellernummer.x\"," = "Produktionsdatum.x", ",\"Werksnummer.x\"," = "Herstellernummer.x" , ",\"Fehlerhaft.x\"," = "Werksnummer.x", ",\"Fehlerhaft_Datum.x\"," = "Fehlerhaft.x", ",\"Fehlerhaft_Fahrleistung.x\"," = "Fehlerhaft_Datum.x", ",\"ID_T01.y\"," = "Fehlerhaft_Fahrleistung.x", ",\"Produktionsdatum.y\"," = "ID_T01.y", ",\"Herstellernummer.y\"," = "Produktionsdatum.y", ",\"Werksnummer.y\"," = "Herstellernummer.y" , ",\"Fehlerhaft.y\"," = "Werksnummer.y", ",\"Fehlerhaft_Datum.y\"," = "Fehlerhaft.y", ",\"Fehlerhaft_Fahrleistung.y\"," = "Fehlerhaft_Datum.y", ",\"ID_T01\"," = "Fehlerhaft_Fahrleistung.y", ",\"Produktionsdatum\"," = "ID_T01", ",\"Herstellernummer\"," = "Produktionsdatum", ",\"Werksnummer\"," = "Herstellernummer" , ",\"Fehlerhaft\"," = "Werksnummer", ",\"Fehlerhaft_Datum\"," = "Fehlerhaft", ",\"Fehlerhaft_" = "Fehlerhaft_Datum", "V45" = "Fehlerhaft_Fahrleistung")) 
 
 # Auswahl der für die Analyse relevanten Variablen.
  
-Einzelteil_T01 <- Einzelteil_T01[,c("ID_T01.x", "ID_T01.y", "ID_T01", "Produktionsdatum.x", "Produktionsdatum.y", "Produktionsdatum", "Fehlerhaft.x", "Fehlerhaft.y", "Fehlerhaft", "Fehlerhaft_Datum.x", "Fehlerhaft_Datum.y", "Fehlerhaft_Datum")]                                                                                                        
+Einzelteil_T01 <- Einzelteil_T01_roh[,c("ID_T01.x", "ID_T01.y", "ID_T01", "Produktionsdatum.x", "Produktionsdatum.y", "Produktionsdatum", "Fehlerhaft.x", "Fehlerhaft.y", "Fehlerhaft", "Fehlerhaft_Datum.x", "Fehlerhaft_Datum.y", "Fehlerhaft_Datum")] %>%                                                                                                        
 # Union von separaten Variablen, die eigentlich die gleiche Information enthalten, sowie die Entfernung von unnötigen Zeichen innerhalb dieser Variabeln. Der Datensatz wird so gefiltert, weil die Informationen von nur fehlerhaften Einzelteilen relevant sind. 
 
-Einzelteil_T01 <- Einzelteil_T01 %>%
   unite("ID_T01", ID_T01, ID_T01.x, ID_T01.y) %>% 
   unite("Produktionsdatum", Produktionsdatum, Produktionsdatum.x, Produktionsdatum.y) %>%
   unite("Fehlerhaft", Fehlerhaft, Fehlerhaft.x, Fehlerhaft.y) %>%
@@ -527,11 +521,11 @@ Einzelteil_T01 <- Einzelteil_T01 %>%
 
 # Blick auf Struktur des Datensatzes  
 
-str(Einzelteil_T02)
+str(Einzelteil_T02_roh)
 
 # Auswahl der für die Analyse relevanten Variablen und Union von separaten Variablen, die eigentlich die gleiche Information enthalten, sowie die Entfernung von unnötigen Zeichen innerhalb dieser Variabeln. Der Datensatz wird so gefiltert, weil die Informationen von nur fehlerhaften Einzelteilen relevant sind.
 
-Einzelteil_T02 <- Einzelteil_T02 %>%
+Einzelteil_T02 <- Einzelteil_T02_roh %>%
   select(-c("V1", "X1", "Herstellernummer.x", "Werksnummer.x", "Herstellernummer.y", "Werksnummer.y", "Fehlerhaft_Fahrleistung.x", "Fehlerhaft_Fahrleistung.y")) %>%
   unite("ID_T02", ID_T02.x, ID_T02.y) %>% 
   unite("Produktionsdatum", Produktionsdatum.x, Produktionsdatum.y) %>%
@@ -550,14 +544,14 @@ Einzelteil_T02 <- Einzelteil_T02 %>%
 
 # Blick auf Struktur des Datensatzes  
 
-str(Einzelteil_T03)
-str(Einzelteil_T04)
+str(Einzelteil_T03_roh)
+str(Einzelteil_T04_roh)
 
 # Anwendung von die Datensätze aufbereitender Funktion für die Einzelteile (Details dieser Funktion liegen bei der Definition der Funktion vor). Die Datensätze werden so gefiltert, weil die Informationen von nur fehlerhaften Einzelteilen relevant sind.
 
-Einzelteil_T03 <- Aufbereitung_des_Datensatz_mit_Origin(Einzelteil_T03, "ID_T03") %>%
+Einzelteil_T03 <- Aufbereitung_des_Datensatz_mit_Origin(Einzelteil_T03_roh, "ID_T03") %>%
   filter(Fehlerhaft == 1)
-Einzelteil_T04 <- Aufbereitung_des_Datensatz_mit_Origin(Einzelteil_T04, "ID_T04") %>%
+Einzelteil_T04 <- Aufbereitung_des_Datensatz_mit_Origin(Einzelteil_T04_roh, "ID_T04") %>%
   filter(Fehlerhaft == 1)
 
 
@@ -569,12 +563,12 @@ Einzelteil_T04 <- Aufbereitung_des_Datensatz_mit_Origin(Einzelteil_T04, "ID_T04"
 
 # Blick auf Struktur des Datensatzes  
 
-str(Einzelteil_T05)
+str(Einzelteil_T05_roh)
 
 # Auswahl der für die Analyse relevanten Variablen und Union von separaten Variablen, die eigentlich die gleiche Information enthalten, sowie die Entfernung von unnötigen Zeichen innerhalb dieser Variabeln. Der Datensatz wird so gefiltert, weil die Informationen von nur fehlerhaften Einzelteilen relevant sind.
 
 
-Einzelteil_T05 <- Einzelteil_T05 %>%
+Einzelteil_T05 <- Einzelteil_T05_roh %>%
   select(-c("V1", "X1", "Herstellernummer.x", "Werksnummer.x", "Herstellernummer.y", "Werksnummer.y", "Fehlerhaft_Fahrleistung.x", "Fehlerhaft_Fahrleistung.y")) %>%
   unite("ID_T05", ID_T05.x, ID_T05.y) %>% 
   unite("Produktionsdatum", Produktionsdatum.x, Produktionsdatum.y) %>%
@@ -593,17 +587,17 @@ Einzelteil_T05 <- Einzelteil_T05 %>%
 
 # Blick auf Struktur des Datensatzes  
 
-str(Einzelteil_T06)
-str(Einzelteil_T07)
-str(Einzelteil_T08)
+str(Einzelteil_T06_roh)
+str(Einzelteil_T07_roh)
+str(Einzelteil_T08_roh)
 
 # Anwendung von die Datensätze aufbereitender Funktion für die Einzelteile (Details dieser Funktion liegen bei der Definition der Funktion vor). Die Datensätze werden so gefiltert, weil die Informationen von nur fehlerhaften Einzelteilen relevant sind.
 
-Einzelteil_T06 <- Aufbereitung_des_Datensatz_mit_Origin(Einzelteil_T06, "ID_T06") %>%
+Einzelteil_T06 <- Aufbereitung_des_Datensatz_mit_Origin(Einzelteil_T06_roh, "ID_T06") %>%
   filter(Fehlerhaft == 1)
-Einzelteil_T07 <- Aufbereitung_des_Datensatz_mit_Origin(Einzelteil_T07, "ID_T07") %>%
+Einzelteil_T07 <- Aufbereitung_des_Datensatz_mit_Origin(Einzelteil_T07_roh, "ID_T07") %>%
   filter(Fehlerhaft == 1)
-Einzelteil_T08 <- Aufbereitung_des_Datensatz_mit_Origin(Einzelteil_T08, "ID_T08") %>%
+Einzelteil_T08 <- Aufbereitung_des_Datensatz_mit_Origin(Einzelteil_T08_roh, "ID_T08") %>%
   filter(Fehlerhaft == 1)
 
 ```
@@ -614,12 +608,12 @@ Einzelteil_T08 <- Aufbereitung_des_Datensatz_mit_Origin(Einzelteil_T08, "ID_T08"
 
 # Blick auf Struktur des Datensatzes  
 
-str(Einzelteil_T09)
+str(Einzelteil_T09_roh)
 
 # Auswahl der für die Analyse relevanten Variablen und Union von separaten Variablen, die eigentlich die gleiche Information enthalten, sowie die Entfernung von unnötigen Zeichen innerhalb dieser Variabeln. Der Datensatz wird so gefiltert, weil die Informationen von nur fehlerhaften Einzelteilen relevant sind.
 
 
-Einzelteil_T09 <- Einzelteil_T09 %>%
+Einzelteil_T09 <- Einzelteil_T09_roh %>%
   select(-c("V1", "X1", "Herstellernummer.x", "Werksnummer.x", "Herstellernummer.y", "Werksnummer.y", "Fehlerhaft_Fahrleistung.x", "Fehlerhaft_Fahrleistung.y")) %>%
   unite("ID_T09", ID_T09.x, ID_T09.y) %>% 
   unite("Produktionsdatum", Produktionsdatum.x, Produktionsdatum.y) %>%
@@ -638,11 +632,11 @@ Einzelteil_T09 <- Einzelteil_T09 %>%
 
 # Blick auf Struktur des Datensatzes  
 
-str(Einzelteil_T10)
+str(Einzelteil_T10_roh)
 
 # Anwendung von die Datensätze aufbereitender Funktion für die Einzelteile (Details dieser Funktion liegen bei der Definition der Funktion vor). Der Datensatz wird so gefiltert, weil die Informationen von nur fehlerhaften Einzelteilen relevant sind.
 
-Einzelteil_T10 <- Aufbereitung_des_Datensatz_mit_Origin(Einzelteil_T10, "ID_T10") %>%
+Einzelteil_T10 <- Aufbereitung_des_Datensatz_mit_Origin(Einzelteil_T10_roh, "ID_T10") %>%
   filter(Fehlerhaft == 1)
 
 ```
@@ -656,13 +650,13 @@ Einzelteil_T10 <- Aufbereitung_des_Datensatz_mit_Origin(Einzelteil_T10, "ID_T10"
 
 # Blick auf Struktur des Datensatzes  
 
-str(Fahrzeuge_OEM1_Typ11)
-str(Bestandteile_Fahrzeuge_OEM1_Typ11)
+str(Fahrzeuge_OEM1_Typ11_roh)
+str(Bestandteile_Fahrzeuge_OEM1_Typ11_roh)
 
 # Anwendung von die Datensätze aufbereitenden Funktionen (Details dieser Funktion liegen bei der Definition der Funktion vor)
 
-Fahrzeuge_OEM1_Typ11 <- Aufbereitung_des_Datensatz_ohne_Origin(Fahrzeuge_OEM1_Typ11, "ID_Fahrzeug")
-Bestandteile_Fahrzeuge_OEM1_Typ11 <- Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulassung(Bestandteile_Fahrzeuge_OEM1_Typ11) %>%
+Fahrzeuge_OEM1_Typ11 <- Aufbereitung_des_Datensatz_ohne_Origin(Fahrzeuge_OEM1_Typ11_roh, "ID_Fahrzeug")
+Bestandteile_Fahrzeuge_OEM1_Typ11 <- Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulassung(Bestandteile_Fahrzeuge_OEM1_Typ11_roh) %>%
   select(-c("ID_Sitze", "ID_Schaltung", "ID_Karosserie"))
 
 ```
@@ -673,13 +667,13 @@ Bestandteile_Fahrzeuge_OEM1_Typ11 <- Aufbereitung_des_Datensatz_Bestandteile_bzw
 
 # Blick auf Struktur des Datensatzes  
 
-str(Fahrzeuge_OEM1_Typ12)
-str(Bestandteile_Fahrzeuge_OEM1_Typ12)
+str(Fahrzeuge_OEM1_Typ12_roh)
+str(Bestandteile_Fahrzeuge_OEM1_Typ12_roh)
 
 # Anwendung von die Datensätze aufbereitenden Funktionen (Details dieser Funktion liegen bei der Definition der Funktion vor)
 
-Fahrzeuge_OEM1_Typ12 <- Aufbereitung_des_Datensatz_ohne_Origin(Fahrzeuge_OEM1_Typ12, "ID_Fahrzeug")
-Bestandteile_Fahrzeuge_OEM1_Typ12 <- Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulassung(Bestandteile_Fahrzeuge_OEM1_Typ12) %>%
+Fahrzeuge_OEM1_Typ12 <- Aufbereitung_des_Datensatz_ohne_Origin(Fahrzeuge_OEM1_Typ12_roh, "ID_Fahrzeug")
+Bestandteile_Fahrzeuge_OEM1_Typ12 <- Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulassung(Bestandteile_Fahrzeuge_OEM1_Typ12_roh) %>%
   select(-c("ID_Sitze", "ID_Schaltung", "ID_Karosserie"))
 
 ```
@@ -690,13 +684,13 @@ Bestandteile_Fahrzeuge_OEM1_Typ12 <- Aufbereitung_des_Datensatz_Bestandteile_bzw
 
 # Blick auf Struktur des Datensatzes  
 
-str(Fahrzeuge_OEM2_Typ21)
-str(Bestandteile_Fahrzeuge_OEM2_Typ21)
+str(Fahrzeuge_OEM2_Typ21_roh)
+str(Bestandteile_Fahrzeuge_OEM2_Typ21_roh)
 
 # Anwendung von die Datensätze aufbereitenden Funktionen (Details dieser Funktion liegen bei der Definition der Funktion vor)
 
-Fahrzeuge_OEM2_Typ21 <- Aufbereitung_des_Datensatz_mit_Origin(Fahrzeuge_OEM2_Typ21, "ID_Fahrzeug")
-Bestandteile_Fahrzeuge_OEM2_Typ21 <- Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulassung(Bestandteile_Fahrzeuge_OEM2_Typ21) %>%
+Fahrzeuge_OEM2_Typ21 <- Aufbereitung_des_Datensatz_mit_Origin(Fahrzeuge_OEM2_Typ21_roh, "ID_Fahrzeug")
+Bestandteile_Fahrzeuge_OEM2_Typ21 <- Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulassung(Bestandteile_Fahrzeuge_OEM2_Typ21_roh) %>%
   select(-c("ID_Sitze", "ID_Schaltung", "ID_Karosserie"))
 
 ```
@@ -707,13 +701,13 @@ Bestandteile_Fahrzeuge_OEM2_Typ21 <- Aufbereitung_des_Datensatz_Bestandteile_bzw
 
 # Blick auf Struktur des Datensatzes  
 
-str(Fahrzeuge_OEM2_Typ22)
-str(Bestandteile_Fahrzeuge_OEM2_Typ22)
+str(Fahrzeuge_OEM2_Typ22_roh)
+str(Bestandteile_Fahrzeuge_OEM2_Typ22_roh)
 
 # Anwendung von die Datensätze aufbereitenden Funktionen (Details dieser Funktion liegen bei der Definition der Funktion vor)
 
-Fahrzeuge_OEM2_Typ22 <- Aufbereitung_des_Datensatz_mit_Origin(Fahrzeuge_OEM2_Typ22, "ID_Fahrzeug")
-Bestandteile_Fahrzeuge_OEM2_Typ22 <- Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulassung(Bestandteile_Fahrzeuge_OEM2_Typ22) %>%
+Fahrzeuge_OEM2_Typ22 <- Aufbereitung_des_Datensatz_mit_Origin(Fahrzeuge_OEM2_Typ22_roh, "ID_Fahrzeug")
+Bestandteile_Fahrzeuge_OEM2_Typ22 <- Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulassung(Bestandteile_Fahrzeuge_OEM2_Typ22_roh) %>%
   select(-c("ID_Sitze", "ID_Schaltung", "ID_Karosserie"))
 
 ```
@@ -727,13 +721,13 @@ Bestandteile_Fahrzeuge_OEM2_Typ22 <- Aufbereitung_des_Datensatz_Bestandteile_bzw
 
 # Blick auf Struktur des Datensatzes  
 
-str(Komponente_K1BE1)
-str(Bestandteile_Komponente_K1BE1)
+str(Komponente_K1BE1_roh)
+str(Bestandteile_Komponente_K1BE1_roh)
 
 # Anwendung von die Datensätze aufbereitenden Funktionen (Details dieser Funktion liegen bei der Definition der Funktion vor)
 
-Komponente_K1BE1 <- Aufbereitung_des_Datensatz_mit_Origin(Komponente_K1BE1, "ID_Motor")
-Bestandteile_Komponente_K1BE1 <- Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulassung(Bestandteile_Komponente_K1BE1)
+Komponente_K1BE1 <- Aufbereitung_des_Datensatz_mit_Origin(Komponente_K1BE1_roh, "ID_Motor")
+Bestandteile_Komponente_K1BE1 <- Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulassung(Bestandteile_Komponente_K1BE1_roh)
 
 ```
 
@@ -743,13 +737,13 @@ Bestandteile_Komponente_K1BE1 <- Aufbereitung_des_Datensatz_Bestandteile_bzw_Zul
 
 # Blick auf Struktur des Datensatzes  
 
-str(Komponente_K1BE2)
-str(Bestandteile_Komponente_K1BE2)
+str(Komponente_K1BE2_roh)
+str(Bestandteile_Komponente_K1BE2_roh)
 
 # Anwendung von die Datensätze aufbereitenden Funktionen (Details dieser Funktion liegen bei der Definition der Funktion vor)
 
-Komponente_K1BE2 <- Aufbereitung_des_Datensatz_mit_Origin(Komponente_K1BE2, "ID_Motor")
-Bestandteile_Komponente_K1BE2 <- Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulassung(Bestandteile_Komponente_K1BE2)
+Komponente_K1BE2 <- Aufbereitung_des_Datensatz_mit_Origin(Komponente_K1BE2_roh, "ID_Motor")
+Bestandteile_Komponente_K1BE2 <- Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulassung(Bestandteile_Komponente_K1BE2_roh)
 
 ```
 
@@ -759,12 +753,12 @@ Bestandteile_Komponente_K1BE2 <- Aufbereitung_des_Datensatz_Bestandteile_bzw_Zul
 
 # Blick auf Struktur des Datensatzes  
 
-str(Komponente_K1DI1)
-str(Bestandteile_Komponente_K1DI1)
+str(Komponente_K1DI1_roh)
+str(Bestandteile_Komponente_K1DI1_roh)
 
 # Auswahl der für die Analyse relevanten Variablen und Union von separaten Variablen, die eigentlich die gleiche Information enthalten, sowie die Entfernung von unnötigen Zeichen innerhalb dieser Variabeln
 
-Komponente_K1DI1 <- Komponente_K1DI1 %>%
+Komponente_K1DI1 <- Komponente_K1DI1_roh %>%
   select(-c("V1", "X1", "Herstellernummer", "Werksnummer", "Fehlerhaft_Fahrleistung", "Herstellernummer.x", "Werksnummer.x", "Herstellernummer.y", "Werksnummer.y", "Fehlerhaft_Fahrleistung.x", "Fehlerhaft_Fahrleistung.y")) %>%
   unite("ID_Motor", ID_Motor, ID_Motor.x, ID_Motor.y) %>% 
   unite("Produktionsdatum", Produktionsdatum, Produktionsdatum.x, Produktionsdatum.y) %>%
@@ -776,7 +770,7 @@ Komponente_K1DI1 <- Komponente_K1DI1 %>%
 
 # Anwendung von die Datensätze aufbereitender Funktion (Details dieser Funktion liegen bei der Definition der Funktion vor)
 
-Bestandteile_Komponente_K1DI1 <- Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulassung(Bestandteile_Komponente_K1DI1)
+Bestandteile_Komponente_K1DI1 <- Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulassung(Bestandteile_Komponente_K1DI1_roh)
 
 ```
 
@@ -786,13 +780,13 @@ Bestandteile_Komponente_K1DI1 <- Aufbereitung_des_Datensatz_Bestandteile_bzw_Zul
 
 # Blick auf Struktur des Datensatzes  
 
-str(Komponente_K1DI2)
-str(Bestandteile_Komponente_K1DI2)
+str(Komponente_K1DI2_roh)
+str(Bestandteile_Komponente_K1DI2_roh)
 
 # Anwendung von die Datensätze aufbereitenden Funktionen (Details dieser Funktion liegen bei der Definition der Funktion vor)
 
-Komponente_K1DI2 <- Aufbereitung_des_Datensatz_mit_Origin(Komponente_K1DI2, "ID_Motor")
-Bestandteile_Komponente_K1DI2 <- Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulassung(Bestandteile_Komponente_K1DI2)
+Komponente_K1DI2 <- Aufbereitung_des_Datensatz_mit_Origin(Komponente_K1DI2_roh, "ID_Motor")
+Bestandteile_Komponente_K1DI2 <- Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulassung(Bestandteile_Komponente_K1DI2_roh)
 
 ```
 
@@ -803,11 +797,11 @@ Bestandteile_Komponente_K1DI2 <- Aufbereitung_des_Datensatz_Bestandteile_bzw_Zul
 
 # Blick auf Struktur des Datensatzes  
 
-str(Zulassungen_alle_Fahrzeuge)
+str(Zulassungen_alle_Fahrzeuge_roh)
 
 # Anwendung von die Datensätze aufbereitender Funktion (Details dieser Funktion liegen bei der Definition der Funktion vor)
 
-Zulassungen_alle_Fahrzeuge <- Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulassung(Zulassungen_alle_Fahrzeuge)
+Zulassungen_alle_Fahrzeuge <- Aufbereitung_des_Datensatz_Bestandteile_bzw_Zulassung(Zulassungen_alle_Fahrzeuge_roh)
 
 ```
 
@@ -1170,351 +1164,3 @@ shinyApp(ui = ui, server = server)
 
 ```
 
-```{r}
-# Erstellen der Applikation 
-
-## Erstellen der Benutzerschnittstelle
-
-ui <- fluidPage(
-
-# Erstellen des Titels und des Bildes in der gleichen Zeile, sowie die Anpassung des Formats dieser Teile der Benutzerschnittstelle   
-  
-  fluidRow (
-    
-    column(width = 10, h1(id="title", "Vergleich von Diesel- und Benzinmotoren"),
-tags$style(HTML("#title{color: white; font-style: bold; font-family: Bookman; font-size: 35px;}"))), 
-    
-    column(width = 2, img(src='https://www.berlin-brandenburg.de/wirtschaft-und-verkehr/qualitaetsinitiative/qw_gross.png', align = "left"))),
-  
-# Anpassung des Hintergrundformats der Applikation  
-
-  theme = shinytheme("journal"),
-
-  setBackgroundColor(color = "DarkRed"),
-  
-# Inputs and Outputs der Applikation 
-  
-  sidebarLayout(
-         
-# Inputs    
-    
-    sidebarPanel(
-
-# Inputs (erste Aufgabe der Visualisierung - Fehlerhäufigkeit der Motoren)      
-      
-      dateRangeInput("Produktionszeitraum","Wählen Sie den Produktionszeitraum der Fahrzeuge aus", min = min(Final_Datensatz$Produktionsdatum_Fahrzeug), max = max(Final_Datensatz$Produktionsdatum_Fahrzeug), start = "2008-12-02", end = "2015-02-03"),
-
-# Inputs (Zweite Aufgabe der Visualisierung - Lebensdauer der Fahrzeuge)
-
-      checkboxGroupInput("Fahrzeugtyp"," Wählen Sie einen Fahrzeugtyp aus", choices = levels(Final_Datensatz$Fahrzeug_Typ), selected = "11")),
-    
-# Outputs
-
-    mainPanel(
- 
-# Outputs (Erste Aufgabe der Visualisierung - Fehlerhäufigkeit der Motoren)
-
-       tabsetPanel(
-         
-         tabPanel("Motorentyp", plotly::plotlyOutput("Balkendiagramm")),
-
-# Outputs (Zweite Aufgabe der Visualisierung - Lebensdauer der Fahrzeuge)
-
-         tabPanel("Fahrzeugtyp", plotly::plotlyOutput("Boxplot_Fahrzeugtyp")),
-
-# Outputs (Dritte Aufgabe der Visualisierung - Finaldatensatz)
-
-         tabPanel("Datensatz", DT::DTOutput("Datensatz"))))
-
-)
-
-)
-
-## Erstellen des Servers
-
-server <- function (input, output, session){
-  
-# Angepasster Datensatz für den Balkendiagramm als Reactive Expression (Erste Aufgabe der Visualisierung - Fehlerhäufigkeit der Motoren)
-  
-  Data_frame_Balkendiagramm <- reactive({
-    Final_Datensatz %>%
-      dplyr::filter(Produktionsdatum >= input$Produktionszeitraum[1], Produktionsdatum <= input$Produktionszeitraum[2]) %>%
-      dplyr::group_by(Motor_Typ) %>%
-      dplyr::summarize(Relative_Fehlerhaufigkeit = sum(as.numeric(as.character(Fehlerhaft)))/length(Fehlerhaft)) 
-  })
-  
-# Angepasster Datensatz für den Boxplot der Fahrzeugtyp als Reactive Expression (Zweite Aufgabe der Visualisierung - Lebensdauer der Fahrzeuge)
-  
-  Data_frame_Boxplot_Fahrzeugtyp_11 <- reactive({
-   
-    if (grepl("11", input$Fahrzeugtyp)){
-  
-      Final_Datensatz %>%
-      dplyr::filter(Produktionsdatum >= input$Produktionszeitraum[1], Produktionsdatum <= input$Produktionszeitraum[2]) %>%
-      dplyr::filter( Fahrzeug_Typ == "11") %>%
-      dplyr::filter(!is.na(Lebensdauer_in_Days)) %>%
-      dplyr::select(c("Motor_Typ","Lebensdauer_in_Days"))
-     
-   }
-    else {return(0)}
-    
-  })
-      
-  Data_frame_Boxplot_Fahrzeugtyp_12 <- reactive({    
-      
-    if (grepl("12", input$Fahrzeugtyp)){
-  
-      Final_Datensatz %>%
-      dplyr::filter(Produktionsdatum >= input$Produktionszeitraum[1], Produktionsdatum <= input$Produktionszeitraum[2]) %>%
-      dplyr::filter( Fahrzeug_Typ == "12") %>%
-      dplyr::filter(!is.na(Lebensdauer_in_Days)) %>%
-      dplyr::select(c("Motor_Typ","Lebensdauer_in_Days"))
-     
-   }
-     else{return(0)}
-  })
-  
-  Data_frame_Boxplot_Fahrzeugtyp_21 <- reactive({
-  
-     if (grepl("21", input$Fahrzeugtyp)){
-  
-      Final_Datensatz %>%
-      dplyr::filter(Produktionsdatum >= input$Produktionszeitraum[1], Produktionsdatum <= input$Produktionszeitraum[2]) %>%
-      dplyr::filter( Fahrzeug_Typ == "21") %>%
-      dplyr::filter(!is.na(Lebensdauer_in_Days)) %>%
-      dplyr::select(c("Motor_Typ","Lebensdauer_in_Days"))
-     
-   }
-     else{return(0)}
-  })
-  
-  Data_frame_Boxplot_Fahrzeugtyp_22 <- reactive({
-  
-     if (grepl("22", input$Fahrzeugtyp)){
-  
-      Final_Datensatz %>%
-      dplyr::filter(Produktionsdatum >= input$Produktionszeitraum[1], Produktionsdatum <= input$Produktionszeitraum[2]) %>%
-      dplyr::filter( Fahrzeug_Typ == "22") %>%
-      dplyr::filter(!is.na(Lebensdauer_in_Days)) %>%
-      dplyr::select(c("Motor_Typ","Lebensdauer_in_Days"))
-     
-   }
-     else{return(0)}
-  })
-  
-# Erstellen der Reactive Endpoint für den Balkendiagramm (Erste Aufgabe der Visualisierung - Fehlerhäufigkeit der Motoren)  
-  
-  output$Balkendiagramm <- plotly::renderPlotly({
-    ggplot(Data_frame_Balkendiagramm(), aes(x = Motor_Typ, y = Relative_Fehlerhaufigkeit)) + geom_bar(stat = "identity", fill = "DarkRed", width = 0.5) + labs(x ="Motorentyp", y ="Fehlerhaufigkeit", title = "Relative Fehlerhäufigkeit der Benzin- und Dieselmotoren") + theme_minimal() + theme(text = element_text(family = "Bookman"), title = element_text(color = "gray25"), plot.background = element_rect(fill = "gray95"), plot.margin = unit(c(5, 10, 5, 10), units = "mm"))
-  })
-  
-# Erstellen der Reactive Endpoint für den Fahrzeugtyp (Zweite Aufgabe der Visualisierung - Lebensdauer der Fahrzeuge)  
-  
-  output$Boxplot_Fahrzeugtyp <- plotly::renderPlotly({
-   
-   ggplot(Data_frame_Boxplot_Fahrzeugtyp_11(), aes(x = Motor_Typ, y = Lebensdauer_in_Days)) + geom_boxplot(fill = "DarkRed") + labs(x ="Motorentyp", y ="Zeitintervall zwischen Zulassung und 
-  Fehlerdatum der Fahrzeuge (Tage)", title = "Lebensdauer der Fahrzeuge von Typ 11") + theme_minimal() + theme(text = element_text(family = "Bookman"), title = element_text(color = "gray25"), plot.background = element_rect(fill = "gray95"), plot.margin = unit(c(5, 10, 5, 10), units = "mm"))
-   
-    
-    ggplot(Data_frame_Boxplot_Fahrzeugtyp_12(), aes(x = Motor_Typ, y = Lebensdauer_in_Days)) + geom_boxplot(fill = "DarkRed") + labs(x ="Motorentyp", y ="Zeitintervall zwischen Zulassung und 
-  Fehlerdatum der Fahrzeuge (Tage)", title = "Lebensdauer der Fahrzeuge von Typ 12") + theme_minimal() + theme(text = element_text(family = "Bookman"), title = element_text(color = "gray25"), plot.background = element_rect(fill = "gray95"), plot.margin = unit(c(5, 10, 5, 10), units = "mm"))
-    
-
-    ggplot(Data_frame_Boxplot_Fahrzeugtyp_21(), aes(x = Motor_Typ, y = Lebensdauer_in_Days)) + geom_boxplot(fill = "DarkRed") + labs(x ="Motorentyp", y ="Zeitintervall zwischen Zulassung und 
-  Fehlerdatum der Fahrzeuge (Tage)", title = "Lebensdauer der Fahrzeuge von Typ 21") + theme_minimal() + theme(text = element_text(family = "Bookman"), title = element_text(color = "gray25"), plot.background = element_rect(fill = "gray95"), plot.margin = unit(c(5, 10, 5, 10), units = "mm"))
-
-    ggplot(Data_frame_Boxplot_Fahrzeugtyp_22(), aes(x = Motor_Typ, y = Lebensdauer_in_Days)) + geom_boxplot(fill = "DarkRed") + labs(x ="Motorentyp", y ="Zeitintervall zwischen Zulassung und 
-  Fehlerdatum der Fahrzeuge (Tage)", title = "Lebensdauer der Fahrzeuge von Typ 22") + theme_minimal() + theme(text = element_text(family = "Bookman"), title = element_text(color = "gray25"), plot.background = element_rect(fill = "gray95"), plot.margin = unit(c(5, 10, 5, 10), units = "mm"))
- 
-  })
-
-   
-# Erstellen der Reactive Endpoint für die Datensatz (Dritte Aufgabe der Visualisierung)    
-  
-  output$Datensatz <- DT::renderDT({
-    Final_Datensatz
-  
-    })
-  
-  }
-
-# Ausführung der Web-Applikation
-
-shinyApp(ui = ui, server = server)
-
-```
-
-
-```{r}
-# Erstellen der Applikation 
-
-## Erstellen der Benutzerschnittstelle
-
-ui <- fluidPage(
-
-# Erstellen des Titels und des Bildes in der gleichen Zeile, sowie die Anpassung des Formats dieser Teile der Benutzerschnittstelle   
-  
-  fluidRow (
-    
-    column(width = 10, h1(id="title", "Vergleich von Diesel- und Benzinmotoren"),
-tags$style(HTML("#title{color: white; font-style: bold; font-family: Bookman; font-size: 35px;}"))), 
-    
-    column(width = 2, img(src='https://www.berlin-brandenburg.de/wirtschaft-und-verkehr/qualitaetsinitiative/qw_gross.png', align = "left"))),
-  
-# Anpassung des Hintergrundformats der Applikation  
-
-  theme = shinytheme("journal"),
-
-  setBackgroundColor(color = "DarkRed"),
-  
-# Inputs and Outputs der Applikation 
-  
-  sidebarLayout(
-         
-# Inputs    
-    
-    sidebarPanel(
-
-# Inputs (erste Aufgabe der Visualisierung - Fehlerhäufigkeit der Motoren)      
-      
-      dateRangeInput("Produktionszeitraum","Wählen Sie den Produktionszeitraum der Fahrzeuge aus", min = min(Final_Datensatz$Produktionsdatum_Fahrzeug), max = max(Final_Datensatz$Produktionsdatum_Fahrzeug), start = "2008-12-02", end = "2015-02-03"),
-
-# Inputs (Zweite Aufgabe der Visualisierung - Lebensdauer der Fahrzeuge)
-
-      checkboxGroupInput("Fahrzeugtyp"," Wählen Sie einen Fahrzeugtyp aus", choices = levels(Final_Datensatz$Fahrzeug_Typ), selected = "11")),
-    
-# Outputs
-
-    mainPanel(
- 
-# Outputs (Erste Aufgabe der Visualisierung - Fehlerhäufigkeit der Motoren)
-
-       tabsetPanel(
-         
-         tabPanel("Motorentyp", plotly::plotlyOutput("Balkendiagramm")),
-
-# Outputs (Zweite Aufgabe der Visualisierung - Lebensdauer der Fahrzeuge)
-
-         tabPanel("Fahrzeugtyp", plotly::plotlyOutput("Boxplot_Fahrzeugtyp")),
-
-# Outputs (Dritte Aufgabe der Visualisierung - Finaldatensatz)
-
-         tabPanel("Datensatz", DT::DTOutput("Datensatz"))))
-
-)
-
-)
-
-## Erstellen des Servers
-
-server <- function (input, output, session){
-  
-# Angepasster Datensatz für den Balkendiagramm als Reactive Expression (Erste Aufgabe der Visualisierung - Fehlerhäufigkeit der Motoren)
-  
-  Data_frame_Balkendiagramm <- reactive({
-    Final_Datensatz %>%
-      dplyr::filter(Produktionsdatum >= input$Produktionszeitraum[1], Produktionsdatum <= input$Produktionszeitraum[2]) %>%
-      dplyr::group_by(Motor_Typ) %>%
-      dplyr::summarize(Relative_Fehlerhaufigkeit = sum(as.numeric(as.character(Fehlerhaft)))/length(Fehlerhaft)) 
-  })
-  
-# Angepasster Datensatz für den Boxplot der Fahrzeugtyp als Reactive Expression (Zweite Aufgabe der Visualisierung - Lebensdauer der Fahrzeuge)
-  
-  Data_frame_Boxplot_Fahrzeugtyp_11 <- reactive({
-   
-    if (grepl("11", input$Fahrzeugtyp)){
-  
-      Final_Datensatz %>%
-      dplyr::filter(Produktionsdatum >= input$Produktionszeitraum[1], Produktionsdatum <= input$Produktionszeitraum[2]) %>%
-      dplyr::filter( Fahrzeug_Typ == "11") %>%
-      dplyr::filter(!is.na(Lebensdauer_in_Days)) %>%
-      dplyr::select(c("Motor_Typ","Lebensdauer_in_Days"))
-     
-   }
-    else {return(0)}
-    
-  })
-      
-  Data_frame_Boxplot_Fahrzeugtyp_12 <- reactive({    
-      
-    if (grepl("12", input$Fahrzeugtyp)){
-  
-      Final_Datensatz %>%
-      dplyr::filter(Produktionsdatum >= input$Produktionszeitraum[1], Produktionsdatum <= input$Produktionszeitraum[2]) %>%
-      dplyr::filter( Fahrzeug_Typ == "12") %>%
-      dplyr::filter(!is.na(Lebensdauer_in_Days)) %>%
-      dplyr::select(c("Motor_Typ","Lebensdauer_in_Days"))
-     
-   }
-     else{return(0)}
-  })
-  
-  Data_frame_Boxplot_Fahrzeugtyp_21 <- reactive({
-  
-     if (grepl("21", input$Fahrzeugtyp)){
-  
-      Final_Datensatz %>%
-      dplyr::filter(Produktionsdatum >= input$Produktionszeitraum[1], Produktionsdatum <= input$Produktionszeitraum[2]) %>%
-      dplyr::filter( Fahrzeug_Typ == "21") %>%
-      dplyr::filter(!is.na(Lebensdauer_in_Days)) %>%
-      dplyr::select(c("Motor_Typ","Lebensdauer_in_Days"))
-     
-   }
-     else{return(0)}
-  })
-  
-  Data_frame_Boxplot_Fahrzeugtyp_22 <- reactive({
-  
-     if (grepl("22", input$Fahrzeugtyp)){
-  
-      Final_Datensatz %>%
-      dplyr::filter(Produktionsdatum >= input$Produktionszeitraum[1], Produktionsdatum <= input$Produktionszeitraum[2]) %>%
-      dplyr::filter( Fahrzeug_Typ == "22") %>%
-      dplyr::filter(!is.na(Lebensdauer_in_Days)) %>%
-      dplyr::select(c("Motor_Typ","Lebensdauer_in_Days"))
-     
-   }
-     else{return(0)}
-  })
-  
-# Erstellen der Reactive Endpoint für den Balkendiagramm (Erste Aufgabe der Visualisierung - Fehlerhäufigkeit der Motoren)  
-  
-  output$Balkendiagramm <- plotly::renderPlotly({
-    ggplot(Data_frame_Balkendiagramm(), aes(x = Motor_Typ, y = Relative_Fehlerhaufigkeit)) + geom_bar(stat = "identity", fill = "DarkRed", width = 0.5) + labs(x ="Motorentyp", y ="Fehlerhaufigkeit", title = "Relative Fehlerhäufigkeit der Benzin- und Dieselmotoren") + theme_minimal() + theme(text = element_text(family = "Bookman"), title = element_text(color = "gray25"), plot.background = element_rect(fill = "gray95"), plot.margin = unit(c(5, 10, 5, 10), units = "mm"))
-  })
-  
-# Erstellen der Reactive Endpoint für den Fahrzeugtyp (Zweite Aufgabe der Visualisierung - Lebensdauer der Fahrzeuge)  
-  
-  output$Boxplot_Fahrzeugtyp <- plotly::renderPlotly({
-   
-   ggplot(Data_frame_Boxplot_Fahrzeugtyp_11(), aes(x = Motor_Typ, y = Lebensdauer_in_Days)) + geom_boxplot(fill = "DarkRed") + labs(x ="Motorentyp", y ="Zeitintervall zwischen Zulassung und 
-  Fehlerdatum der Fahrzeuge (Tage)", title = "Lebensdauer der Fahrzeuge von Typ 11") + theme_minimal() + theme(text = element_text(family = "Bookman"), title = element_text(color = "gray25"), plot.background = element_rect(fill = "gray95"), plot.margin = unit(c(5, 10, 5, 10), units = "mm"))
-   
-    
-    ggplot(Data_frame_Boxplot_Fahrzeugtyp_12(), aes(x = Motor_Typ, y = Lebensdauer_in_Days)) + geom_boxplot(fill = "DarkRed") + labs(x ="Motorentyp", y ="Zeitintervall zwischen Zulassung und 
-  Fehlerdatum der Fahrzeuge (Tage)", title = "Lebensdauer der Fahrzeuge von Typ 12") + theme_minimal() + theme(text = element_text(family = "Bookman"), title = element_text(color = "gray25"), plot.background = element_rect(fill = "gray95"), plot.margin = unit(c(5, 10, 5, 10), units = "mm"))
-    
-
-    ggplot(Data_frame_Boxplot_Fahrzeugtyp_21(), aes(x = Motor_Typ, y = Lebensdauer_in_Days)) + geom_boxplot(fill = "DarkRed") + labs(x ="Motorentyp", y ="Zeitintervall zwischen Zulassung und 
-  Fehlerdatum der Fahrzeuge (Tage)", title = "Lebensdauer der Fahrzeuge von Typ 21") + theme_minimal() + theme(text = element_text(family = "Bookman"), title = element_text(color = "gray25"), plot.background = element_rect(fill = "gray95"), plot.margin = unit(c(5, 10, 5, 10), units = "mm"))
-
-    ggplot(Data_frame_Boxplot_Fahrzeugtyp_22(), aes(x = Motor_Typ, y = Lebensdauer_in_Days)) + geom_boxplot(fill = "DarkRed") + labs(x ="Motorentyp", y ="Zeitintervall zwischen Zulassung und 
-  Fehlerdatum der Fahrzeuge (Tage)", title = "Lebensdauer der Fahrzeuge von Typ 22") + theme_minimal() + theme(text = element_text(family = "Bookman"), title = element_text(color = "gray25"), plot.background = element_rect(fill = "gray95"), plot.margin = unit(c(5, 10, 5, 10), units = "mm"))
- 
-  })
-
-   
-# Erstellen der Reactive Endpoint für die Datensatz (Dritte Aufgabe der Visualisierung)    
-  
-  output$Datensatz <- DT::renderDT({
-    Final_Datensatz
-  
-    })
-  
-  }
-
-# Ausführung der Web-Applikation
-
-shinyApp(ui = ui, server = server)
-
-```
