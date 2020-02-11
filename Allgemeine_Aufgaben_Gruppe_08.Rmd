@@ -433,12 +433,13 @@ tabyl(Logistikverzug_Werk_1142$Verzugsdauer)
 
 ```{r , message=TRUE, warning=TRUE}
 
-ggplot(Logistikverzug_Werk_1132, aes(Verzugsdauer)) +
-  geom_histogram()
+
+  ggplot(Logistikverzug_Werk_1132,aes(x=Verzugsdauer)) +ylab("Häufigkeit") + ggtitle("die Verteilung der Logistikverzug(Werkstatt 113)") + theme(plot.title = element_text(hjust=0.4))+
+  geom_histogram(binwidth=0.5, fill= 3)
 
 
-ggplot(Logistikverzug_Werk_1142, aes(Verzugsdauer)) +
-  geom_histogram()
+ggplot(Logistikverzug_Werk_1142, aes(Verzugsdauer)) + ylab("Häufigkeit") + ggtitle("die Verteilung der Logistikverzug(Werkstatt 114)")+theme(plot.title = element_text(hjust=0.4))+
+  geom_histogram(binwidth=0.5,fill=4)
 ```
 
 
