@@ -996,7 +996,7 @@ tags$style(HTML("#title{color: white; font-style: normal; font-family: Optima, s
 
   theme = shinytheme("journal"),
 
-  setBackgroundColor(color = c("Salmon", "white"),
+  setBackgroundColor(color = c("DarkRed", "white"),
                       gradient = "linear",
                       direction = "bottom"),
   
