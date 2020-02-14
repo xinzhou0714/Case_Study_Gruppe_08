@@ -975,7 +975,7 @@ remove(Bestandteile_Komponente_K1BE1_roh, Bestandteile_Komponente_K1BE2_roh, Bes
 # Ergebnis
 
 
-```{r EchteApp, message = FALSE, warning = FALSE}
+```{r EchteApp, message = TRUE, warning = TRUE}
 # Erstellen der Applikation 
 
 ## Erstellen der Benutzerschnittstelle
@@ -1034,7 +1034,33 @@ tags$style(HTML("#title{color: white; font-style: normal; font-family: Optima, s
 
 # Outputs (Zweite Aufgabe der Visualisierung - Lebensdauer der Fahrzeuge)
 
-         tabPanel("Fahrzeugtyp", plotly::plotlyOutput("Boxplot_Fahreugtyp_11"), plotly::plotlyOutput("Boxplot_Fahreugtyp_12"), plotly::plotlyOutput("Boxplot_Fahreugtyp_21"), plotly::plotlyOutput("Boxplot_Fahreugtyp_22")),
+         tabPanel(
+           "Fahrzeugtyp", plotly::plotlyOutput("Boxplot_Fahreugtyp_11"), plotly::plotlyOutput("Boxplot_Fahreugtyp_12"), plotly::plotlyOutput("Boxplot_Fahreugtyp_21"), plotly::plotlyOutput("Boxplot_Fahreugtyp_22"), 
+                #   fluidRow(
+                #         column(6,
+                #                 plotly::plotlyOutput("Boxplot_Fahreugtyp_11")
+                #         ),
+                #         column(6,
+                #                plotly::plotlyOutput("Boxplot_Fahreugtyp_11")
+                #         )
+                # ),
+                # fluidRow(
+                #         column(6,
+                #                plotly::plotlyOutput("Boxplot_Fahreugtyp_11")
+                #         ),
+                #         column(6,
+                #                plotly::plotlyOutput("Boxplot_Fahreugtyp_11")
+                #         )
+                # )
+  #                 , 
+  # fluidRow(
+  #   column(6, plotly::plotlyOutput("Boxplot_Fahreugtyp_11")),
+  #   column(6, plotly::plotlyOutput("Boxplot_Fahreugtyp_12"))),
+  # fluidRow(
+  #       column(6, "Level 2"),
+  #       column(6, "Level 2")
+  #     )
+),
 
 # Outputs (Dritte Aufgabe der Visualisierung - Finaldatensatz)
 
@@ -1141,7 +1167,7 @@ server <- function (input, output, session){
   
   output$Balkendiagramm <- plotly::renderPlotly({
     ggplot(Data_frame_Balkendiagramm(), aes(x = Motor_Typ, y = Relative_Fehlerhaufigkeit)) + geom_bar(stat = "identity", fill = "DarkRed", width = 0.5) + labs(x ="Motorentyp", y ="Fehlerhaufigkeit", title = "Relative Fehlerhäufigkeit der Benzin- und
-Dieselmotoren") + theme_minimal() + theme(text = element_text(family = "Bookman"), title = element_text(color = "gray25"), plot.background = element_rect(fill = "gray95"), plot.margin = unit(c(5, 10, 5, 10), units = "mm"))
+Dieselmotoren") + theme_minimal() + theme(text = element_text(family = "Bookman"), title = element_text(color = "gray25"), plot.title = element_text(size=12, margin=margin(0,0,60,0)), plot.background = element_rect(fill = "gray95"), plot.margin = unit(c(10, 10, 10, 10), units = "mm"))
   })
   
 # Erstellen der Reactive Endpoint für den Fahrzeugtyp (Zweite Aufgabe der Visualisierung - Lebensdauer der Fahrzeuge)  
@@ -1149,31 +1175,31 @@ Dieselmotoren") + theme_minimal() + theme(text = element_text(family = "Bookman"
   output$Boxplot_Fahreugtyp_11 <- plotly::renderPlotly({
    if (Data_frame_Boxplot_Fahrzeugtyp_11() != 0){
    ggplot(Data_frame_Boxplot_Fahrzeugtyp_11(), aes(x = Motor_Typ, y = Lebensdauer_in_Days)) + geom_boxplot(fill = "DarkRed") + labs(x ="Motorentyp", y ="Zeitintervall zwischen Zulassung und 
-  Fehlerdatum (Tage)", title = "Lebensdauer der Fahrzeuge von Typ 11") + theme_minimal() + theme(text = element_text(family = "Bookman"), title = element_text(color = "gray25"), plot.background = element_rect(fill = "gray95"), plot.margin = unit(c(5, 10, 5, 10), units = "mm"), axis.title.y = element_text(margin(t = 0, r = 40, b = 0, l = 0)), axis.title.x = element_text(margin(t = 40, r = 0, b = 0, l = 0)) )
+  Fehlerdatum (Tage)", title = "Lebensdauer der Fahrzeuge von Typ 11") + theme_minimal() + theme(text = element_text(family = "Bookman"), title = element_text(color = "gray25"), plot.background = element_rect(fill = "gray95"), plot.title = element_text(size=12, margin=margin(0,0,30,0)), plot.margin = unit(c(10, 10, 10, 10), units = "mm"), axis.title.y = element_text(margin(t = 0, r = 60, b = 0, l = 0)), axis.title.x = element_text(margin(t = 40, r = 0, b = 0, l = 0)) )
    }
     else{ggplot()}
   })
   
    output$Boxplot_Fahreugtyp_12 <- plotly::renderPlotly({
     if (Data_frame_Boxplot_Fahrzeugtyp_12() != 0){
-    ggplot(Data_frame_Boxplot_Fahrzeugtyp_12(), aes(x = Motor_Typ, y = Lebensdauer_in_Days)) + coord_flip() + geom_boxplot(fill = "DarkRed") + labs(x ="Motorentyp", y ="Zeitintervall zwischen Zulassung und 
-  Fehlerdatum (Tage)", title = "Lebensdauer der Fahrzeuge von Typ 12") + theme_minimal() + theme(text = element_text(family = "Bookman"), title = element_text(color = "gray25"), plot.background = element_rect(fill = "gray95"), plot.margin = unit(c(5, 10, 5, 10), units = "mm"))
+    ggplot(Data_frame_Boxplot_Fahrzeugtyp_12(), aes(x = Motor_Typ, y = Lebensdauer_in_Days)) + geom_boxplot(fill = "DarkRed") + labs(x ="Motorentyp", y ="Zeitintervall zwischen Zulassung und 
+  Fehlerdatum (Tage)", title = "Lebensdauer der Fahrzeuge von Typ 12") + theme_minimal() + theme(text = element_text(family = "Bookman"), title = element_text(color = "gray25"), plot.title = element_text(size=12, margin=margin(0,0,30,0)), plot.background = element_rect(fill = "gray95"), plot.margin = unit(c(10, 10, 10, 10), units = "mm"))
     }
      else{ggplot()}
   })
   
    output$Boxplot_Fahreugtyp_21 <- plotly::renderPlotly({
     if (Data_frame_Boxplot_Fahrzeugtyp_21() != 0){
-    ggplot(Data_frame_Boxplot_Fahrzeugtyp_21(), aes(x = Motor_Typ, y = Lebensdauer_in_Days)) + coord_flip() + geom_boxplot(fill = "DarkRed", outlier.colour = "red", outlier.shape = 1) + labs(x ="Motorentyp", y ="Zeitintervall zwischen Zulassung und 
-  Fehlerdatum (Tage)", title = "Lebensdauer der Fahrzeuge von Typ 21") + theme_minimal() + theme(text = element_text(family = "Bookman"), title = element_text(color = "gray25"), plot.background = element_rect(fill = "gray95"), plot.margin = unit(c(5, 10, 5, 10), units = "mm"))
+    ggplot(Data_frame_Boxplot_Fahrzeugtyp_21(), aes(x = Motor_Typ, y = Lebensdauer_in_Days)) + geom_boxplot(fill = "DarkRed", outlier.colour = "red", outlier.shape = 1) + labs(x ="Motorentyp", y ="Zeitintervall zwischen Zulassung und 
+  Fehlerdatum (Tage)", title = "Lebensdauer der Fahrzeuge von Typ 21") + theme_minimal() + theme(text = element_text(family = "Bookman"), title = element_text(color = "gray25"), plot.title = element_text(size=12, margin=margin(0,0,30,0)), plot.background = element_rect(fill = "gray95"), plot.margin = unit(c(10, 10, 10, 10), units = "mm"))
     }
      else{ggplot()}
   })
    
    output$Boxplot_Fahreugtyp_22 <- plotly::renderPlotly({
     if (Data_frame_Boxplot_Fahrzeugtyp_22() != 0){
-    ggplot(Data_frame_Boxplot_Fahrzeugtyp_22(), aes(x = Motor_Typ, y = Lebensdauer_in_Days)) + coord_flip() + geom_boxplot(fill = "DarkRed", outlier.colour = "white", outlier.shape = NA) + labs(x ="Motorentyp", y ="Zeitintervall zwischen Zulassung und 
-  Fehlerdatum (Tage)", title = "Lebensdauer der Fahrzeuge von Typ 22") + theme_minimal() + theme(text = element_text(family = "Bookman"), title = element_text(color = "gray25"), plot.background = element_rect(fill = "gray95"), plot.margin = unit(c(5, 10, 5, 10), units = "mm"))
+    ggplot(Data_frame_Boxplot_Fahrzeugtyp_22(), aes(x = Motor_Typ, y = Lebensdauer_in_Days)) + geom_boxplot(fill = "DarkRed", outlier.colour = "white", outlier.shape = NA) + labs(x ="Motorentyp", y ="Zeitintervall zwischen Zulassung und 
+  Fehlerdatum (Tage)", title = "Lebensdauer der Fahrzeuge von Typ 22") + theme_minimal() + theme(text = element_text(family = "Bookman"), title = element_text(color = "gray25"), plot.title = element_text(size=12, margin=margin(0,0,30,0)), plot.background = element_rect(fill = "gray95"), plot.margin = unit(c(10, 10, 10, 10), units = "mm"))
     }
      else{ggplot()}
   })
