@@ -987,15 +987,18 @@ ui <- fluidPage(
   fluidRow (
     
     column(width = 10, h1(id="title", "Vergleich von Diesel- und Benzinmotoren"),
-tags$style(HTML("#title{color: white; font-style: bold; font-family: Bookman; font-size: 35px;}"))), 
+tags$style(HTML("#title{color: white; font-style: normal; font-family: Optima, serif; font-size: 28px;}"))), 
     
-    column(width = 2, img(src='https://www.berlin-brandenburg.de/wirtschaft-und-verkehr/qualitaetsinitiative/qw_gross.png', align = "left"))),
+    column(width = 2, img(src='https://lh3.googleusercontent.com/2ggUfxDZyxiE59_DF-CGC42AIIo5sJT_sMIWyBqpcQ5Uu8RB8Tg9qbx6ymCUKsWzGNs', align = "left", width = 100,
+         height = 100))),
   
 # Anpassung des Hintergrundformats der Applikation  
 
   theme = shinytheme("journal"),
 
-  setBackgroundColor(color = "DarkRed"),
+  setBackgroundColor(color = c("Salmon", "white"),
+                      gradient = "linear",
+                      direction = "bottom"),
   
 # Inputs and Outputs der Applikation 
   
@@ -1137,7 +1140,8 @@ server <- function (input, output, session){
 # Erstellen der Reactive Endpoint für den Balkendiagramm (Erste Aufgabe der Visualisierung - Fehlerhäufigkeit der Motoren)  
   
   output$Balkendiagramm <- plotly::renderPlotly({
-    ggplot(Data_frame_Balkendiagramm(), aes(x = Motor_Typ, y = Relative_Fehlerhaufigkeit)) + geom_bar(stat = "identity", fill = "DarkRed", width = 0.5) + labs(x ="Motorentyp", y ="Fehlerhaufigkeit", title = "Relative Fehlerhäufigkeit der Benzin- und Dieselmotoren") + theme_minimal() + theme(text = element_text(family = "Bookman"), title = element_text(color = "gray25"), plot.background = element_rect(fill = "gray95"), plot.margin = unit(c(5, 10, 5, 10), units = "mm"))
+    ggplot(Data_frame_Balkendiagramm(), aes(x = Motor_Typ, y = Relative_Fehlerhaufigkeit)) + geom_bar(stat = "identity", fill = "DarkRed", width = 0.5) + labs(x ="Motorentyp", y ="Fehlerhaufigkeit", title = "Relative Fehlerhäufigkeit der Benzin- und
+Dieselmotoren") + theme_minimal() + theme(text = element_text(family = "Bookman"), title = element_text(color = "gray25"), plot.background = element_rect(fill = "gray95"), plot.margin = unit(c(5, 10, 5, 10), units = "mm"))
   })
   
 # Erstellen der Reactive Endpoint für den Fahrzeugtyp (Zweite Aufgabe der Visualisierung - Lebensdauer der Fahrzeuge)  
@@ -1145,7 +1149,7 @@ server <- function (input, output, session){
   output$Boxplot_Fahreugtyp_11 <- plotly::renderPlotly({
    if (Data_frame_Boxplot_Fahrzeugtyp_11() != 0){
    ggplot(Data_frame_Boxplot_Fahrzeugtyp_11(), aes(x = Motor_Typ, y = Lebensdauer_in_Days)) + geom_boxplot(fill = "DarkRed") + labs(x ="Motorentyp", y ="Zeitintervall zwischen Zulassung und 
-  Fehlerdatum (Tage)", title = "Lebensdauer der Fahrzeuge von Typ 11") + theme_minimal() + theme(text = element_text(family = "Bookman"), title = element_text(color = "gray25"), plot.background = element_rect(fill = "gray95"), plot.margin = unit(c(5, 10, 5, 10), units = "mm"), axis.title.y = element_text(margin(t = 0, r = 200, b = 0, l = 0)), axis.title.x = element_text(margin(t = 200, r = 0, b = 0, l = 0)) )
+  Fehlerdatum (Tage)", title = "Lebensdauer der Fahrzeuge von Typ 11") + theme_minimal() + theme(text = element_text(family = "Bookman"), title = element_text(color = "gray25"), plot.background = element_rect(fill = "gray95"), plot.margin = unit(c(5, 10, 5, 10), units = "mm"), axis.title.y = element_text(margin(t = 0, r = 40, b = 0, l = 0)), axis.title.x = element_text(margin(t = 40, r = 0, b = 0, l = 0)) )
    }
     else{ggplot()}
   })
