@@ -1,0 +1,351 @@
+---
+title: "Case_Study_Gruppe_08"
+author: "Brayan Orjuela Pico, Chen Xue,  Tobias Königer, Xin Zhou,  Yue Zhang"
+date: "März 1, 2020"
+output: 
+  html_document:
+    toc: true
+    theme: united
+    number_sections: true
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE)
+
+```
+
+**Aufgabenstellung**
+
+Wir sind Mitarbeiter eines fiktiven großen Automobilkonzerns, der unter zwei Automobilmarken, “OEM1” und “OEM2”, mehrere Fahrzeugtypen herstellt. Die Zulieferkette setzt sich aus zwei Instanzen zusammen: den Teilelieferanten und den Komponentenlieferanten. Das Produktionswerk verbaut die Komponenten in die jeweiligen Fahrzeuge. Momentan versuchen die Automobilhersteller, trotz negativer Berichterstattung über Dieselfahrzeuge, Kunden für Autos mit Dieselmotoren zu gewinnen. Ein oft verwendetes Argument ist **die Langlebigkeit von Dieselmotoren, die deutlich größer als die Lebensdauer der Benzinmotoren sein soll.**  Das Management beauftragt Sie, diese Behauptung zu überprüfen um mit der Aussage künftig werben zu können. Überprüfen Sie die Aussage über die Langlebigkeit von Dieselmotoren durch einen Vergleich mit Benzinmotoren. Überprüfen Sie die Aussage über die Langlebigkeit von Dieselmotoren durch einen Vergleich mit Benzinmotoren. Ermitteln Sie den Zeitraum zwischen Zulassungsdatum und Fehlerdatum aller Fahrzeuge, getrennt nach Motorisierungsart und Fahrzeugart. Visualisieren Sie Ihre Ergebnisse entsprechend Ihrer Zielgruppe. Ermöglichen Sie einen Vergleich zwischen den Fahrzeugtypen.
+
+**Visualisierung**
+
+A: Ein Balkendiagramm, das die relativen Fehlerhäufigkeiten aller Motoren, getrennt in Benzin- und Dieselantrieb, darstellt. Das Diagramm muss interaktive Elemente enthalten. Der Produktionszeitraum der Fahrzeuge muss durch den Nutzer variabel eingrenzbar sein.
+
+B: Pro Fahrzeugtyp jeweils einen Boxplot für Varianten mit Dieselmotor und einen Boxplot für Varianten mit Benzinmotor. Die Boxplots beziehen sich dabei auf das Zeitintervall zwischen Zulassung eines Fahrzeugs und Fehlerdatum der Fahrzeuge. Wichtige Kennzahlen müssen interaktiv ablesbar sein. Die Fahrzeugtypen sollen an- und abwählbar sein. Alle Fahrzeugtypen von OEM1 und OEM2 sollen mit einem Klick an- und abwählbar sein. Der für das Balkendiagramm ausgewählte Produktionszeitraum soll auch hier angewendet werden.
+
+
+# Laden und geg. Installieren notwendiger Bibliotheken
+
+```{r packages, include=TRUE, message = FALSE}
+
+if(!require(plotly)){
+  install.packages("plotly")
+}
+library(plotly)
+
+if(!require(shinyWidgets)){
+  install.packages("shinyWidgets")
+}
+library(shinyWidgets)
+
+if(!require(shinythemes)){
+  install.packages("shinythemes")
+}
+library(shinythemes)
+
+if(!require(DT)){
+  install.packages("DT")
+}
+library(DT)
+
+if(!require(data.table)){
+  install.packages("data.table")
+}
+# für die Verwendung von fread()
+library(data.table)
+
+if(!require(tidyverse)){
+  install.packages("tidyverse")
+}
+library(tidyverse)
+
+if(!require(shiny)){
+  install.packages("shiny")
+}
+library(shiny)
+
+if(!require(plyr)){
+  install.packages("plyr")
+}
+library(plyr)
+
+if(!require(lubridate)){
+  install.packages("lubridate")
+}
+library(lubridate)
+
+```
+
+
+# Importieren der Daten
+
+Aus die Aufgabenstellung gibt es solche Annahme:
+$$
+Lebensdauer=  Fehlerdatum - Zulassungsdatum
+$$
+
+## Relevante Daten
+
+Zuerst wurde/wird es analysiert, welche daten relevant sind. Dieses Verfahren hängt von den folgenden drei Aufgaben und weiteren detallierten Anforderungen des Inhalts und der Eigenschaften der Shiny-Applikation. Darüber hinaus hängen die relevanten Daten mit den Dateien zusammen, die nicht nur die unterschiedlichen Motorentypen als ganze Systeme sondern auch die Einzelteile dieser Motoren beschreiben. 
+
+1. Überprüfen Sie die Aussage über die Langlebigkeit von Dieselmotoren durch einen Vergleich mit Benzinmotoren.
+2. Ermitteln Sie den Zeitraum zwischen Zulassungsdatum und Fehlerdatum aller Fahrzeuge, getrennt nach Motorisierungsart und Fahrzeugart.
+3.  Visualisieren Sie Ihre Ergebnisse entsprechend Ihrer Zielgruppe. Ermöglichen Sie einen Vergleich zwischen den Fahrzeugtypen.
+
+
+Die für die Analyse nötwendigen Parameter sind wie folgend aufgelistet :
+
+
+- Fehlerdatum  der Fahrzeuge, die wegen eines fehlerhaften Motors, defekt geworden sind 
+- Zulassungsdatum der oben geschriebenen Fahrzeuge
+- Motorisierungsart dieser Fahrzeuge (Mit Diesel oder Benzin angetrieben) 
+- Fahrzeugart(Typ11,Typ12, Typ21 oder Typ22)
+- Fahrzeugmarke (OEM1 oder OEM2)
+- Fehlermeldung aller Motoren (Fehlerhaft oder nicht) einschließlich Fehlermeldung ihrer Komponente 
+
+
+| Nr.  | Faktoren                  | directory name       | file name                               | Spezifikation |
+| ---- | ------------------------- | -------------------- | --------------------------------------- | ------------- |
+| 1    | Zulassungsdatum           | "./Data/Zulassungen" | "Zulassungen_alle_Fahrzeuge.csv"        |               |
+| 2    | Fehlerdatum der Fahrzeuge | "./Data/Fahrzeug"    | "Fahrzeuge_OEM1_Typ11.csv"              | Typ 11        |
+| 3    |                           |                      | "Fahrzeuge_OEM1_Typ12.csv"              | Typ 12        |
+| 4    |                           |                      | "Fahrzeuge_OEM2_Typ21.csv"              | Typ 21        |
+| 5    |                           |                      | "Fahrzeuge_OEM2_Typ22.csv"              | Typ 22        |
+| 6    | Motoren der Fahrzeuge     | "./Data/Fahrzeug"    | "Bestandteile_Fahrzeuge_OEM1_Typ11.csv" | Typ 11        |
+| 7    |                           |                      | "Bestandteile_Fahrzeuge_OEM1_Typ12.csv" | Typ 12        |
+| 8    |                           |                      | "Bestandteile_Fahrzeuge_OEM2_Typ21.csv" | Typ 21        |
+| 9    |                           |                      | "Bestandteile_Fahrzeuge_OEM2_Typ22.csv" | Typ 22        |
+| 10   | Fehlerdatum der Motoren   | "./Data/Komponente"  | "Komponente_K1BE1.csv"                  |               |
+| 11   |                           |                      | "Komponente_K1BE2.csv"                  |               |
+| 12   |                           |                      | "Komponente_K1DI1.csv"                  |               |
+| 13   |                           |                      | "Komponente_K1DI2.txt"                  |               |
+| 14   | Bestandteile der Motoren  | "./Data/Komponente"  | "Bestandteile_Komponente_K1BE1.csv"     |               |
+| 15   |                           |                      | "Bestandteile_Komponente_K1BE2.csv"     |               |
+| 16   |                           |                      | "Bestandteile_Komponente_K1DI1.csv"     |               |
+| 17   |                           |                      | "Bestandteile_Komponente_K1DI2.csv"     |               |
+| 18-28| Einzelteile der Motoren   | "./Data/Einzelteile" | "Einzelteil_T0X.txt"                    | X = 01 bis 10 |
+
+# Einlesen der Daten 
+
+**Einzelteile 01 bis 10**
+
+Obwohl es 38 Einzelteile gibt, werden nur die Dateien mit Data zu den Einzelteilen 1-10 eingelesen, weil sie die Bestandteile der unterschiedlichen Motoren sind. Die Dateien, die ausführliche Informationen zum Einzelteil 1, 2, 3, 7 und 9 enthalten, haben so ein Format, dass es keine entsprechende Funktion gibt, die nach dem Einlesen unmittelbar aus dem original Format eine übersichtliche Struktur erzeugen würde. Deswegen werden die Dateien auf die folgende Weise modifiziert. Die Data in der Dateien werden in übersichtliche Zeile nach der Analysierung ihrer Struktur organisiert und die Field Parameters werden simplifiziert, was es ermöglicht, die Dateien durch eine Funktion wie Fread einzulesen, um eine Data Frame zu erzeugen. 
+
+*Einzelteil 01*
+
+```{r Einzelteil_01, message = FALSE, warning = FALSE}
+# die Daten im Einzelteil_T01.txt habe fogende Merkmal:
+#   -die 2. Spalt von Oberservation ist überschüssig , 3. Spalt ist  die echte ID_T01
+#   -Trennzeichen zwischen Spalten ist  " | | " , und in  ASCII(hex) ist \x20\x7c\x20\x7c\x20 
+#   -Trennzeichen zwischen Zeilen ist " "(einzel Leerzeichen) und in  ASCII(hex) ist \x20
+#
+#Fehler :
+#   -Zeichen "Fahrleistung" und  "A" ist Bestandteil von Datensatz (NA), bitte vermeiden sie als Pattern zu nutzen 
+#   -bei ersetzen durch "str_replace_all" hast du falsch Pattern genutzt. einstellige Pipeline "|" bedeutet logische operation "Oder", das Zeichen "\" kann wörtliche Bedeutung einer Stelle nutzen. deswegen die richtige Format von " | | "ist  " \\| \\| "
+
+Einzelteil_T01_roh <- read_file("Data/Einzelteil/Einzelteil_T01.txt") %>%
+  str_replace_all(" \\| \\| " , ",") %>%
+  str_replace_all(" ", "\n")%>%
+  
+  fread()
+
+```
+ 
+*Einzelteil 02*
+
+```{r Einzelteil_T02, message = FALSE, warning = FALSE}
+
+Einzelteil_T02_roh <- read_file("Data/Einzelteil/Einzelteil_T02.txt") %>%
+  str_replace_all("\t","\n") %>%
+  str_replace_all("  ",",") %>%
+
+  fread()
+
+```
+
+*Einzelteil 03*
+
+```{r Einzelteil_T03, message = FALSE, warning = FALSE}
+# die unsichtbare Zeichen hat ASCII-Code \x0b  ,ist vertical tab
+# das reserviert Zeichen "|" soll interperiert als normaler Zeichen  
+
+Einzelteil_T03_roh <- read_file("Data/Einzelteil/Einzelteil_T03.txt") %>%
+  str_replace_all("\\|",",") %>%
+  str_replace_all("\x0b","\n") %>%
+  
+  fread()
+
+```
+ 
+*Einzelteil 04 - 06* 
+
+Dank des Formats dieser Dateien können sie einfach durch fread eingelesen werden.
+
+```{r Einzelteil_T04_5_6, message = FALSE, warning = FALSE}
+
+Einzelteil_T04_roh <- fread("Data/Einzelteil/Einzelteil_T04.csv")
+Einzelteil_T05_roh <- fread("Data/Einzelteil/Einzelteil_T05.csv")
+Einzelteil_T06_roh <- fread("Data/Einzelteil/Einzelteil_T06.csv")
+
+```
+
+*Einzelteil 07*
+
+```{r Einzelteil_T07, message = FALSE, warning = FALSE}
+
+# Trennzeich zwischen Zeilen korrigiert werden
+Einzelteil_T07_roh <- read_file("Data/Einzelteil/Einzelteil_T07.txt") %>%
+  str_replace_all("\"\"","\"\n\"") %>%
+
+  fread(sep="\t")
+
+```
+
+*Einzelteil 08* 
+
+Dank des Formats dieser Datei kann sie einfach durch fread eingelesen werden.
+
+```{r Einzelteil_T08, message = FALSE, warning = FALSE}
+
+Einzelteil_T08_roh <- fread("Data/Einzelteil/Einzelteil_T08.csv")
+
+```
+
+*Einzelteil 09*
+
+```{r Einzelteil_T09, message = FALSE, warning = FALSE}
+#\v für ASCII-Code \x0b
+Einzelteil_T09_roh <- read_file("Data/Einzelteil/Einzelteil_T09.txt") %>%
+  str_replace_all("\v","\n") %>%
+  
+  fread(sep="\\")
+
+```
+
+*Einzelteil 10*
+
+Dank des Formats dieser Datei kann sie einfach durch fread eingelesen werden.
+
+```{r Einzelteil_T10, message = FALSE, warning = FALSE}
+
+Einzelteil_T10_roh <- fread("Data/Einzelteil/Einzelteil_T10.csv")
+
+```
+
+
+**Fahrzeuge und ihre Bestandteile**
+
+*Fahrzeug 11*
+
+Dank des Formats dieser Dateien können sie einfach durch fread eingelesen werden.
+
+```{r Fahrzeug_11, message = FALSE, warning = FALSE}
+
+Fahrzeuge_OEM1_Typ11_roh <- fread("Data/Fahrzeug/Fahrzeuge_OEM1_Typ11.csv")
+Bestandteile_Fahrzeuge_OEM1_Typ11_roh <- read_csv2("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM1_Typ11.csv")
+
+```
+
+*Fahrzeug 12*
+
+Dank des Formats dieser Dateien können sie einfach durch fread eingelesen werden.
+
+```{r Fahrzeug_12, message = FALSE, warning = FALSE}
+
+Fahrzeuge_OEM1_Typ12_roh <- fread("Data/Fahrzeug/Fahrzeuge_OEM1_Typ12.csv")
+Bestandteile_Fahrzeuge_OEM1_Typ12_roh <- read_csv2("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM1_Typ12.csv")
+
+```
+
+*Fahrzeug 21*
+
+Dank des Formats dieser Dateien können sie einfach durch fread eingelesen werden.
+
+```{r Fahrzeug_21, message = FALSE, warning = FALSE}
+
+Fahrzeuge_OEM2_Typ21_roh <- fread("Data/Fahrzeug/Fahrzeuge_OEM2_Typ21.csv")
+Bestandteile_Fahrzeuge_OEM2_Typ21_roh <- read_csv2("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM2_Typ21.csv")
+
+```
+
+*Fahrzeug 22*
+
+Dank des Formats dieser Dateien können sie einfach durch fread eingelesen werden.
+
+```{r Fahrzeug_22, message = FALSE, warning = FALSE}
+
+Fahrzeuge_OEM2_Typ22_roh <- fread("Data/Fahrzeug/Fahrzeuge_OEM2_Typ22.csv")
+Bestandteile_Fahrzeuge_OEM2_Typ22_roh <- fread("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM2_Typ22.csv")
+
+```
+
+
+**Komponente(Motoren) und ihre Bestandteile**
+
+*Motor K1BE1*
+
+Dank des Formats dieser Dateien können sie einfach durch fread eingelesen werden.
+
+```{r Motor_K1BE1, message = FALSE, warning = FALSE}
+
+Komponente_K1BE1_roh <- fread("Data/Komponente/Komponente_K1BE1.csv")
+Bestandteile_Komponente_K1BE1_roh <- read_csv2("Data/Komponente/Bestandteile_Komponente_K1BE1.csv")
+
+```
+
+*Motor K1BE2*
+
+Dank des Formats dieser Dateien können sie einfach durch fread eingelesen werden.
+
+```{r Motor_K1BE2, message = FALSE, warning = FALSE}
+
+Komponente_K1BE2_roh <- fread("Data/Komponente/Komponente_K1BE2.csv")
+Bestandteile_Komponente_K1BE2_roh <- read_csv2("Data/Komponente/Bestandteile_Komponente_K1BE2.csv")
+
+```
+
+*Motor K1DI1*
+
+Dank des Formats dieser Dateien können sie einfach durch fread eingelesen werden.
+
+```{r Motor_K1DI1, message = FALSE, warning = FALSE}
+
+Komponente_K1DI1_roh <- fread("Data/Komponente/Komponente_K1DI1.csv")
+Bestandteile_Komponente_K1DI1_roh <- read_csv2("Data/Komponente/Bestandteile_Komponente_K1DI1.csv")
+
+```
+
+*Motor K1DI2*
+
+Folgende Datei wird so modifiziert, dass eine einlesbare Struktur generiert wird, mit der eine Funktion wie Fread eine Data Frame erstellen kann. 
+
+```{r Motor_K1DI2_1, message = FALSE, warning = FALSE}
+
+#Spalte V1 ist wiederholend zu X1
+Komponente_K1DI2_roh <- read_file("Data/Komponente/Komponente_K1DI2.txt") %>%
+  str_replace_all("\t","\n") %>%
+  
+  fread(sep="\\")
+
+```
+
+Dank des Formats folgender Datei kann sie einfach durch fread eingelesen werden.
+
+```{r Motor_K1DI2_2, message = FALSE, warning = FALSE}
+
+Bestandteile_Komponente_K1DI2_roh <- read_csv2("Data/Komponente/Bestandteile_Komponente_K1DI2.csv")
+
+```
+
+
+**Zulassungen**
+
+Dank des Formats dieser Datei kann sie einfach durch fread eingelesen werden.
+
+```{r Zulassungen, message = FALSE, warning = FALSE}
+
+Zulassungen_alle_Fahrzeuge_roh <- read_csv2("Data/Zulassungen/Zulassungen_alle_Fahrzeuge.csv")
+
+```
