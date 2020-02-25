@@ -396,6 +396,8 @@ summary {
 <li><a href="#ermittlung-der-zeitintervalllebensdauer"><span class="toc-section-number">3.4</span> Ermittlung der Zeitintervall(Lebensdauer)</a></li>
 <li><a href="#intergration-vorhandener-spalten"><span class="toc-section-number">3.5</span> Intergration vorhandener Spalten</a></li>
 <li><a href="#ableitung-zusätzlicher-spalten"><span class="toc-section-number">3.6</span> Ableitung zusätzlicher Spalten</a></li>
+<li><a href="#nachprüfung-der-datensatz"><span class="toc-section-number">3.7</span> Nachprüfung der Datensatz</a></li>
+<li><a href="#exportieren-der-datensatz"><span class="toc-section-number">3.8</span> Exportieren der Datensatz</a></li>
 </ul></li>
 <li><a href="#auswertung"><span class="toc-section-number">4</span> Auswertung</a></li>
 <li><a href="#ergebnis"><span class="toc-section-number">5</span> Ergebnis</a></li>
@@ -2501,16 +2503,18 @@ anyNA(Fahrzeuge_Lebensdauer$Fehlerhaft)</code></pre>
 <pre class="r"><code>Datensatz_Halb_Final&lt;-Fahrzeug_Fehler_komplett%&gt;%
   dplyr::inner_join(Fahrzeug_Produktionsdatum,by=&quot;ID_Fahrzeug&quot;)%&gt;%
   dplyr::left_join(Fahrzeuge_Lebensdauer,by=&quot;ID_Fahrzeug&quot;)%&gt;%
-  dplyr::left_join(Abbildung_Motor_zu_Fahrzeug_alle,by=&quot;ID_Fahrzeug&quot;)
+  dplyr::left_join(Abbildung_Motor_zu_Fahrzeug_alle,by=&quot;ID_Fahrzeug&quot;)%&gt;%
+  dplyr::left_join(Zulassungen_alle_Fahrzeuge,by=c(&quot;ID_Fahrzeug&quot;=&quot;IDNummer&quot;))
 
 str(Datensatz_Halb_Final)</code></pre>
-<pre><code>## Classes &#39;tbl_df&#39;, &#39;tbl&#39; and &#39;data.frame&#39;:    3204104 obs. of  6 variables:
+<pre><code>## Classes &#39;tbl_df&#39;, &#39;tbl&#39; and &#39;data.frame&#39;:    3204104 obs. of  7 variables:
 ##  $ ID_Fahrzeug     : chr  &quot;11-1-11-1&quot; &quot;11-1-11-10&quot; &quot;11-1-11-100&quot; &quot;11-1-11-1000&quot; ...
 ##  $ Fehlerhaft      : logi  TRUE FALSE FALSE FALSE FALSE TRUE ...
 ##  $ Fehlerhaft_Datum: Date, format: &quot;2010-04-09&quot; NA ...
 ##  $ Produktionsdatum: Date, format: &quot;2008-11-18&quot; &quot;2008-11-19&quot; ...
 ##  $ Lebensdauer     : num  463 NA NA NA NA 533 444 NA NA 35 ...
-##  $ ID_Motor        : chr  &quot;K1BE1-101-1011-7&quot; &quot;K1BE1-101-1011-50&quot; &quot;K1BE1-104-1041-139&quot; &quot;K1BE1-104-1041-169&quot; ...</code></pre>
+##  $ ID_Motor        : chr  &quot;K1BE1-101-1011-7&quot; &quot;K1BE1-101-1011-50&quot; &quot;K1BE1-104-1041-139&quot; &quot;K1BE1-104-1041-169&quot; ...
+##  $ Zulassung       : Date, format: &quot;2009-01-01&quot; &quot;2009-01-01&quot; ...</code></pre>
 </div>
 <div id="ableitung-zusätzlicher-spalten" class="section level2">
 <h2><span class="header-section-number">3.6</span> Ableitung zusätzlicher Spalten</h2>
@@ -2524,17 +2528,100 @@ Abbildung_Typ_Benennung_Motor&lt;-data.table(Motor_Benennung,Motor_Typ)
 
 Datensatz_Final&lt;-Datensatz_Halb_Final%&gt;%
   dplyr::mutate(Fahrzeug_Typ=str_sub(ID_Fahrzeug,1,2))%&gt;%
-#  dplyr::mutate(Fahrzeug_Typ=as.factor(Fahrzeug_Typ))%&gt;%
-  
   dplyr::mutate(Werksnummer_OEM=str_sub(ID_Fahrzeug,6,7))%&gt;%
-#  dplyr::mutate(Werksnummer_OEM=as.factor(Werksnummer_OEM))%&gt;%
-  
   dplyr::mutate(Motor_Benennung=str_sub(ID_Motor,1,5))%&gt;%
-  dplyr::left_join(Abbildung_Typ_Benennung_Motor,by=&quot;Motor_Benennung&quot;)
-#  dplyr::mutate(Motor_Typ=as.factor(Motor_Typ))
+  dplyr::left_join(Abbildung_Typ_Benennung_Motor,by=&quot;Motor_Benennung&quot;)</code></pre>
+</div>
+<div id="nachprüfung-der-datensatz" class="section level2">
+<h2><span class="header-section-number">3.7</span> Nachprüfung der Datensatz</h2>
+<p>Die Datentyp von Variablen nachprüfen.</p>
+<pre class="r"><code># die  Datentype sind  in Ordnung
+str(Datensatz_Final)</code></pre>
+<pre><code>## Classes &#39;tbl_df&#39;, &#39;tbl&#39; and &#39;data.frame&#39;:    3204104 obs. of  11 variables:
+##  $ ID_Fahrzeug     : chr  &quot;11-1-11-1&quot; &quot;11-1-11-10&quot; &quot;11-1-11-100&quot; &quot;11-1-11-1000&quot; ...
+##  $ Fehlerhaft      : logi  TRUE FALSE FALSE FALSE FALSE TRUE ...
+##  $ Fehlerhaft_Datum: Date, format: &quot;2010-04-09&quot; NA ...
+##  $ Produktionsdatum: Date, format: &quot;2008-11-18&quot; &quot;2008-11-19&quot; ...
+##  $ Lebensdauer     : num  463 NA NA NA NA 533 444 NA NA 35 ...
+##  $ ID_Motor        : chr  &quot;K1BE1-101-1011-7&quot; &quot;K1BE1-101-1011-50&quot; &quot;K1BE1-104-1041-139&quot; &quot;K1BE1-104-1041-169&quot; ...
+##  $ Zulassung       : Date, format: &quot;2009-01-01&quot; &quot;2009-01-01&quot; ...
+##  $ Fahrzeug_Typ    : chr  &quot;11&quot; &quot;11&quot; &quot;11&quot; &quot;11&quot; ...
+##  $ Werksnummer_OEM : chr  &quot;11&quot; &quot;11&quot; &quot;11&quot; &quot;11&quot; ...
+##  $ Motor_Benennung : chr  &quot;K1BE1&quot; &quot;K1BE1&quot; &quot;K1BE1&quot; &quot;K1BE1&quot; ...
+##  $ Motor_Typ       : chr  &quot;Benzinmotor&quot; &quot;Benzinmotor&quot; &quot;Benzinmotor&quot; &quot;Benzinmotor&quot; ...</code></pre>
+<p>Beständigen, ob der Datensatz vollständig ist . und die NA-Wert treten auffällig in zwei Spalten:</p>
+<ul>
+<li><p>Fehlerhaft_Datum</p></li>
+<li><p>Lebensdauer</p></li>
+</ul>
+<p>Für <code>NA</code>s in Variable <code>Lebensdauer</code> sieht es gut aus,weil die Anzahl von <code>NA</code> ist identisch wie Anzahl von fehlerfreie Fahrzeuge. Aber es wäre besser , der Variable <code>Lebensdauer</code> Werte zuordnen, die minimale zensierte Dauer (in Tag) bedeutet, nählich zeitliche Differenz zwischen Zulassung und Heute, weil wir so angenommen, dass die Datensätze im Datenbank ist immer aktuell. Wir haben es auch angemerkt, dass Negativ Werte in Variable <code>Lebensdauer</code> existieren.Dieses Problem beruhen auf die Tatsache,dass Fehler aus Motoren oder Einzelteilen schon vor Zulassungsdatum markiert(zensiert) wurden. Wir können die Negative Werte von <code>Lebensdauer</code> einfach auf Null setzen.</p>
+<p>Für <code>NA</code>s in Variable <code>Fehlerhaft_Datum</code> sieht es gut aus,weil die Anzahl von <code>NA</code> ist identisch wie Anzahl von fehlerhaften Fahrzeuge.</p>
+<pre class="r"><code>#es gibt  NA Werte in Datensatz 
+anyNA(Datensatz_Final)</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<pre class="r"><code>summary(Datensatz_Final)</code></pre>
+<pre><code>##  ID_Fahrzeug        Fehlerhaft      Fehlerhaft_Datum     Produktionsdatum    
+##  Length:3204104     Mode :logical   Min.   :2009-02-28   Min.   :2008-11-18  
+##  Class :character   FALSE:1414984   1st Qu.:2013-07-18   1st Qu.:2010-11-24  
+##  Mode  :character   TRUE :1789120   Median :2017-02-11   Median :2012-11-23  
+##                                     Mean   :NA           Mean   :2012-11-22  
+##                                     3rd Qu.:NA           3rd Qu.:2014-11-23  
+##                                     Max.   :NA           Max.   :2016-11-30  
+##                                                                              
+##   Lebensdauer        ID_Motor           Zulassung          Fahrzeug_Typ      
+##  Min.   : -13.0    Length:3204104     Min.   :2009-01-01   Length:3204104    
+##  1st Qu.: 201.0    Class :character   1st Qu.:2011-02-23   Class :character  
+##  Median : 397.0    Mode  :character   Median :2013-02-20   Mode  :character  
+##  Mean   : 315.7                       Mean   :2013-02-03                     
+##  3rd Qu.: 447.0                       3rd Qu.:2015-02-20                     
+##  Max.   :3388.0                       Max.   :2016-12-30                     
+##  NA&#39;s   :1414984                                                             
+##  Werksnummer_OEM    Motor_Benennung     Motor_Typ        
+##  Length:3204104     Length:3204104     Length:3204104    
+##  Class :character   Class :character   Class :character  
+##  Mode  :character   Mode  :character   Mode  :character  
+##                                                          
+##                                                          
+##                                                          
+## </code></pre>
+<pre class="r"><code>table(as.character(Datensatz_Final$Fehlerhaft))</code></pre>
+<pre><code>## 
+##   FALSE    TRUE 
+## 1414984 1789120</code></pre>
+<pre class="r"><code>#Negative Werte von `Lebensdauer` einfach auf Null setzen.
+Datensatz_Final$Lebensdauer[which(Datensatz_Final$Lebensdauer&lt;=0)]&lt;-0
 
+#NA-Wert von `Lebensdauer` mit zensierte Dauer nachfüllen
+Datensatz_Final&lt;-Datensatz_Final%&gt;%
+  dplyr::mutate(Lebensdauer=if_else(is.na(Lebensdauer),time_length(interval(Zulassung,as_date(now())),unit = &quot;day&quot;),Lebensdauer))
 
-save(Datensatz_Final,file = &quot;VariantData_str.RData&quot;)</code></pre>
+# Datensatz ist bis jetzt entgültig sauber
+summary(Datensatz_Final)</code></pre>
+<pre><code>##  ID_Fahrzeug        Fehlerhaft      Fehlerhaft_Datum     Produktionsdatum    
+##  Length:3204104     Mode :logical   Min.   :2009-02-28   Min.   :2008-11-18  
+##  Class :character   FALSE:1414984   1st Qu.:2013-07-18   1st Qu.:2010-11-24  
+##  Mode  :character   TRUE :1789120   Median :2017-02-11   Median :2012-11-23  
+##                                     Mean   :NA           Mean   :2012-11-22  
+##                                     3rd Qu.:NA           3rd Qu.:2014-11-23  
+##                                     Max.   :NA           Max.   :2016-11-30  
+##   Lebensdauer     ID_Motor           Zulassung          Fahrzeug_Typ      
+##  Min.   :   0   Length:3204104     Min.   :2009-01-01   Length:3204104    
+##  1st Qu.: 382   Class :character   1st Qu.:2011-02-23   Class :character  
+##  Median : 487   Mode  :character   Median :2013-02-20   Mode  :character  
+##  Mean   :1315                      Mean   :2013-02-03                     
+##  3rd Qu.:2374                      3rd Qu.:2015-02-20                     
+##  Max.   :4072                      Max.   :2016-12-30                     
+##  Werksnummer_OEM    Motor_Benennung     Motor_Typ        
+##  Length:3204104     Length:3204104     Length:3204104    
+##  Class :character   Class :character   Class :character  
+##  Mode  :character   Mode  :character   Mode  :character  
+##                                                          
+##                                                          
+## </code></pre>
+</div>
+<div id="exportieren-der-datensatz" class="section level2">
+<h2><span class="header-section-number">3.8</span> Exportieren der Datensatz</h2>
+<pre class="r"><code>save(Datensatz_Final,file = &quot;VariantData.RData&quot;)</code></pre>
 </div>
 </div>
 <div id="auswertung" class="section level1">

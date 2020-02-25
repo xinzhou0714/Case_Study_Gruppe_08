@@ -1149,7 +1149,8 @@ str(Abbildung_Motor_zu_Fahrzeug_alle)
 Datensatz_Halb_Final<-Fahrzeug_Fehler_komplett%>%
   dplyr::inner_join(Fahrzeug_Produktionsdatum,by="ID_Fahrzeug")%>%
   dplyr::left_join(Fahrzeuge_Lebensdauer,by="ID_Fahrzeug")%>%
-  dplyr::left_join(Abbildung_Motor_zu_Fahrzeug_alle,by="ID_Fahrzeug")
+  dplyr::left_join(Abbildung_Motor_zu_Fahrzeug_alle,by="ID_Fahrzeug")%>%
+  dplyr::left_join(Zulassungen_alle_Fahrzeuge,by=c("ID_Fahrzeug"="IDNummer"))
 
 str(Datensatz_Halb_Final)
 
@@ -1169,22 +1170,78 @@ Abbildung_Typ_Benennung_Motor<-data.table(Motor_Benennung,Motor_Typ)
 
 Datensatz_Final<-Datensatz_Halb_Final%>%
   dplyr::mutate(Fahrzeug_Typ=str_sub(ID_Fahrzeug,1,2))%>%
-#  dplyr::mutate(Fahrzeug_Typ=as.factor(Fahrzeug_Typ))%>%
-  
   dplyr::mutate(Werksnummer_OEM=str_sub(ID_Fahrzeug,6,7))%>%
-#  dplyr::mutate(Werksnummer_OEM=as.factor(Werksnummer_OEM))%>%
-  
   dplyr::mutate(Motor_Benennung=str_sub(ID_Motor,1,5))%>%
   dplyr::left_join(Abbildung_Typ_Benennung_Motor,by="Motor_Benennung")
-#  dplyr::mutate(Motor_Typ=as.factor(Motor_Typ))
 
 
-save(Datensatz_Final,file = "VariantData_str.RData")
+
+
+
+
+```
+## Nachprüfung der Datensatz
+
+Die Datentyp von Variablen nachprüfen.
+
+```{r message=FALSE, warning=FALSE}
+# die  Datentype sind  in Ordnung
+str(Datensatz_Final)
+```
+
+Beständigen, ob der Datensatz vollständig ist . und die NA-Wert treten auffällig in zwei Spalten:
+
+- Fehlerhaft_Datum
+
+- Lebensdauer
+
+Für `NA`s in Variable `Lebensdauer` sieht es  gut aus,weil die Anzahl von `NA` ist identisch wie Anzahl von  fehlerfreie Fahrzeuge. Aber es wäre besser , der Variable `Lebensdauer` Werte zuordnen, die  minimale zensierte Dauer (in Tag) bedeutet, nählich zeitliche Differenz zwischen Zulassung und Heute, weil wir so angenommen, dass die Datensätze im Datenbank ist immer aktuell. Wir haben es auch angemerkt, dass Negativ Werte in Variable `Lebensdauer` existieren.Dieses Problem beruhen auf die Tatsache,dass Fehler aus Motoren oder Einzelteilen  schon vor Zulassungsdatum markiert(zensiert) wurden. Wir können die Negative Werte von `Lebensdauer` einfach auf Null setzen. 
+
+Für `NA`s in Variable `Fehlerhaft_Datum` sieht es  gut aus,weil die Anzahl von `NA` ist identisch wie Anzahl von  fehlerhaften Fahrzeuge. 
+
+```{r message=FALSE, warning=FALSE}
+#es gibt  NA Werte in Datensatz 
+anyNA(Datensatz_Final)
+summary(Datensatz_Final)
+
+table(as.character(Datensatz_Final$Fehlerhaft))
+
+#Negative Werte von `Lebensdauer` einfach auf Null setzen.
+Datensatz_Final$Lebensdauer[which(Datensatz_Final$Lebensdauer<=0)]<-0
+
+#NA-Wert von `Lebensdauer` mit zensierte Dauer nachfüllen
+Datensatz_Final<-Datensatz_Final%>%
+  dplyr::mutate(Lebensdauer=if_else(is.na(Lebensdauer),time_length(interval(Zulassung,as_date(now())),unit = "day"),Lebensdauer))
+
+# Datensatz ist bis jetzt entgültig sauber
+summary(Datensatz_Final)
 
 ```
 
 
+
+
+```{r message=FALSE, warning=FALSE}
+
+
+
+
+```
+
+
+## Exportieren der Datensatz
+```{r message=FALSE, warning=FALSE}
+save(Datensatz_Final,file = "VariantData.RData")
+
+```
+
+
+
+
 # Auswertung
+
+
+
 
 
 # Ergebnis
