@@ -964,9 +964,16 @@ b_resultmarke <- summary(bfahr$Lebensdauer_in_Days)
 
 ```{r}
 #warum ein negativer Wert in lebensdauer fahrzeugtyp 11.
+#speichern
+
+save(Final_Datensatz,file = "Data_Gruppe_08.RData")
 ```
     
+```{r}
+#laden.
 
+load(file = "Data_Gruppe_08.RData")
+```
 
 
 # Ergebnis
