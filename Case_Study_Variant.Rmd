@@ -1240,13 +1240,63 @@ save(Datensatz_Final,file = "VariantData.RData")
 
 # Auswertung
 
+## Balkendiagramm
 
+
+```{r message=FALSE, warning=FALSE}
+
+Data_Balken<-Datensatz_Final%>%
+  dplyr::select(Fehlerhaft,Fahrzeug_Typ,Motor_Typ)%>%
+  dplyr::group_by(Fahrzeug_Typ,Motor_Typ)%>%
+  dplyr::summarise(n=n(),f_rate=sum(Fehlerhaft==TRUE)/n)%>%
+  tidyr::spread(Motor_Typ,f_rate)
+
+
+p <- plot_ly(Data_Balken, x = ~Fahrzeug_Typ, y = ~Benzinmotor, type = 'bar', name = 'Benzinmotor') %>%
+  add_trace(y = ~Dieselmotor, name = 'Dieselmotor') %>%
+  layout(yaxis = list(title = 'Fehlerhäufigkeit'), barmode = 'group')
+
+p
+
+```
+
+Wie in Balkendiagramm gezeigt,dass die Fehlerhäufigkeit von Dieselauto für aller Fahrzeugtyp(11,12,21,22) immer relativ gering als von  Benzinauto sind.
+
+
+
+
+## Boxplot
+
+```{r message=FALSE, warning=FALSE}
+
+
+Data_Boxplot<-Datensatz_Final%>%
+  dplyr::filter(Fehlerhaft==TRUE)%>%
+  dplyr::select(Lebensdauer,Fahrzeug_Typ,Motor_Typ)
+
+fig <- plot_ly(Data_Boxplot, x = ~Fahrzeug_Typ, y = ~Lebensdauer, color = ~Motor_Typ, type = "box")%>%
+  layout(boxmode = "group")
+
+
+fig
+
+```
+
+
+We betrachten alle ausgefallene Fahrzeuge in Boxplot.  Hier ist der `Lebensdauer` in y-Achse genau die Zeitinterval zwischen Zulassungsdatum und Fehlerhaft_datum. `Fehlerhaft_datum` beziehen sich auf die Datum,wann `Einzelteilen` in Motor, `Motor` oder `Fahrzeug` selbst fehlerhalt markiert.Das Datum ist ein frühestes von solchen drei Ebenen. 
+
+Bei Fahrzeugtyp 11 und 12 weisen die Verteilungen von  Lebensdauer zwischen Benzinauto und Dieselauto kein merklichen Unterschied auf.
+Aber manche Beizinauto haben schon Mängeln bevor Zulassungsdatum, wegen Fehlerauswirkung aus Motoren und Einzelteilen.
+
+Bei Fahrzeugtyp 21 und 22 sind die Median von Lebensdauer für Dieselmotorbetriebene Fahrzeuge größer die für Benzinmotorbetriebene Fahrzeuge.
+
+General gesagt,Dieselmotor-betriebene Fahrzeuge gewinnt leicht Übermacht über Langlebigkeit nach Boxplot. Diesen Graphik ist nicht intuitiv.
 
 
 
 # Ergebnis
 
-
+Zum Schluss können wir zusammenfassen, dass Dieselmotor-betriebene Fahrzeuge mit größerer Wahrscheinlichkeit Langlebigkeit in vergleich zu Benzinmotor-betriebene Fahrzeugen
 
 
 
