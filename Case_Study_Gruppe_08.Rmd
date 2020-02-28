@@ -1231,7 +1231,7 @@ summary(Datensatz_Final)
 
 ## Exportieren der Datensatz
 ```{r message=FALSE, warning=FALSE}
-save(Datensatz_Final,file = "VariantData.RData")
+save(Datensatz_Final,file = "Finaler_Datensatz_08.RData")
 
 ```
 
