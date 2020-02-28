@@ -1,0 +1,667 @@
+---
+title: "Allgemeine_Aufgaben_Gruppe_08"
+author: "Brayan Orjuela Pico, Chen Xue,  Tobias Königer, Xin Zhou,  Yue Zhang  "
+output: 
+  html_document:
+    toc: true
+    toc_depth: 4
+    theme: united
+    number_sections: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Vorbearbeitung
+
+##  Laden aller Packages
+
+```{r Packages, message=FALSE, warning=FALSE}
+
+if(!require(pacman)) {
+  install.packages("pacman")
+  require(pacman)
+}
+
+if(!require(janitor)) {
+  install.packages("janitor")
+  require(janitor)
+}
+
+p_load(tidyverse,  
+       data.table,   
+       janitor,
+       fitdistrplus,
+       lubridate   # für  Bearbeitung von  Zeit und  Datum
+       )
+
+
+
+```
+
+## Code für Aufgabe 1
+
+### Importieren des Rohdatensatzes
+
+```{r Importieren, message=FALSE, warning=FALSE}
+
+# Komponente_K7.csv importieren  
+# und benennen als  Ausliefergung_K7_roh
+Ausliefergung_K7_roh <- fread("./Data/Logistikverzug/Komponente_K7.csv")
+
+# Logistikverzug_K7.csv importieren 
+# und benennen als  Eingang_K7_roh
+Eingang_K7_roh<- fread("./Data/Logistikverzug/Logistikverzug_K7.csv")
+
+```
+### Information des Rohdatensatzes
+
+- Produkte kommen aus verschiedene Werkstatt von Lieferanten
+
+- `IDNummer` ist Primary-key und beinhalten Information von Werkstatt
+
+- `Produktionsdatum` ist die Auslieferungsdatum, aber in Format von `character`
+
+```{r message=FALSE, warning=FALSE}
+#summary Ausliefergung_K7_roh
+summary(Ausliefergung_K7_roh)
+str(Ausliefergung_K7_roh)
+
+```
+- Produkte kommen aus verschiedene Werkstatt von Lieferanten
+
+- `IDNummer` ist Primary-key und beinhalten Information von Werkstatt
+
+- `Wareneingang` ist die Eingangsdatum, aber in Format von `character`
+
+```{r message=FALSE, warning=FALSE}
+#summary  Eingang_K7_roh
+summary(Eingang_K7_roh)
+str(Eingang_K7_roh)
+```
+
+### Aufbreitung des Rohdatensatzes
+
+>Sie können davon ausgehen, dass der Hersteller das Teil am Produktionstag in den Warenausgang übergibt. 
+
+Deswegen `Produktionsdatum` ist das Auslieferungsdatum.
+
+Die Formel zur Berechnung des Logistikverzugs lautet:
+
+$$
+Logistikverzug=Eingangsdatum -Auslieferungsdatum
+$$
+Die Berechung ist nur sinnvoll,wenn  `Eingangsdatum` und `Auslieferungsdatum` gleichzeitig vorhanden (kein `NA`) sein.Deswegen nur gemeinsame Einträge in beide Tabelle werden berücksichtigt.Dementsprechend ist die Funktion  `inner_join()` zu verwenden.
+
+Und der Logistikverzug sollen auf bestimme Werkstatt beziehen.
+
+
+```{r message=FALSE, warning=FALSE}
+
+Logistik<-dplyr::inner_join(Ausliefergung_K7_roh,Eingang_K7_roh,by="IDNummer")%>%
+  dplyr::select(IDNummer,Produktionsdatum,Wareneingang)%>%
+  dplyr::rename(Auslieferungsdatum=Produktionsdatum,Eingangsdatum=Wareneingang)%>%
+  dplyr::mutate(Auslieferungsdatum=as_date(Auslieferungsdatum),
+                Eingangsdatum=as_date(Eingangsdatum))%>%
+  dplyr::mutate(Werkstatt=str_sub(IDNummer,8,11))
+
+#Alle Produkte kommen aus zwei Werkstatt 1132 und 1142
+table(Logistik$Werkstatt)
+
+```
+
+### Ermittlung des Logistikverzug
+
+```{r message=FALSE, warning=FALSE}
+Logistik_mit_Verzug<-Logistik%>%
+  dplyr::mutate(Logistikverzug=time_length(interval(Auslieferungsdatum,Eingangsdatum),unit = "day"))%>%
+  dplyr::mutate(Logistikverzug=as.integer(Logistikverzug))
+
+#Logistikverzug aus Werkstatt 1132
+Verzug_1132<-Logistik_mit_Verzug%>%
+  dplyr::filter(Werkstatt=="1132")
+
+#Logistikverzug aus Werkstatt 1142
+Verzug_1142<-Logistik_mit_Verzug%>%
+  dplyr::filter(Werkstatt=="1142")
+```
+
+### Test der Wahrscheilichkeitsverteilung
+
+
+ 
+#### Vermutung der Verteilgung aus Daten
+
+```{r distribution1, message=FALSE, warning=FALSE}
+
+#Beobachtung der Verteilung der Logistikverzugstag aus dem Werk 1132 
+ggplot(Verzug_1132,aes(x=Logistikverzug))+
+  geom_histogram(breaks=seq(0, 20, by = 1), 
+                 col="red", 
+                 fill="green", 
+                 alpha = .2) +
+  
+  scale_x_continuous(breaks = seq(0, 20, 1)) +
+  geom_text(aes(label=as.character(..count..)),stat="bin", binwidth = 1, vjust=-0.5) 
+
+
+```
+```{r distribution2, message=FALSE, warning=FALSE}
+
+#Beobachtung der Verteilung der Logistikverzugstag aus dem Werk 1132 
+ggplot(Verzug_1142,aes(x=Logistikverzug))+
+  geom_histogram(breaks=seq(0, 20, by = 1), 
+                 col="red", 
+                 fill="green", 
+                 alpha = .2) +
+  
+  scale_x_continuous(breaks = seq(0, 20, 1)) +
+  geom_text(aes(label=as.character(..count..)),stat="bin", binwidth = 1, vjust=-0.5) 
+
+
+```
+
+Um es entscheiden, welche Verteilungsmodell zu testen, verwenden wir die Funktion `fitdistrplus::descdist ()` aus der Package [fitdistrplus](https://cran.r-project.org/web/packages/fitdistrplus/vignettes/paper2JSS.pdf )
+
+
+```{r Fitting-1132, message=FALSE, warning=FALSE}
+
+delayTime_1132 <- Verzug_1132$Logistikverzug
+# mögliche Modell für Logistikverzug aus Werkstatt 1132
+descdist(delayTime_1132, discrete = FALSE, boot = NULL, method = "unbiased",
+         graph = TRUE, 
+         obs.col = "darkblue", 
+         obs.pch = 16, 
+         boot.col = "orange")
+
+```
+```{r Fitting-1142, message=FALSE, warning=FALSE}
+
+
+delayTime_1142 <- Verzug_1142$Logistikverzug
+# mögliche Modell für Logistikverzug aus Werkstatt 1142
+descdist(delayTime_1142, discrete = FALSE, boot = NULL, method = "unbiased",
+         graph = TRUE, 
+         obs.col = "darkblue", 
+         obs.pch = 16, 
+         boot.col = "orange")
+
+```
+
+Gemäß dem  beidem Diagramm sind die Verteilungen dem Observationspunkt am nächsten liegen, lognormal, gamma, und die Weibull-Verteilung. Deswegen untersuchen wir die lognormal, gamma, und die Weibull-Verteilung
+
+#### Einschätzung der Parameter für bestimmt Verteilungsmodell
+
+Anpassung für Logistikverzug aus Wertstatt 1132
+
+```{r Parameter-1132, message=FALSE, warning=FALSE}
+## Anpassung der lognormalverteilung 
+lognormal_fit_1132 <- fitdistr(delayTime_1132, densfun = "lognormal")
+lognormal_fit_1132
+
+## Anpassung der Gammaverteilung 
+gamma_fit_1132 <- fitdistr(delayTime_1132, densfun = "gamma")
+gamma_fit_1132
+## Anpassung der Weibullverteilung 
+weibull_fit_1132 <- fitdistr(delayTime_1132, densfun = "weibull", lower = 0)
+weibull_fit_1132
+
+xs <- seq(1, 20, 0.1)
+
+# Berechnung der Wahrscheinlichkeitsdichte 
+den_gamma_1132 <- dgamma(xs, 
+                         shape = gamma_fit_1132$estimate["shape"],
+                         rate = gamma_fit_1132$estimate["rate"])
+den_lnorm_1132 <-  dlnorm(xs, 
+                          meanlog = lognormal_fit_1132$estimate["meanlog"],
+                          lognormal_fit_1132$estimate["sdlog"])
+den_weibull_1132 <- dweibull(xs, 
+                             shape = weibull_fit_1132$estimate["shape"],
+                             weibull_fit_1132$estimate["scale"])
+
+
+dat_1132 <- data.frame(x=xs, lnorm=den_lnorm_1132, gamma = den_gamma_1132, weibull = den_weibull_1132)%>%
+  gather(key = "Anpassung", value = "den", lnorm, gamma, weibull)
+
+
+
+
+Darstellung_1132<-ggplot(Verzug_1132,aes(x=Logistikverzug))+
+    geom_histogram(aes(y=..density..), breaks=seq(0, 20, by = 1), 
+                   col="gray", 
+                   closed = "left",
+                   fill="green", 
+                   alpha = .2) +
+    scale_x_continuous(breaks = seq(0, 20, 1)) +
+    geom_line(data = dat_1132, aes(x=x, y=den, group = Anpassung, color = Anpassung)) +
+    ggtitle("Anpassung der  Verteilung  (Produkte aus Werk 1132)") +
+    xlab("Logistikverzug(Tag/en)") +
+    ylab("Wahrscheinlichkeit")
+
+Darstellung_1132
+
+```
+Anpassung für Logistikverzug aus Wertstatt 1142
+
+
+```{r Parameter-1142, message=FALSE, warning=FALSE}
+
+
+## Anpassung der lognormalverteilung 
+lognormal_fit_1142 <- fitdistr(delayTime_1142, densfun = "lognormal")
+lognormal_fit_1142
+## Anpassung der Gammaverteilung 
+gamma_fit_1142 <- fitdistr(delayTime_1142, densfun = "gamma")
+gamma_fit_1142
+## Anpassung der Weibullverteilung 
+weibull_fit_1142 <- fitdistr(delayTime_1142, densfun = "weibull", lower = 0)
+weibull_fit_1142
+
+xs <- seq(1, 20, 0.1)
+
+# Berechnung der Wahrscheinlichkeitsdichte 
+den_gamma_1142 <- dgamma(xs, 
+                    shape = gamma_fit_1142$estimate["shape"], 
+                    rate = gamma_fit_1142$estimate["rate"])
+den_lnorm_1142 <-  dlnorm(xs, 
+                     meanlog = lognormal_fit_1142$estimate["meanlog"],
+                     lognormal_fit_1142$estimate["sdlog"])
+den_weibull_1142 <- dweibull(xs, 
+                        shape = weibull_fit_1142$estimate["shape"], 
+                        weibull_fit_1142$estimate["scale"])
+
+
+dat_1142 <- data.frame(x=xs, lnorm=den_lnorm_1142, gamma = den_gamma_1142, weibull = den_weibull_1142)%>%
+  gather(key = "Anpassung", value = "den", lnorm, gamma, weibull)
+
+
+
+
+Darstellung_1142<-ggplot(Verzug_1142,aes(x=Logistikverzug))+
+    geom_histogram(aes(y=..density..), breaks=seq(0, 20, by = 1), 
+                   col="gray", 
+                   closed = "left",
+                   fill="green", 
+                   alpha = .2) +
+    scale_x_continuous(breaks = seq(0, 20, 1)) +
+    geom_line(data = dat_1142, aes(x=x, y=den, group =Anpassung, color = Anpassung))+
+    ggtitle( "Anpassung der  Verteilung  (Produkte aus Werk 1142)") +
+    xlab("Logistikverzug(Tag/en)") +
+    ylab("Wahrscheinlichkeit")
+Darstellung_1142
+
+```
+
+
+
+#### Auswertung die Anpassungsqualität
+
+Wie in der Abbildung gezeigt, passen die Lognormalverteilungen und Gammaverteilungen besser zu den Daten. Der Chi-Quadrat-Test wurde verwendet, um die Anpassung der beiden Verteilungen zu testen.
+
+
+```{r Fit-1132-test, message=FALSE, warning=FALSE}
+
+
+# Fit-Test für Lognorm- und Gamma-Verteilungen  
+# bezogen auf Werkstatt 1132
+
+day_sn_1132 <- seq(min(delayTime_1132), max(delayTime_1132))
+
+
+# Berechnung der theoretischen Tage unter Lognormverteilung 
+day_lognorm_dist_1132 <- sapply(day_sn_1132, function(x) {
+    p <-plnorm(x+1, 
+                meanlog = lognormal_fit_1132$estimate["meanlog"], 
+                lognormal_fit_1132$estimate["sdlog"]) - 
+        plnorm(x, 
+               meanlog = lognormal_fit_1132$estimate["meanlog"], 
+               lognormal_fit_1132$estimate["sdlog"])
+     
+    round(p * length(delayTime_1132))   
+})
+
+names(day_lognorm_dist_1132) <- as.character(day_sn_1132)
+
+
+# Berechnung der theoretischen Tage unter Gammaverteilung
+day_gamma_dist_1132 <- sapply(day_sn_1132, function(x) {
+    p <-pgamma(x+1, 
+               shape = gamma_fit_1132$estimate["shape"], 
+               rate = gamma_fit_1132$estimate["rate"]) - 
+        pgamma(x, 
+               shape = gamma_fit_1132$estimate["shape"], 
+               rate = gamma_fit_1132$estimate["rate"])
+    
+    round(p * length(delayTime_1132))   
+})
+
+names(day_gamma_dist_1132) <- as.character(day_sn_1132)
+
+
+day_1132 <- table(Verzug_1132$Logistikverzug)
+
+day_1132
+day_lognorm_dist_1132
+day_gamma_dist_1132
+
+
+chisq.test(day_1132, day_lognorm_dist_1132)
+chisq.test(day_1132, day_gamma_dist_1132)
+
+
+```
+Aus den Testergebnissen können wir erkennen, dass der p-value nicht signifikant und der Unterschiede nicht groß sind, was darauf hinweist, dass beide Verteilungen zu den Daten passen können und die Gammaverteilung etwas besser als die Lognormalverteilung ist.
+
+```{r Fit-1142-test, message=FALSE, warning=FALSE}
+
+
+# Fit-Test für Lognorm- und Gamma-Verteilungen  
+# bezogen auf Werkstatt 1142
+
+day_sn_1142 <- seq(min(delayTime_1142), max(delayTime_1142))
+
+
+# Berechnung der theoretischen Tage unter Lognormverteilung 
+day_lognorm_dist_1142 <- sapply(day_sn_1142, function(x) {
+    p <-plnorm(x+1, 
+                meanlog = lognormal_fit_1142$estimate["meanlog"], 
+                lognormal_fit_1142$estimate["sdlog"]) - 
+        plnorm(x, 
+               meanlog = lognormal_fit_1142$estimate["meanlog"], 
+               lognormal_fit_1142$estimate["sdlog"])
+     
+    round(p * length(delayTime_1142))   
+})
+
+names(day_lognorm_dist_1142) <- as.character(day_sn_1142)
+
+
+# Berechnung der theoretischen Tage unter Gammaverteilung
+day_gamma_dist_1142 <- sapply(day_sn_1142, function(x) {
+    p <-pgamma(x+1, 
+               shape = gamma_fit_1142$estimate["shape"], 
+               rate = gamma_fit_1142$estimate["rate"]) - 
+        pgamma(x, 
+               shape = gamma_fit_1142$estimate["shape"], 
+               rate = gamma_fit_1142$estimate["rate"])
+    
+    round(p * length(delayTime_1142))   
+})
+
+names(day_gamma_dist_1142) <- as.character(day_sn_1142)
+
+
+day_1142 <- table(Verzug_1142$Logistikverzug)
+
+day_1142
+day_lognorm_dist_1142
+day_gamma_dist_1142
+
+
+chisq.test(day_1142, day_lognorm_dist_1142)
+chisq.test(day_1142, day_gamma_dist_1142)
+
+
+```
+
+Aus den Testergebnissen können wir erkennen, dass die p-values nicht signifikant sind, sondern fast gleich, was darauf hinweist, dass beide Verteilungen(Lognorm- und Gamma-Verteilungen ) zu den Daten passen können.
+
+### Code für Aufgabe 1b
+
+```{r aufgabe-1b, message=FALSE, warning=FALSE}
+
+Min_Verzug<-min(Logistik_mit_Verzug$Logistikverzug)
+Min_Verzug
+
+Max_Verzug<-max(Logistik_mit_Verzug$Logistikverzug)
+Max_Verzug
+```
+
+### Code für Aufgabe 1c
+```{r aufgabe-1c, message=FALSE, warning=FALSE}
+
+Mittel_Verzug<-mean(Logistik_mit_Verzug$Logistikverzug)
+Mittel_Verzug
+
+
+```
+
+
+## Code für Aufgabe 3
+
+### Ermittlung K7-Fahrzeug-Beziehung
+wir weiß nicht, mit wie viele K7_Komponent ein Fahrzeug ausrüsten darf. Deswegen betrachten wir alle Komponente von aller Fahrzeuge. Damit hat jede K7 eine eindeutige(einzige) Abbildung auf ein Fahrzeug.
+
+```{r mit-K7-ausgerüsteten, message=FALSE, warning=FALSE}
+#aller Komponent-Fahrzeug-Beziehung importieren
+Bestandteile_Fahrzeuge_OEM1_Typ11 <- read_delim("./Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM1_Typ11.csv",
+                                                ";", escape_double = FALSE, trim_ws = TRUE)
+Bestandteile_Fahrzeuge_OEM1_Typ12 <- read_delim("./Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM1_Typ12.csv",
+                                                ";", escape_double = FALSE, trim_ws = TRUE)
+Bestandteile_Fahrzeuge_OEM2_Typ21 <- read_delim("./Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM2_Typ21.csv",
+                                                ";", escape_double = FALSE, trim_ws = TRUE)
+Bestandteile_Fahrzeuge_OEM2_Typ22 <- read_delim("./Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM2_Typ22.csv",
+                                                ";", escape_double = FALSE, trim_ws = TRUE)
+
+#aller Komponent-Fahrzeug-Beziehung in eine Tabelle zusammensetzen
+
+Bestandteile_alle_Fahrzeuge<-dplyr::bind_rows(
+  Bestandteile_Fahrzeuge_OEM1_Typ11,
+  Bestandteile_Fahrzeuge_OEM1_Typ12,
+  Bestandteile_Fahrzeuge_OEM2_Typ21,
+  Bestandteile_Fahrzeuge_OEM2_Typ22
+)
+str(Bestandteile_alle_Fahrzeuge)
+
+# Komponent-Fahrzeug-Beziehung anpassen
+
+Komponent_Fahrzeug_Beziehung<-Bestandteile_alle_Fahrzeuge%>%
+  tidyr::gather("ID_Karosserie","ID_Schaltung","ID_Sitze","ID_Motor",key="ID_Typ",value="ID_Komponent")
+
+
+str(Komponent_Fahrzeug_Beziehung)
+
+# Fahrzeug mit Komponent-K7 herausfinden
+K7_Fahrzeug_Beziehung<-Komponent_Fahrzeug_Beziehung%>%
+  dplyr::select(ID_Fahrzeug,ID_Komponent)%>%
+  tidyr::separate(ID_Komponent,
+                  into=c("Komponent_Benennung","Hersteller","Werk","Serien"),
+                  sep="-",
+                  remove = FALSE)%>%
+  dplyr::select(ID_Fahrzeug,ID_Komponent,Komponent_Benennung)%>%
+  dplyr::filter(Komponent_Benennung=="K7")%>%
+  dplyr::rename(ID_K7=ID_Komponent)%>%
+  dplyr::select(ID_Fahrzeug,ID_K7)
+
+
+# Anzahl der Fahrzeug mit Komponent-K7 
+# ist gleich wie
+# Anzahl der ausgelieferten Komponent-K7 
+nrow(K7_Fahrzeug_Beziehung)==nrow(Ausliefergung_K7_roh)
+
+```
+
+### Ermittlung aller in-Köln-zugelassenen Fahrzeuge 
+
+
+
+```{r in-Köln-zugelassenen, message=FALSE, warning=FALSE}
+#aller Zugelassene Fahrzeug importieren
+Zulassungen_alle_Fahrzeuge <- read_delim("./Data/Zulassungen/Zulassungen_alle_Fahrzeuge.csv",
+                                                ";", escape_double = FALSE, trim_ws = TRUE)
+
+str(Zulassungen_alle_Fahrzeuge)
+
+
+# Beziehung von Fahrzeug  und Gemeinde herausfinden
+
+Gemeinde_Fahrzeug_Beziehung<-Zulassungen_alle_Fahrzeuge%>%
+  dplyr::select(Gemeinden,IDNummer)%>%
+  dplyr::rename(ID_Fahrzeug=IDNummer)
+
+str(Gemeinde_Fahrzeug_Beziehung)
+
+# in-Köln-zugelassenen Fahrzeugee herausfinden
+# wir sind keine Deutsche, wir weiß nicht die genaue die erkundliche Unterteilung in Deutschland.
+# wir berücksichtigen nur die Gemeinde, die wortgenau als "KOELN" lautet  
+
+KOELN_Fahrzeug<-Gemeinde_Fahrzeug_Beziehung%>%
+  dplyr::filter(Gemeinden=="KOELN")
+
+
+
+```
+### Anzahl der Bedingung-erfüllte Komponenten  K7
+Bedingung-erfüllte KomponentenK7 muss zuerst in Fahrzeug ausgerüstet, und  das Fahrzeug muss gleichzeitig in-Köln-zugelassenen. Deswegen verwenden wir `inner_join()`
+
+
+
+```{r Bedingung-erfüllte, message=FALSE, warning=FALSE}
+#in diesem Tabelle ist die Anzahl von Einträgen genau wie die gesuchte Anzahl von K7,dieandeten in Fahrzeugen, die in Köln zugelassen wurden
+K7_In_KOELN<-inner_join(K7_Fahrzeug_Beziehung,KOELN_Fahrzeug,by="ID_Fahrzeug")
+
+```
+## Code für Aufgabe 4
+
+
+Der Datensatz `Zulassungen_alle_Fahrzeuge` wurde schon bei Bearbeitung von Aufgabe 3 importiert. 
+
+## Code für Aufgabe 6
+
+Die Beziehung zwischen Komponent und Fahrzeug `Komponent_Fahrzeug_Beziehung` und die Beziehung zwischen Gemeinden und Fahrzeug `Gemeinde_Fahrzeug_Beziehung` wurden schon bei Aufgabe 3 gekriegt.
+```{r Unfall, message=FALSE, warning=FALSE}
+# die Fahrzeug herausfinden
+ID_Unfall<-Komponent_Fahrzeug_Beziehung[
+  which(Komponent_Fahrzeug_Beziehung$ID_Komponent=="K4-112-1121-23"),]$ID_Fahrzeug
+
+# den Zulassungsort herausfinden
+Ort_Zulassung<-Gemeinde_Fahrzeug_Beziehung[
+  which(Gemeinde_Fahrzeug_Beziehung$ID_Fahrzeug==ID_Unfall),]$Gemeinden
+
+Ort_Zulassung
+
+```
+
+
+# Aufgabe 1
+
+> Logistik spielt in der Produktentwicklung der Automobilindustrie eine immer größer werdende Rolle. So müssen vom Lieferanten produzierte Teile zunächst zum OEM geliefert werden, bevor sie eingebaut werden können. Was auf den ersten Blick logisch erscheint, sollte für eine professionelle Organisation unbedingt näher analysiert werden. Erstellen Sie deshalb eine Verteilung für den Logistikverzug von Komponente „K7“. Nutzen Sie hierfür das Produktionsdatum aus dem Datensatz “Komponente_K7.csv” und das Wareneingangsdatum aus “Logistikverzug_K7.csv”. Sie können davon ausgehen, dass der Hersteller das Teil am Produktionstag in den Warenausgang übergibt. Erstellen Sie für die Modellbildung in R einen neuen Datensatz “Logistikverzug”, der die benötigten Informationen aus beiden Datensätzen enthält Erstellen Sie für die Modellbildung in R einen neuen Datensatz “Logistikverzug”, der die benötigten Informationen aus beiden Datensätzen enthält.
+
+
+
+## Frage a
+
+> Wie ist der Logistikverzug verteilt? Begründen Sie Ihre Auswahl und stellen Sie Ihre Vorgehensweise kurz dar.
+
+Logistikverzug ist Gamma- oder Lognormalverteilt.
+
+Begründung siehe [Test der Wahrscheilichkeitsverteilung](#test-der-wahrscheilichkeitsverteilung)
+
+Vorgehensweise:
+  1. Vermutung der mögliche Verteilungsmodell anhand `Cullen and Frey graph`
+  
+  2. Einschätzung der Parameter für bestimmt Verteilungsmodell anhand `Maximum-likelihood Fitting`
+  
+  3. Auswertung der Anpassungsqualität anhand `Chi-Quadrat-Test`
+
+## Frage b
+
+> Wie viel Zeit vergeht mindestens/höchstens zwischen Warenausgang und Wareneingang?
+
+Zwischen Warenausgang und Wareneingang vergehen mindestens `r Min_Verzug` Tage und maximal `r Max_Verzug` Tage.
+
+code siehe [code für aufgabe 1b](#code-für-aufgabe-1b)
+
+## Frage c
+
+> Bestimmen Sie den Mittelwert des Logistikverzugs.
+
+Der Mittelwert des Logistikverzgs beträgt `r Mittel_Verzug` Tage
+
+code siehe [code für aufgabe 1c](#code-für-aufgabe-1c)
+
+## Frage d
+
+> Stellen Sie die Verteilung in geeigneter Weise dar.
+
+
+```{r show_figure, message=FALSE, warning=FALSE}
+Darstellung_1132
+
+Darstellung_1142
+```
+
+# Aufgabe 2
+
+> Warum ist es sinnvoll, die Ihnen bereitgestellten Daten in separaten Dateien abzulegen und nicht alles in einer riesigen Tabelle abzuspeichern? Wie nennt sich das zugrunde liegende Datenbankkonzept?
+
+Dieses Datenbankkonzept heißt `Relationaler Datenbankansatz`.
+
+Gründe
+
+- **Leistungsfähigkeit** 
+
+  Einlesen einer riesigen Tabelle ist Zeitaufwandig. Nur kleiner Teil von Daten in der Tabelle ist für  Problemlösen relevant. Aber unrelevante Daten in einer riesigen Tabelle werden trotzdem für Bearbeitung in Arbeitsspeicher(RAM) eingelesen. `Relationaler Datenbankansatz` kann die Leistungsfähigkeit verbessern. Bei `Relationaler Datenbankansatz` ist Datenstruktur einfacher. Man kann gewünschte Daten in einer bestimmte Tabelle finden. 
+
+- **Ausfallsicherheit**
+
+  Bei `Relationaler Datenbankansatz` kann die Daten verteilt abgelegt werden. Jeder Server speichert  nur einen Teil von gesamter Daten. Fällt ein Server aus, ist nicht der gesamte Datenbestand betroffen. 
+
+
+- **Kosteneffizienz** 
+
+  Riesige Datensätze in einer einzige Tabelle erfordert z.B große kapazität von  Arbeitsspeicher oder Festplatte.
+
+
+- **Zuverlässigkeit** 
+
+  Bei `Relationaler Datenbankansatz`  gibt es noch Verknüpfung (`Primary Key`) zwischen Tabelle.  NA-Werte in einer Tabelle könnten  eventuell anhand die Beziehung mit anderen Tabellen vervöllständigt oder nachgeprüft werden.
+
+
+# Aufgabe 3
+
+> Wie viele der Komponenten K7 landeten in Fahrzeugen, die in Köln zugelassen wurden?
+
+`r nrow(K7_In_KOELN)` der Komponenten K7 landeten in Fahrzeugen, die in Köln zugelassen wurden
+
+
+# Aufgabe 4
+
+> Welche Datentypen haben die Attribute der Zulassungstabelle „Zulassungen_aller_Fahrzeuge“?
+
+
+```{r Datentypen, message=FALSE, warning=FALSE}
+str(Zulassungen_alle_Fahrzeuge)
+
+
+```
+| Attribute   | Datentyp           |
+| :---------- | :----------------- |
+| `X1`        | num --> `numeric`  |
+| `IDNummer`  | chr--> `character` |
+| `Gemeinden` | chr--> `character` |
+| `Zulassung` | Date--> `Date`     |
+
+# Aufgabe 5
+
+>Sie wollen Ihre Applikation veröffentlichen. Warum ist es gerade dann sinnvoll die Datensätze auf der Datenbank eines Servers abzulegen? Warum können Sie die Datensätze nicht auf Ihrem persönlichen Computer ablegen? Nennen Sie eine einfache Möglichkeit Ihre Applikation ihrem Kundenkreis zugänglich zu machen?
+
+Gründe:
+Ein Server wird normalerweise mit statische IPv4-Addresse vergeben. Über Internet sind die Datensätze auf Server immer für jeden Benutzer zugreifbar. Für PC ist die IPv4-Addresse dynamisch vergeben. Die Shiny-App auf deinem PC ist nur den Benutzer in glechem Subnetz sichtbar.
+
+Ein Server ist meistens mehr Leistungsfähig als ein PC. Riesige Anzahl von gleichzeitigem Besuch auf die App  wäre lediglich eine relative geringe Belastung für einen Server. Aber PC vielleicht kann hohe Belastung nicht tragen.
+
+Einfache Möglichkeit:
+
+Unser Unternehmen können  eine offentliche IPv4-Addresse für eine Computer beantragen. Über diese IPv4-Addresse ist diese Computer von allen Kunden per Internet zugreifbar. Laufen deine Shiny-App an diesem Computer, und deine Kunden mitteilen,auf welche IPv4-Addresse und Portnummer die App veröffentlicht wurde.
+
+
+# Aufgabe 6
+
+> Am 11.08.2010 hat es einen Unfall mit Fahrerflucht gegeben. Von dem Kennzeichen des Unfallwagens fehlt jede Spur. Die Polizei bittet Sie um Hilfe, da Sie für das Kraftfahrtbundesamt arbeiten und fragt, wo das Fahrzeug mit der Karosseriebauteilnummer „K4-112-1121-23“ zugelassen wurde.
+
+
+Der Fahzeug wurde in Gemeinde `r Ort_Zulassung` zugelassen.
+
+
