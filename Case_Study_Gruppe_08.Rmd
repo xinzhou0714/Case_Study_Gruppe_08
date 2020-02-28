@@ -1,7 +1,6 @@
 ---
 title: "Case_Study_Gruppe_08"
 author: "Brayan Orjuela Pico, Chen Xue,  Tobias Königer, Xin Zhou,  Yue Zhang"
-date: "März 1, 2020"
 output: 
   html_document:
     toc: true
@@ -1136,7 +1135,7 @@ summary(Fahrzeuge_Lebensdauer)
 
 ```
 
-## Intergration vorhandener Spalten
+## Integration vorhandener Spalten
 
 
 ```{r message=FALSE, warning=FALSE}
@@ -1221,12 +1220,7 @@ summary(Datensatz_Final)
 
 
 
-```{r message=FALSE, warning=FALSE}
 
-
-
-
-```
 
 
 ## Exportieren der Datensatz

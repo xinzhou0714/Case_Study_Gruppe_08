@@ -559,6 +559,7 @@ Logistikverzug ist Gamma- oder Lognormalverteilt.
 Begründung siehe [Test der Wahrscheilichkeitsverteilung](#test-der-wahrscheilichkeitsverteilung)
 
 Vorgehensweise:
+
   1. Vermutung der mögliche Verteilungsmodell anhand `Cullen and Frey graph`
   
   2. Einschätzung der Parameter für bestimmt Verteilungsmodell anhand `Maximum-likelihood Fitting`
@@ -591,6 +592,8 @@ Darstellung_1132
 
 Darstellung_1142
 ```
+
+code siehe [Einschätzung der Parameter für bestimmt Verteilungsmodell](#einschätzung-der-parameter-für-bestimmt-verteilungsmodell)
 
 # Aufgabe 2
 
@@ -625,6 +628,7 @@ Gründe
 
 `r nrow(K7_In_KOELN)` der Komponenten K7 landeten in Fahrzeugen, die in Köln zugelassen wurden
 
+Code siehe [Code für Aufgabe 3](#code-für-aufgabe-3)
 
 # Aufgabe 4
 
@@ -642,6 +646,8 @@ str(Zulassungen_alle_Fahrzeuge)
 | `IDNummer`  | chr--> `character` |
 | `Gemeinden` | chr--> `character` |
 | `Zulassung` | Date--> `Date`     |
+
+Code siehe [Code für Aufgabe 4](#code-für-aufgabe-4)
 
 # Aufgabe 5
 
@@ -664,4 +670,4 @@ Unser Unternehmen können  eine offentliche IPv4-Addresse für eine Computer bea
 
 Der Fahzeug wurde in Gemeinde `r Ort_Zulassung` zugelassen.
 
-
+code siehe [Code für Aufgabe 6](#code-für-aufgabe-6)
