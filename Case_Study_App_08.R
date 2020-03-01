@@ -22,7 +22,15 @@ if(!require(tidyverse)){
 }
 
 
+if(!require(survival)) {
+  install.packages("survival")
+  require(survival)
+}
 
+if(!require(survminer)) {
+  install.packages("survminer")
+  require(survminer)
+}
 
 #####################################################################
 ###Finale Datensatz laden
@@ -42,7 +50,136 @@ maxDay<-max(Datensatz_Final$Produktionsdatum)
 #####################################################################
 ###globale Funktion
 #####################################################################
+#use a helper ggplot function written by Edwin Thoen to plot pretty survival distributions in R.
 
+#code source:
+#           https://plot.ly/python/v3/ipython-notebooks/survival-analysis-r-vs-python/#using-r
+
+ggsurv <- function(s, CI = 'def', plot.cens = T, surv.col = 'gg.def',
+                   cens.col = 'red', lty.est = 1, lty.ci = 2,
+                   cens.shape = 3, back.white = F, xlab = 'Time',
+                   ylab = 'Survival', main = ''){
+  
+  library(ggplot2)
+  strata <- ifelse(is.null(s$strata) ==T, 1, length(s$strata))
+  stopifnot(length(surv.col) == 1 | length(surv.col) == strata)
+  stopifnot(length(lty.est) == 1 | length(lty.est) == strata)
+  
+  ggsurv.s <- function(s, CI = 'def', plot.cens = T, surv.col = 'gg.def',
+                       cens.col = 'red', lty.est = 1, lty.ci = 2,
+                       cens.shape = 3, back.white = F, xlab = 'Time',
+                       ylab = 'Survival', main = ''){
+    
+    dat <- data.frame(time = c(0, s$time),
+                      surv = c(1, s$surv),
+                      up = c(1, s$upper),
+                      low = c(1, s$lower),
+                      cens = c(0, s$n.censor))
+    dat.cens <- subset(dat, cens != 0)
+    
+    col <- ifelse(surv.col == 'gg.def', 'black', surv.col)
+    
+    pl <- ggplot(dat, aes(x = time, y = surv)) +
+      xlab(xlab) + ylab(ylab) + ggtitle(main) +
+      geom_step(col = col, lty = lty.est)
+    
+    pl <- if(CI == T | CI == 'def') {
+      pl + geom_step(aes(y = up), color = col, lty = lty.ci) +
+        geom_step(aes(y = low), color = col, lty = lty.ci)
+    } else (pl)
+    
+    pl <- if(plot.cens == T & length(dat.cens) > 0){
+      pl + geom_point(data = dat.cens, aes(y = surv), shape = cens.shape,
+                      col = cens.col)
+    } else if (plot.cens == T & length(dat.cens) == 0){
+      stop ('There are no censored observations')
+    } else(pl)
+    
+    pl <- if(back.white == T) {pl + theme_bw()
+    } else (pl)
+    pl
+  }
+  
+  ggsurv.m <- function(s, CI = 'def', plot.cens = T, surv.col = 'gg.def',
+                       cens.col = 'red', lty.est = 1, lty.ci = 2,
+                       cens.shape = 3, back.white = F, xlab = 'Time',
+                       ylab = 'Survival', main = '') {
+    n <- s$strata
+    
+    groups <- factor(unlist(strsplit(names
+                                     (s$strata), '='))[seq(2, 2*strata, by = 2)])
+    gr.name <-  unlist(strsplit(names(s$strata), '='))[1]
+    gr.df <- vector('list', strata)
+    ind <- vector('list', strata)
+    n.ind <- c(0,n); n.ind <- cumsum(n.ind)
+    for(i in 1:strata) ind[[i]] <- (n.ind[i]+1):n.ind[i+1]
+    
+    for(i in 1:strata){
+      gr.df[[i]] <- data.frame(
+        time = c(0, s$time[ ind[[i]] ]),
+        surv = c(1, s$surv[ ind[[i]] ]),
+        up = c(1, s$upper[ ind[[i]] ]),
+        low = c(1, s$lower[ ind[[i]] ]),
+        cens = c(0, s$n.censor[ ind[[i]] ]),
+        group = rep(groups[i], n[i] + 1))
+    }
+    
+    dat <- do.call(rbind, gr.df)
+    dat.cens <- subset(dat, cens != 0)
+    
+    pl <- ggplot(dat, aes(x = time, y = surv, group = group)) +
+      xlab(xlab) + ylab(ylab) + ggtitle(main) +
+      geom_step(aes(col = group, lty = group))
+    
+    col <- if(length(surv.col == 1)){
+      scale_colour_manual(name = gr.name, values = rep(surv.col, strata))
+    } else{
+      scale_colour_manual(name = gr.name, values = surv.col)
+    }
+    
+    pl <- if(surv.col[1] != 'gg.def'){
+      pl + col
+    } else {pl + scale_colour_discrete(name = gr.name)}
+    
+    line <- if(length(lty.est) == 1){
+      scale_linetype_manual(name = gr.name, values = rep(lty.est, strata))
+    } else {scale_linetype_manual(name = gr.name, values = lty.est)}
+    
+    pl <- pl + line
+    
+    pl <- if(CI == T) {
+      if(length(surv.col) > 1 && length(lty.est) > 1){
+        stop('Either surv.col or lty.est should be of length 1 in order
+             to plot 95% CI with multiple strata')
+      }else if((length(surv.col) > 1 | surv.col == 'gg.def')[1]){
+        pl + geom_step(aes(y = up, color = group), lty = lty.ci) +
+          geom_step(aes(y = low, color = group), lty = lty.ci)
+      } else{pl +  geom_step(aes(y = up, lty = group), col = surv.col) +
+          geom_step(aes(y = low,lty = group), col = surv.col)}
+    } else {pl}
+    
+    
+    pl <- if(plot.cens == T & length(dat.cens) > 0){
+      pl + geom_point(data = dat.cens, aes(y = surv), shape = cens.shape,
+                      col = cens.col)
+    } else if (plot.cens == T & length(dat.cens) == 0){
+      stop ('There are no censored observations')
+    } else(pl)
+    
+    pl <- if(back.white == T) {pl + theme_bw()
+    } else (pl)
+    pl
+  }
+  pl <- if(strata == 1) {ggsurv.s(s, CI , plot.cens, surv.col ,
+                                  cens.col, lty.est, lty.ci,
+                                  cens.shape, back.white, xlab,
+                                  ylab, main)
+  } else {ggsurv.m(s, CI, plot.cens, surv.col ,
+                   cens.col, lty.est, lty.ci,
+                   cens.shape, back.white, xlab,
+                   ylab, main)}
+  pl
+}
 
 #####################################################################
 ###header
@@ -61,7 +198,7 @@ header<-dashboardHeader(
 ###sidebar
 #####################################################################
 sidebar<-dashboardSidebar(
-  # zeitinterval für Produktionsdatum eingeben
+  # zeitinterval f眉r Produktionsdatum eingeben
   dateRangeInput("Days",
                  label = h3("Produktionsdatum "),
                  min = minDay,
@@ -95,7 +232,7 @@ body<-dashboardBody(
       id = "id_tabset",
       
       tabPanel(
-        title = "Fehlerhäufigkeit",
+        title = "Fehlerhäuufigkeit",
         id = "tab1",
         plotly::plotlyOutput("Balkendiagramm")
       ),
@@ -106,8 +243,13 @@ body<-dashboardBody(
         plotly::plotlyOutput("Boxplot")
       ),
       tabPanel(
-        title = "Datensatz",
+        title = "KaplanMeier",
         id = "tab3",
+        plotly::plotlyOutput("KaplanMeier")
+      ),
+      tabPanel(
+        title = "Datensatz",
+        id = "tab4",
         DT::DTOutput("data_to_show")
       )
       
@@ -174,7 +316,7 @@ server <- function(input, output) {
         
       plot_ly(Data_Balken, x = ~Fahrzeug_Typ, y = ~Benzinmotor, type = 'bar', name = 'Benzinmotor') %>%
         add_trace(y = ~Dieselmotor, name = 'Dieselmotor') %>%
-        layout(yaxis = list(title = 'Fehlerhäufigkeit'), barmode = 'group')
+        layout(yaxis = list(title = 'Fehlerh盲ufigkeit'), barmode = 'group')
 
       
     })
@@ -190,7 +332,21 @@ server <- function(input, output) {
       plot_ly(Data_Boxplot, x = ~Fahrzeug_Typ, y = ~Lebensdauer, color = ~Motor_Typ, type = "box")%>%
         layout(boxmode = "group")
     })
-    
+
+    #render KaplanMeier
+    output$KaplanMeier <- plotly::renderPlotly({
+      # Estimate the survivor function from this dataset via kaplan-meier.
+
+      #ggplot
+      p <- ggsurv(survfit(Surv(Lebensdauer, Fehlerhaft) ~ Motor_Typ, data = get_data_interested()),
+                  xlab = 'Zeit (in Tag)',
+                  ylab = 'Überlebenswahrscheinlichkeit',
+                  main='Kaplan-Meier estimate with 95% confidence bounds') + theme_bw()
+      #convert ggplot to plotly
+      pl<-ggplotly(p)
+      pl
+
+    })    
     
     #render kompletten Datensatz
     output$data_to_show <- DT::renderDT({
